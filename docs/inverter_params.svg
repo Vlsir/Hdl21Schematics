@@ -56,8 +56,8 @@
             <path d="M 16 8 L 16 24" class="hdl21-symbols" />
             <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
         </g>
-        <text transform="matrix(-1 0 0 1 -5 0)"  class="hdl21-labels">@nmos0</text>
-        <text transform="matrix(-1 0 0 1 -5 45)" class="hdl21-labels">@nmos(args)</text>
+        <text transform="matrix(-1 0 0 1 -5 0)"  class="hdl21-labels">@n0</text>
+        <text transform="matrix(-1 0 0 1 -5 45)" class="hdl21-labels">@Nmos(w=params.w, l=params.l)</text>
     </g>
     <g class="hdl21-instance" transform="matrix(-1 0 0 1 100 30)">
         <!-- <use  transform="matrix(1 0 0 1 0 0)"    href="#hdl21::primitives::pmos" /> -->
@@ -67,7 +67,7 @@
             <path d="M 6 12 L 12 8 L 6 4 Z M 6 20" class="hdl21-symbols" />
         </g>
         <text transform="matrix(-1 0 0 1 -5 0)"  class="hdl21-labels">@p0</text>
-        <text transform="matrix(-1 0 0 1 -5 45)" class="hdl21-labels">@pmos(args)</text>
+        <text transform="matrix(-1 0 0 1 -5 45)" class="hdl21-labels">@Pmos(w=params.w, l=params.l)</text>
     </g>
 
     <!-- Wires -->
