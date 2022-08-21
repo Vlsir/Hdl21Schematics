@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+        <!-- Styling for Symbol and Wire Elements -->
+        <style>
+        .hdl21-symbols {
+            fill: none;
+            stroke: grey;
+            stroke-opacity: 1;
+            stroke-miterlimit: 0;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 4px;
+            stroke-dashoffset: 0px;
+        }
+
+        .hdl21-labels {
+            fill: grey;
+            font-family: comic sans ms; /* We know, it's just too funny */
+            font-size: 16px;
+        }
+
+        .hdl21-wires {
+            fill: none;
+            stroke: magenta;
+            stroke-opacity: 1;
+            stroke-miterlimit: 0;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 4px;
+            stroke-dashoffset: 0px;
+        }
+        </style>
+
+        <!-- The Symbol Library -->
+        <g id="hdl21::primitives::nmos">
+            <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+            <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+            <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+        </g>
+
+    </defs> <!-- End Definitions -->
+    
+    <!-- Svg Schematic Content -->
+    
+        <g class="hdl21-instance" transform="matrix(1 0 0 1 500.5 386)">
+            <use  x="0" y="0"  href="#hdl21::primitives::nmos" />
+            <text x="5" y="0"  class="hdl21-labels">@nmos0</text>
+            <text x="5" y="45" class="hdl21-labels">@nmos(something)</text>
+        </g>
+
+</svg>
