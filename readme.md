@@ -11,6 +11,13 @@
   * Anyone with any computer can *read* their content. Including services like GitHub, GitLab, and any computer with a web browser. 
   * *Writing* their content requires some special software
 
+So this inverter is a valid schematic: 
+
+![inv](./docs/inverter.svg)
+
+And the same inverter with [OpenMoji's mind-blown emoji](https://openmoji.org/library/emoji-1F92F/) is also a valid schematic:
+
+![inv](./docs/inverter_mind_blown.svg)
 
 * SVG is an XML-based schema, and allows for semi-custom metadata attached to each element. This metadata, plus the structure of the document, is what makes an SVG a schematic. 
 * Probably have a convention to give them a sub-file-extension of `.sch.svg`. 
