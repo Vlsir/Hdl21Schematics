@@ -3,6 +3,11 @@
 
 (Maybe some intro about how & where schematics tend to be useful, and less than useful)
 
+The scheme, in 3 bullet points: 
+
+* 1. Schematics are SVGs
+* 2. There are no custom symbols, **and never will be**.
+* 3. Schematics are imported as Hdl `Generator`s
 
 ## 1. Schematics are SVGs
 
