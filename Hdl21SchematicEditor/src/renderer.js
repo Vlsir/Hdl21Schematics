@@ -4,19 +4,26 @@
  * Essentially the entirety of the schematic GUI, drawing logic, saving and loading logic. 
  */
 
+import { parse as svgparse } from 'svg-parser';
 import Two from 'two.js';
 import './index.css';
-// import something from './nmos.svg';
-// console.log(something);
+
+
+// The platform "abstraction". 
+// Eventually this will be a module and layer over Electron, VsCode, and however the browser is implemented.
+// For now its just a reference to the `window.electronAPI` object.
+const THE_PLATFORM = window.electronAPI;
 
 
 // Global stuff, at least for now 
+// The Two.js "draw-er", canvas, whatever they call it. 
 var two = new Two({
     // Lotta futzing with these options has found these two to be indispensible. 
     fullscreen: true,
     autostart: true,
     // Perhaps some day we can better understand what goes on with the others. 
     // Particularly when implementing resizing.
+    // 
     // fitted: true,
     // width: window.innerWidth,
     // height: window.innerHeight,
@@ -27,46 +34,26 @@ const the_nmos_symbol = document.querySelectorAll('div#the_nmos svg')[0];
 console.log(the_nmos_symbol);
 
 
-
-// var parser = new DOMParser();
-// var doc = parser.parseFromString(`
-// <div id="the_nmos">
-//   <svg>
-//     <g id="hdl21::nmos">
-//       <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32 "
-//         style="fill: none; stroke: rgb(0, 0, 0); stroke-opacity: 1; stroke-linecap: round; stroke-width: 4px; stroke-dashoffset: 0px;" />
-//       <path d="M 16 8 L 16 24"
-//         style="fill: none; stroke: rgb(0, 0, 0); stroke-opacity: 1; stroke-linecap: square; stroke-width: 4px; stroke-dashoffset: 0px;" />
-//       <path d="M 4 28 L -2 24 L 4 20 Z"
-//         style="fill: none; stroke: rgb(0, 0, 0); stroke-opacity: 1; stroke-miterlimit: 0; stroke-linecap: round; stroke-linejoin: round; stroke-width: 4px; stroke-dashoffset: 0px;" />
-//       <text x=10 y=40 class="heavy">@of</text>
-//       <text x=10 y=0 class="heavy">@name</text>
-//     </g>
-//   </svg>
-// </div>`, "text/html");
-// console.log(doc);
-// const the_nmos_symbol = doc.querySelectorAll('div#the_nmos svg')[0];
-// console.log(the_nmos_symbol);
-
-
-
 const TheSchSymbols = Object.freeze({
-    Port: Symbol("Port"),
-    Nmos4: Symbol("Nmos4"),
-    Pmos4: Symbol("Pmos4"),
+    Input: Symbol("Input"),
+    Output: Symbol("Output"),
+    Inout: Symbol("Inout"),
+    Nmos: Symbol("Nmos"),
+    Pmos: Symbol("Pmos"),
     Vsource2: Symbol("Vsource2"),
     Vsource4: Symbol("Vsource4"),
     Isource2: Symbol("Isource2"),
     Isource4: Symbol("Isource4"),
     Res2: Symbol("Res2"),
     Res3: Symbol("Res3"),
-    Res4: Symbol("Res4"),
     Cap2: Symbol("Cap2"),
     Cap3: Symbol("Cap3"),
-    Cap4: Symbol("Cap4"),
     Ind2: Symbol("Ind2"),
     Ind3: Symbol("Ind3"),
-    Ind4: Symbol("Ind4"),
+    Diode: Symbol("Diode"),
+    Diode3: Symbol("Diode3"),
+    Npn: Symbol("Npn"),
+    Pnp: Symbol("Pnp"),
 });
 
 
@@ -82,13 +69,90 @@ class Point {
     }
 }
 class Instance {
-    constructor(name, of, kind, loc, drawing) {
+    constructor(name, of, kind, loc, orientation, drawing) {
         this.name = name;
         this.of = of;
         this.kind = kind;
         this.loc = loc;
-        this.orientation = null; // FIXME! add
+        this.orientation = orientation;
         this.drawing = drawing;
+    }
+    // Create and set the `drawing`. 
+    draw = () => {
+
+        const nmos = two.interpret(the_nmos_symbol);
+        console.log(nmos);
+        // nmos.center();
+        nmos.visible = true;
+        // nmos.translation.set(two.width / 2, two.height / 2);
+        nmos.translation.set(this.loc.x, this.loc.y);
+
+
+
+
+        // Update the renderer in order to generate
+        // the SVG DOM Elements. Then bind the events
+        // to those elements directly.
+        two.update();
+
+
+        var highlighted = false;
+        var dragging = false;
+        var mouse = new Two.Vector();
+
+
+        function mousedown(e) {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            dragging = true;
+            var rect = nmos.getBoundingClientRect();
+            dragging = mouse.x > rect.left && mouse.x < rect.right
+                && mouse.y > rect.top && mouse.y < rect.bottom;
+            highlighted = !highlighted;
+            // nmos.stroke = 'rgb(150, 100, 255)';
+            if (highlighted) {
+                nmos.stroke = 'rgb(0, 0, 0)';
+            } else {
+                nmos.stroke = 'rgb(150, 100, 255)';
+            }
+            window.addEventListener('mousemove', mousemove, false);
+            window.addEventListener('mouseup', mouseup, false);
+        }
+
+        const mousemove = (e) => {
+            var dx = e.clientX - mouse.x;
+            var dy = e.clientY - mouse.y;
+            const scale = 1.0; // FIXME
+            // console.log((dx, dy));
+            // console.log(nmos.position);
+            if (dragging) {
+                // Snap to our grid
+                const snapped = nearestOnGrid(the_editor.ui_state.mouse_pos); // FIXME: move this!
+                nmos.position.x = snapped.x;
+                nmos.position.y = snapped.y;
+                this.loc = snapped;
+                console.log(nmos.position);
+            } else {
+                zui.translateSurface(dx, dy);
+            }
+            mouse.set(e.clientX, e.clientY);
+        }
+
+        function mouseup(e) {
+            highlighted = !highlighted;
+            if (highlighted) {
+                nmos.stroke = 'rgb(0, 0, 0)';
+            } else {
+                nmos.stroke = 'rgb(150, 100, 255)';
+            }
+            // nmos.stroke = 'rgb(0, 0, 0)';
+            window.removeEventListener('mousemove', mousemove, false);
+            window.removeEventListener('mouseup', mouseup, false);
+        }
+
+        nmos._renderer.elem.addEventListener('mousedown', mousedown, false);
+        this.drawing = nmos;
+
     }
     // Abort drawing an in-progress instance.
     abort = () => {
@@ -126,9 +190,19 @@ class Wire {
     }
 }
 class Schematic {
-    constructor() {
+    constructor(size) {
+        this.size = size || new Point(1600, 800);
         this.instances = [];
         this.wires = [];
+    }
+    // Draw all elements in the schematic.
+    draw = () => {
+        for (let instance of this.instances) {
+            instance.draw();
+        }
+        for (let wire of this.wires) {
+            // wire.draw(); // FIXME!
+        }
     }
 }
 
@@ -171,6 +245,15 @@ class UiState {
     }
 }
 
+// Given a `Point`, return the nearest grid point.
+const nearestOnGrid = loc /* Point */ => /* Point */ {
+    const grid_size = 10;
+    return new Point(
+        Math.round(loc.x / grid_size) * grid_size,
+        Math.round(loc.y / grid_size) * grid_size
+    );
+};
+
 // # Keyboard Inputs 
 // (That we care about)
 const Keys = Object.freeze({
@@ -201,18 +284,21 @@ class SchEditor {
         window.addEventListener("click", this.handleClick);
         window.addEventListener("dblclick", this.handleDoubleClick);
 
+        // Clear the drawing window, in case we have a previous drawing.
+        two.clear();
+
         // Set up the background grid
         this.setupGrid();
 
-        // FIXME: does all kinda stuff, will become "drawSchematic" or similar. 
-        this.do_everything();
-    }
-    // Do it all. Our initial entry point replacement for a big file-worth of code.
-    do_everything = () => {
-        this.addNmos();
+        // And draw the loaded schematic
+        this.schematic.draw();
     }
     // Set up the background grid
     setupGrid = () => {
+        // FIXME: get outline from the schematic somehow
+        const x = 1600;
+        const y = 800;
+
         // Closure to add grid-line styling
         const styleLine = (line, isMajor) => {
             line.stroke = 'grey';
@@ -225,22 +311,14 @@ class SchEditor {
                 line.linewidth = 0.5;
             }
         };
-        for (let i = 0; i < two.width; i += 10) {
-            const line = two.makeLine(i, 0, i, two.height);
+        for (let i = 0; i < x; i += 10) {
+            const line = two.makeLine(i, 0, i, y);
             styleLine(line, i % 100 == 0);
         }
-        for (let i = 0; i < two.height; i += 10) {
-            const line = two.makeLine(0, i, two.width, i);
+        for (let i = 0; i < y; i += 10) {
+            const line = two.makeLine(0, i, x, i);
             styleLine(line, i % 100 == 0);
         }
-    }
-    // Given a `Point`, return the nearest grid point.
-    nearestOnGrid = loc /* Point */ => /* Point */ {
-        const grid_size = 10;
-        return new Point(
-            Math.round(loc.x / grid_size) * grid_size,
-            Math.round(loc.y / grid_size) * grid_size
-        );
     }
     handleKey = (e) => {
         switch (e.key) {
@@ -253,7 +331,7 @@ class SchEditor {
             }
             case Keys.i: this.addInstance(); break;
             case Keys.w: this.startDrawWire(); break;
-            case Keys.Comma: window.electronAPI.saveFile(serialize(this.schematic)); break;
+            case Keys.Comma: THE_PLATFORM.sendSaveFile(serialize(this.schematic)); break;
             default: console.log(`Key we dont use: ${e.key}`); break;
         }
     }
@@ -300,7 +378,7 @@ class SchEditor {
     // Enter the `DrawWire` mode, and create the tentative Wire. 
     startDrawWire = () => {
         this.ui_state.mode = UiModes.DrawWire;
-        const start = this.nearestOnGrid(this.ui_state.mouse_pos);
+        const start = nearestOnGrid(this.ui_state.mouse_pos);
         const wire = Wire.from_points([start, start.copy()]);
         this.ui_state.selected_entity = wire;
     }
@@ -375,7 +453,7 @@ class SchEditor {
             // Vertical segment 
             landing1 = new Point(relativeTo.x, loc.y);
         }
-        return this.nearestOnGrid(landing1);
+        return nearestOnGrid(landing1);
     }
     addInstance = () => {
         this.ui_state.mode = UiModes.AddInstance;
@@ -383,109 +461,33 @@ class SchEditor {
         this.addNmos();
     }
     addNmos = () => {
-
         const name = `nmos${this.ui_state.num_instances}`;
         this.ui_state.num_instances += 1;
         const of = `nmos(something)`;
-
-
-        const nmos = two.interpret(the_nmos_symbol);
-        console.log(nmos);
-        // nmos.center();
-        nmos.visible = true;
-        // nmos.translation.set(two.width / 2, two.height / 2);
-        nmos.translation.set(this.ui_state.mouse_pos.x, this.ui_state.mouse_pos.y);
-
-
-
-
-        // Update the renderer in order to generate
-        // the SVG DOM Elements. Then bind the events
-        // to those elements directly.
-        two.update();
-
-        const instance = new Instance(name, of, TheSchSymbols.Nmos4, this.ui_state.mouse_pos, nmos);
+        const instance = new Instance(name, of, TheSchSymbols.Nmos, this.ui_state.mouse_pos, null, null);
         this.schematic.instances.push(instance);
-
-        var highlighted = false;
-        var dragging = false;
-        var mouse = new Two.Vector();
-
-
-        function mousedown(e) {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-            dragging = true;
-            var rect = nmos.getBoundingClientRect();
-            dragging = mouse.x > rect.left && mouse.x < rect.right
-                && mouse.y > rect.top && mouse.y < rect.bottom;
-            highlighted = !highlighted;
-            // nmos.stroke = 'rgb(150, 100, 255)';
-            if (highlighted) {
-                nmos.stroke = 'rgb(0, 0, 0)';
-            } else {
-                nmos.stroke = 'rgb(150, 100, 255)';
-            }
-            window.addEventListener('mousemove', mousemove, false);
-            window.addEventListener('mouseup', mouseup, false);
-        }
-
-        const mousemove = (e) => {
-            var dx = e.clientX - mouse.x;
-            var dy = e.clientY - mouse.y;
-            const scale = 1.0; // FIXME
-            // console.log((dx, dy));
-            // console.log(nmos.position);
-            if (dragging) {
-                // Snap to our grid
-                const snapped = this.nearestOnGrid(this.ui_state.mouse_pos);
-                nmos.position.x = snapped.x;
-                nmos.position.y = snapped.y;
-                instance.loc = snapped;
-                console.log(nmos.position);
-            } else {
-                zui.translateSurface(dx, dy);
-            }
-            mouse.set(e.clientX, e.clientY);
-        }
-
-        function mouseup(e) {
-            highlighted = !highlighted;
-            if (highlighted) {
-                nmos.stroke = 'rgb(0, 0, 0)';
-            } else {
-                nmos.stroke = 'rgb(150, 100, 255)';
-            }
-            // nmos.stroke = 'rgb(0, 0, 0)';
-            window.removeEventListener('mousemove', mousemove, false);
-            window.removeEventListener('mouseup', mouseup, false);
-        }
-
-        nmos._renderer.elem.addEventListener('mousedown', mousedown, false);
+        instance.draw();
     }
 
 }
 
-// Create the module-context editor. 
-// FIXME: get initial data from the main process and OS.
-var the_editor = new SchEditor(new Schematic(), new UiState());
-the_editor.startup();
-
 
 // Serialize a schematic to an SVG string.
 const serialize = schematic => {
-    const outline = new Point(500, 500);
+    const outline = new Point(500, 500); // FIXME: get from the schematic.
+
     let svg = `<?xml version="1.0" encoding="utf-8"?>
     <svg width="${outline.x}" height="${outline.y}" xmlns="http://www.w3.org/2000/svg">`;
 
     // Add the symbol and styling <defs>.
     svg += `
-        <defs>
-        <!-- Styling for Symbol and Wire Elements -->
-        <style>
+    <defs>
+    <!-- Styling -->
+    <style>
+        /* Styling for Symbol and Wire Elements */
         .hdl21-symbols {
             fill: none;
-            stroke: grey;
+            stroke: black;
             stroke-opacity: 1;
             stroke-miterlimit: 0;
             stroke-linecap: round;
@@ -494,32 +496,42 @@ const serialize = schematic => {
             stroke-dashoffset: 0px;
         }
 
-        .hdl21-labels {
-            fill: grey;
-            font-family: comic sans ms; /* We know, it's just too funny */
+        .hdl21-wire {
+            fill: none;
+            stroke: blue;
+            stroke-opacity: 1;
+            stroke-miterlimit: 0;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 4px;
+            stroke-dashoffset: 0px;
+        }
+
+        /* Styling for Text Labels */
+        .hdl21-labels,
+        .hdl21-instance-name,
+        .hdl21-instance-of,
+        .hdl21-wire-name {
+            fill: black;
+            font-family: comic sans ms;
+            /* We know, it's just too funny */
             font-size: 16px;
         }
+    </style>
 
-        .hdl21-wires {
-            fill: none;
-            stroke: magenta;
-            stroke-opacity: 1;
-            stroke-miterlimit: 0;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-width: 4px;
-            stroke-dashoffset: 0px;
-        }
-        </style>
+    <!-- The Symbol Library -->
+    <g id="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>
+    <g id="hdl21::primitives::pmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 6 12 L 12 8 L 6 4 Z M 6 20" class="hdl21-symbols" />
+    </g>
 
-        <!-- The Symbol Library -->
-        <g id="hdl21::primitives::nmos">
-            <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
-            <path d="M 16 8 L 16 24" class="hdl21-symbols" />
-            <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
-        </g>
-
-    </defs> <!-- End Definitions -->
+</defs> <!-- End Definitions -->
     
     <!-- Svg Schematic Content -->
     `;
@@ -530,9 +542,11 @@ const serialize = schematic => {
         const of = inst.of || 'unknown';
         return `
         <g class="hdl21-instance" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">
-            <use  x="0" y="0"  href="#hdl21::primitives::nmos" />
-            <text x="5" y="0"  class="hdl21-labels">@${name}</text>
-            <text x="5" y="45" class="hdl21-labels">@${of}</text>
+            <!-- FIXME: sadly <use> fails in some of our favorite renderers! --> 
+            <use  x="0" y="0"  class="hdl21::primitives::nmos" /> 
+
+            <text x="5" y="0"  class="hdl21-instance-name">${name}</text>
+            <text x="5" y="45" class="hdl21-instance-of">${of}</text>
         </g>`;
     }
 
@@ -544,7 +558,7 @@ const serialize = schematic => {
     // Create the SVG `<path>` element for a `Wire`. 
     const wireSvg = wire => {
         const [first, ...rest] = wire.points;
-        let rv = `<path class="hdl21-wires" d="M ${first.x} ${first.y}`;
+        let rv = `<path class="hdl21-wire" d="M ${first.x} ${first.y}`;
         for (let p of rest) {
             rv += ` L ${p.x} ${p.y}`;
         }
@@ -559,7 +573,238 @@ const serialize = schematic => {
 
     // And finally add the closing tag. 
     svg += '\n\n</svg>';
+    console.log("Serialized:");
+    console.log(svg);
     return svg;
+}
 
+
+// Enumerated Rotations 
+// in increments of 90 degrees
+const Rotation = Object.freeze({
+    R0: Symbol("R0"),
+    R90: Symbol("R90"),
+    R180: Symbol("R180"),
+    R270: Symbol("R270"),
+});
+
+// Instance Orientation 
+// including reflection & rotation 
+// 
+class Orientation {
+    constructor(reflected, rotation) {
+        this.reflected = reflected; // Boolean
+        this.rotation = rotation;   // Rotation 
+    }
+    // Create an `Orientation` from an `OrientationMatrix`. 
+    // A very small subset of possible matrices are valid; 
+    // any other value provided throws an error.
+    static fromMatrix(matrix /* OrientationMatrix */) /* => Orientation */ {
+
+        var reflected; // Boolean - flipped across the x axis
+        var rotation; // Rotation in increments of 90 degrees, valued 0-3
+
+        // There are a total of eight valid values of the Instance transform.
+        // Check each, and if we have anything else, fail. 
+        // SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to 
+        // | a c |
+        // | b d |
+        if (matrix.eq(new OrientationMatrix(1, 0, 0, 1))) {
+            reflected = false;
+            rotation = Rotation.R0;
+        } else if (matrix.eq(new OrientationMatrix(0, 1, -1, 0))) {
+            reflected = false;
+            rotation = Rotation.R90;
+        } else if (matrix.eq(new OrientationMatrix(-1, 0, 0, -1))) {
+            reflected = false;
+            rotation = Rotation.R180;
+        } else if (matrix.eq(new OrientationMatrix(0, -1, 1, 0))) {
+            reflected = false;
+            rotation = Rotation.R270;
+        } else if (matrix.eq(new OrientationMatrix(1, 0, 0, -1))) {
+            reflected = true;
+            rotation = Rotation.R0;
+        } else if (matrix.eq(new OrientationMatrix(0, 1, 1, 0))) {
+            reflected = true;
+            rotation = Rotation.R90;
+        } else if (matrix.eq(new OrientationMatrix(-1, 0, 0, 1))) {
+            reflected = true;
+            rotation = Rotation.R180;
+        } else if (matrix.eq(new OrientationMatrix(0, -1, -1, 0))) {
+            reflected = true;
+            rotation = Rotation.R270;
+        } else {
+            throw new Error(`Invalid transform: ${matrix}`);
+        }
+
+        // Success - create and return the Orientation.
+        return new Orientation(reflected, rotation);
+    }
+}
+
+// 
+// # Orientation Matrix 
+// 
+// 2x2 matrix representation of an `Orientation`
+// Largely corresponds to the values placed in SVG `matrix` attributes.
+// SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to 
+// | a c |
+// | b d |
+// The fields of `OrientationMatrix` are named similarly. 
+// 
+class OrientationMatrix {
+    constructor(a, b, c, d) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.d = d;
+    }
+    // Orientation Matrix Equality 
+    eq = other => /* bool */ {
+        return this.a === other.a && this.b === other.b && this.c === other.c && this.d === other.d;
+    }
+}
+
+class Importer {
+    constructor() {
+        this.schematic = new Schematic();
+        this.otherSvgElements = [];
+    }
+    static import = svgstring => /* Schematic */ {
+        const me = new Importer();
+        const svgDoc = svgparse(svgstring);
+        return me.importSvgDoc(svgDoc);
+    };
+    importSvgDoc = svgDoc => {
+        // FIXME: handle case where there's stuff other than <svg> in the document.
+        const svg = svgDoc.children[0];
+        console.log(svg);
+
+        const width = svg.properties.width || 1600;
+        const height = svg.properties.height || 800;
+        this.schematic.size = new Point(width, height);
+
+        // Walk its SVG children, adding HDL elements. 
+        for (const child of svg.children) {
+            if (child.type === 'element') {
+                if (child.tagName === 'g') {
+                    if (child.properties.class === "hdl21-instance") {
+                        this.importInstance(child);
+                    } else {
+                        this.addOtherSvgElement(child);
+                    }
+
+                } else if (child.tagName === "path") {
+                    if (child.properties.class === "hdl21-wire") {
+                        this.importWire(child);
+                    } else {
+                        this.addOtherSvgElement(child);
+                    }
+
+                } else {
+                    this.addOtherSvgElement(child);
+                }
+
+            } else {
+                this.addOtherSvgElement(child);
+            }
+        }
+        return this.schematic;
+
+    };
+    // Import an instance
+    importInstance = svgGroup => {
+        const transform = svgGroup.properties.transform;
+        if (!transform) {
+            throw new Error(`Instance ${svgGroup.properties.id} has no transform`);
+        }
+        const [loc, orientation] = this.importTransform(transform);
+
+        if (svgGroup.children.length !== 3) {
+            throw new Error(`Instance ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
+        }
+
+        // Get the three children: the symbol, instance name, and instance-of string.
+        const [symbolGroup, nameElem, ofElem] = svgGroup.children;
+
+        // Get the symbol type from the symbol group.
+        var kind;
+        if (symbolGroup.properties.class === "hdl21::primitives::nmos") {
+            kind = Symbol.Nmos;
+        } else if (symbolGroup.properties.class === "hdl21::primitives::pmos") {
+            kind = Symbol.Nmos; // FIXME! an actual PMOS symbol
+        } else {
+            throw new Error(`Instance ${svgGroup.properties.id} has unknown symbol class ${symbolGroup.properties.class}`);
+        }
+
+        // Get the instance name.
+        if (nameElem.tagName !== "text") {
+            throw new Error(`Instance ${svgGroup.properties.id} has no name`);
+        }
+        const name = nameElem.children[0].value;
+
+        // Get the instance-of string.
+        if (ofElem.tagName !== "text") {
+            throw new Error(`Instance ${svgGroup.properties.id} has no name`);
+        }
+        const of = ofElem.children[0].value;
+
+        // Create and add the instance 
+        console.log(`Instance @ (${loc.x}, ${loc.y}), ${orientation}`);
+        const instance = new Instance(name, of, kind, loc, orientation, null);
+        this.schematic.instances.push(instance);
+    };
+    // Import an SVG `transform` to a location `Point` and an `Orientation`. 
+    importTransform = transform => {
+        // Start splitting up the `transform` string.
+        const splitParens = transform.split(/\(|\)/);
+        if (splitParens.length !== 3 || splitParens[0] !== 'matrix') {
+            throw new Error(`Invalid transform: ${transform}`);
+        }
+
+        // Split the numeric section, hopefully into six values 
+        const numbers = splitParens[1].split(/\,|\s/).map(s => parseInt(s));
+        if (numbers.length !== 6) {
+            throw new Error(`Invalid transform: ${transform}`);
+        }
+
+        // Get the (x, y) position 
+        const x = numbers[4];
+        const y = numbers[5];
+        const loc = new Point(x, y);
+
+        // And sort out orientation from the first four numbers
+        const m = numbers.slice(0, 4);
+        const matrix = new OrientationMatrix(m[0], m[1], m[2], m[3]);
+        return [loc, Orientation.fromMatrix(matrix)];
+    };
+    importWire = svgGroup => {
+
+    };
+    // Add an element to the "other", non-schematic elements list.
+    addOtherSvgElement = svgElement => {
+        console.log(`other elem:`);
+        console.log(svgElement);
+        this.otherSvgElements.push(svgElement);
+    };
 
 }
+
+
+// Create the `SchEditor` variable, in module scope. 
+// Initialization is performed by `handleLoadFile` below. 
+var the_editor;
+
+
+THE_PLATFORM.handleLoadFile((_event, content) => {
+    // Load schematic content from the file.
+    const schematic = Importer.import(content);
+    // FIXME: error handling here
+    console.log(schematic);
+
+    the_editor = new SchEditor(schematic, new UiState());
+    the_editor.startup();
+});
+
+// Send a message back to the main process, to indicate this has all run 
+THE_PLATFORM.sendRendererUp("Renderer is ALIIIIIIIVE");

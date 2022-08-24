@@ -11,11 +11,16 @@
 
 
 const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
 const fs = require('fs');
 
 
+// Schematic content from THE_ONLY_FILENAME_FOR_NOW
 const THE_ONLY_FILENAME_FOR_NOW = "schematic.sch.svg";
+const loadFile = () => {
+  const content = fs.readFileSync(THE_ONLY_FILENAME_FOR_NOW, 'utf8');
+  console.log(content);
+  return content;
+};
 const saveFile = (_event, contents) => {
   fs.writeFile(THE_ONLY_FILENAME_FOR_NOW, contents, err => console.log(err));
 }
@@ -32,12 +37,20 @@ const createWindow = () => {
 
   // Set up the handler for `save-file` messages.
   ipcMain.on('save-file', saveFile);
+  ipcMain.on('renderer-up', (_event, msg) => {
+    console.log("GOT RENDERED UP: " + msg);
+    mainWindow.webContents.send('load-file', loadFile());
+  });
+  ipcMain.on('log-in-main', (_event, msg) => {
+    console.log(msg);
+  });
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
 };
 
 // This method will be called when Electron has finished
