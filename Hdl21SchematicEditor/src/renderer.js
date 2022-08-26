@@ -17,7 +17,7 @@ const THE_PLATFORM = window.electronAPI;
 
 // Global stuff, at least for now 
 // The Two.js "draw-er", canvas, whatever they call it. 
-var two = new Two({
+const two = new Two({
     // Lotta futzing with these options has found these two to be indispensible. 
     fullscreen: true,
     autostart: true,
@@ -30,16 +30,39 @@ var two = new Two({
     // width: 1600,
     // height: 800,
 }).appendTo(document.body);
-const the_nmos_symbol = document.querySelectorAll('div#the_nmos svg')[0];
-console.log(the_nmos_symbol);
+
+// Load the primitive symbols from the HTML document.
+// FIXME: ideally these would just be a string here in the code, 
+// but `two.interpret` wants something from the DOM, 
+// as returned by this `querySelector` call.
+// This also applies the styling in the HTML document, which, I guess helps. 
+const symbols = document.querySelectorAll('div#hdl21-symbol-library svg');
 
 
-const TheSchSymbols = Object.freeze({
+// # Point
+// Two-dimensional point in schematic-UI space. 
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    copy() {
+        return new Point(this.x, this.y);
+    }
+}
+
+// # Primitive Enumeration 
+// 
+// The list of enumerated primitives element types. 
+// Serves as the keys in the `PrimitiveMap` mapping, 
+// and the key stored on each `Instance` object.
+// 
+const PrimitiveEnum = Object.freeze({
+    Nmos: Symbol("Nmos"),
+    Pmos: Symbol("Pmos"),
     Input: Symbol("Input"),
     Output: Symbol("Output"),
     Inout: Symbol("Inout"),
-    Nmos: Symbol("Nmos"),
-    Pmos: Symbol("Pmos"),
     Vsource2: Symbol("Vsource2"),
     Vsource4: Symbol("Vsource4"),
     Isource2: Symbol("Isource2"),
@@ -57,46 +80,175 @@ const TheSchSymbols = Object.freeze({
 });
 
 
-// # Point
-// Two-dimensional point in schematic-UI space. 
-class Point {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    copy() {
-        return new Point(this.x, this.y);
+// # Primitive Instance Port
+class Port {
+    constructor(args) {
+        this.name = args.name; // string
+        this.loc = args.loc;   // Point
     }
 }
-class Instance {
-    constructor(name, of, kind, loc, orientation, drawing) {
-        this.name = name;
-        this.of = of;
-        this.kind = kind;
-        this.loc = loc;
-        this.orientation = orientation;
-        this.drawing = drawing;
+
+// # Primitive Element
+// 
+// The types of things which schematics can instantiate.
+// Primitives include the symbol drawing as an SVG object, 
+// plus metadata indicating their port names and locations.
+// 
+class Primitive {
+    constructor(args) {
+        this.enumval = args.enumval; // PrimitiveEnum
+        this.svgObj = args.svgObj;   // SVG DOM object
+        this.svgStr = args.svgStr;   // string
+        this.ports = args.ports;     // [Port]
+        this.nameloc = args.nameloc; // Point
+        this.ofloc = args.ofloc;     // Point
     }
-    // Create and set the `drawing`. 
+    // Create a new Primitive, and add it to the `PrimitiveMap` mapping.
+    static add(args) {
+        PrimitiveMap.set(args.enumval, new Primitive(args));
+    }
+}
+// Map from enumerated keys to `Primitive` objects.
+const PrimitiveMap = new Map();
+
+Primitive.add({
+    enumval: PrimitiveEnum.Nmos,
+    svgObj: symbols[0],
+    svgStr: `
+    <g class="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>`,
+    ports: [
+        new Port({ name: "d", loc: new Point(0, 0) }),
+        new Port({ name: "g", loc: new Point(10, 0) }), // FIXME!
+        new Port({ name: "s", loc: new Point(10, 10) }), // FIXME!
+        new Port({ name: "b", loc: new Point(0, 10) }), // FIXME!
+    ],
+    nameloc: new Point(5, 0),
+    ofloc: new Point(5, 45),
+});
+Primitive.add({
+    enumval: PrimitiveEnum.Pmos,
+    svgObj: symbols[1],
+    svgStr: `
+    <g class="hdl21::primitives::pmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 6 12 L 12 8 L 6 4 Z M 6 20" class="hdl21-symbols" />
+    </g>
+    `,
+    ports: [
+        new Port({ name: "d", loc: new Point(0, 0) }),
+        new Port({ name: "g", loc: new Point(10, 0) }), // FIXME!
+        new Port({ name: "s", loc: new Point(10, 10) }), // FIXME!
+        new Port({ name: "b", loc: new Point(0, 10) }), // FIXME!
+    ],
+    nameloc: new Point(5, 0),
+    ofloc: new Point(5, 45),
+});
+// FIXME: add all the other elements
+
+
+// # Schematic Entity 
+// 
+// All the methods for interacting with a schematic entity.
+// "Implementers" include Symbols, Ports, and WireSegments.
+// 
+// This isn't a class that we instantiate, so much as a "reminder" of the interface to one. 
+// If this language had traits, this would be a trait.
+// Maybe there's something better to represent it in this language some day; 
+// if we find one, it'll become that. 
+// 
+class Entity {
+
+    // Update styling to indicate highlighted-ness
+    highlight = () => { }
+    // Update styling to indicate the lack of highlighted-ness
+    unhighlight = () => { }
+    // Boolean indication of whether `point` is inside the instance.
+    hitTest = point => { }
+    // Abort an in-progress instance.
+    abort = () => { }
+
+    // FIXME: whether to include drawing
+    // Create and add the drawn, graphical representation
+    // draw = () => { }
+
+}
+
+
+// # Schematic Instance 
+// 
+// Combination of the Instance data and drawn visualization. 
+// 
+class Instance {
+    constructor(args) {
+        // Instance Data
+        this.name = args.name; // string
+        this.of = args.of;// string
+        this.kind = args.kind;// PrimitiveEnum
+        this.loc = args.loc;//Point
+        this.orientation = args.orientation;// Orientation
+
+        // Drawing data, set during calls to `draw()`.
+        // The two.js drawing, implemented as a Two.Group.
+        this.drawing = null;
+        // The bounding box for hit testing. 
+        this.bbox = null;
+    }
+    highlight = () => {
+        if (!this.drawing) {
+            return;
+        }
+        for (let child of this.drawing.children) {
+            child.stroke = 'rgb(150, 100, 255)';
+        }
+    }
+    unhighlight = () => {
+        if (!this.drawing) {
+            return;
+        }
+        for (let child of this.drawing.children) {
+            child.stroke = 'rgb(0,0,0)';
+        }
+    }
+    // Create and draw the Instance's `drawing`. 
     draw = () => {
+        const primitive = PrimitiveMap.get(this.kind);
+        if (!primitive) {
+            throw new Error(`No primitive for kind ${this.kind}`);
+        }
+        const symbol = two.interpret(primitive.svgObj);
+        symbol.stroke = 'rgb(0, 0, 0)';
+        this.bbox = symbol.getBoundingClientRect();
 
-        const nmos = two.interpret(the_nmos_symbol);
-        console.log(nmos);
-        // nmos.center();
-        nmos.visible = true;
-        // nmos.translation.set(two.width / 2, two.height / 2);
-        nmos.translation.set(this.loc.x, this.loc.y);
+        // Create the Instance's drawing-Group, including its symbol, names, and ports.
+        const instanceGroup = two.makeGroup();
+        instanceGroup.add(symbol);
+        instanceGroup.translation.set(this.loc.x, this.loc.y);
 
+        // Closure to create styled text.
+        const makeText = text => {
+            const textElem = two.makeText(text);
+            textElem.alignment = 'left';
+            textElem.family = 'Comic Sans MS';
+            textElem.style = 'heavy';
+            textElem.size = 16;
+            return textElem;
+        }
 
+        // Create and add the instance-name text object 
+        const instanceName = makeText(this.name);
+        instanceName.translation.set(10, 0);
+        instanceGroup.add(instanceName);
 
+        // Create and add the instance-name text object 
+        const instanceOf = makeText(this.of);
+        instanceOf.translation.set(10, 40);
+        instanceGroup.add(instanceOf);
 
-        // Update the renderer in order to generate
-        // the SVG DOM Elements. Then bind the events
-        // to those elements directly.
-        two.update();
-
-
-        var highlighted = false;
         var dragging = false;
         var mouse = new Two.Vector();
 
@@ -105,33 +257,27 @@ class Instance {
             mouse.x = e.clientX;
             mouse.y = e.clientY;
             dragging = true;
-            var rect = nmos.getBoundingClientRect();
+            this.bbox = symbol.getBoundingClientRect();
+            const rect = this.bbox;
+            console.log(rect);
+            // var rect = symbol.getBoundingClientRect();
             dragging = mouse.x > rect.left && mouse.x < rect.right
                 && mouse.y > rect.top && mouse.y < rect.bottom;
-            highlighted = !highlighted;
-            // nmos.stroke = 'rgb(150, 100, 255)';
-            if (highlighted) {
-                nmos.stroke = 'rgb(0, 0, 0)';
-            } else {
-                nmos.stroke = 'rgb(150, 100, 255)';
-            }
+
             window.addEventListener('mousemove', mousemove, false);
             window.addEventListener('mouseup', mouseup, false);
         }
 
         const mousemove = (e) => {
+            this.bbox = symbol.getBoundingClientRect();
             var dx = e.clientX - mouse.x;
             var dy = e.clientY - mouse.y;
-            const scale = 1.0; // FIXME
-            // console.log((dx, dy));
-            // console.log(nmos.position);
             if (dragging) {
                 // Snap to our grid
                 const snapped = nearestOnGrid(the_editor.ui_state.mouse_pos); // FIXME: move this!
-                nmos.position.x = snapped.x;
-                nmos.position.y = snapped.y;
+                // Set the location of both the instance and its drawing 
+                instanceGroup.translation.set(snapped.x, snapped.y);
                 this.loc = snapped;
-                console.log(nmos.position);
             } else {
                 zui.translateSurface(dx, dy);
             }
@@ -139,19 +285,27 @@ class Instance {
         }
 
         function mouseup(e) {
-            highlighted = !highlighted;
-            if (highlighted) {
-                nmos.stroke = 'rgb(0, 0, 0)';
-            } else {
-                nmos.stroke = 'rgb(150, 100, 255)';
-            }
-            // nmos.stroke = 'rgb(0, 0, 0)';
             window.removeEventListener('mousemove', mousemove, false);
             window.removeEventListener('mouseup', mouseup, false);
         }
 
-        nmos._renderer.elem.addEventListener('mousedown', mousedown, false);
-        this.drawing = nmos;
+        // FIXME: move this to a central hit tester! 
+        // Update the renderer in order to generate
+        // the SVG DOM Elements. Then bind the events
+        // to those elements directly.
+        two.update();
+        symbol._renderer.elem.addEventListener('mousedown', mousedown, false);
+        this.drawing = instanceGroup;
+
+    }
+    // Boolean indication of whether `point` is inside the Instance's bounding box.
+    hitTest = point => {
+        if (!this.bbox) {
+            return false;
+        }
+        const bbox = this.bbox;
+        return point.x > bbox.left && point.x < bbox.right
+            && point.y > bbox.top && point.y < bbox.bottom;
 
     }
     // Abort drawing an in-progress instance.
@@ -161,33 +315,40 @@ class Instance {
     }
 }
 class Wire {
-    constructor(points /* Point[] */, path /* Two.Path */) {
+    constructor(points /* Point[] */) {
         this.points = points;
-        this.path = path;
+        this.drawing = null; /* Two.Path, set by `draw()` */
     }
     // Create from a list of `Point`s. Primarily creates the drawn `Path`. 
-    static from_points(points /* Point[] */) {
+    draw = () => {
         // Flatten coordinates into the form [x1, y1, x2, y2, ...]
         let coords = [];
-        for (let point of points) {
+        for (let point of this.points) {
             coords.push(point.x, point.y);
         }
-        // Create the path 
-        const path = two.makePath(...coords);
+        // Create the drawing 
+        const drawing = two.makePath(...coords);
 
         // Set the wire style 
-        path.visible = true;
-        path.closed = false;
-        path.noFill();
-        path.stroke = 'rgb(150, 100, 255)';
-        path.linewidth = 5;
+        drawing.visible = true;
+        drawing.closed = false;
+        drawing.noFill();
+        drawing.stroke = 'rgb(150, 100, 255)';
+        drawing.linewidth = 5;
 
-        return new Wire(points, path);
+        this.drawing = drawing;
+        two.update();
     }
     // Abort drawing an in-progress wire.
     abort = () => {
-        two.remove(this.path);
+        two.remove(this.drawing);
     }
+    // Update styling to indicate highlighted-ness
+    highlight = () => { }
+    // Update styling to indicate the lack of highlighted-ness
+    unhighlight = () => { }
+    // Boolean indication of whether `point` is inside the instance.
+    hitTest = point => { return false; }
 }
 class Schematic {
     constructor(size) {
@@ -201,7 +362,7 @@ class Schematic {
             instance.draw();
         }
         for (let wire of this.wires) {
-            // wire.draw(); // FIXME!
+            wire.draw();
         }
     }
 }
@@ -275,15 +436,18 @@ class SchEditor {
         this.schematic = schematic;
         this.ui_state = ui_state;
     }
-    // Perform all of our startup activity, binding events, etc.
+    // Perform all of our one-time startup activity, binding events, etc.
     startup = () => {
         // Bind UI events
         window.addEventListener('resize', e => console.log(e));
         window.addEventListener("keydown", this.handleKey);
+        window.addEventListener('mousedown', this.handleMouseDown, true);
+        window.addEventListener('mouseup', this.handleMouseUp, true);
         window.addEventListener('mousemove', this.handleMouseMove, true);
         window.addEventListener("click", this.handleClick);
         window.addEventListener("dblclick", this.handleDoubleClick);
-
+    }
+    loadSchematic = schematic => {
         // Clear the drawing window, in case we have a previous drawing.
         two.clear();
 
@@ -291,6 +455,7 @@ class SchEditor {
         this.setupGrid();
 
         // And draw the loaded schematic
+        this.schematic = schematic;
         this.schematic.draw();
     }
     // Set up the background grid
@@ -335,14 +500,49 @@ class SchEditor {
             default: console.log(`Key we dont use: ${e.key}`); break;
         }
     }
-    whatdWeHit = e => {
-        console.log("WHATD WE HIT", e);
+    whatdWeHit = point => {
+        for (let instance of this.schematic.instances) {
+            if (instance.hitTest(point)) {
+                console.log("WE HIT:");
+                console.log(instance);
+                return instance;
+            }
+        }
+        return null;
+    }
+    handleMouseDown = e => {
+        console.log("mouse down");
+
+        // Hit test, finding which element was clicked on.
+        const whatd_we_hit = this.whatdWeHit(this.ui_state.mouse_pos);
+        console.log("WE HIT:");
+        console.log(whatd_we_hit);
+        if (whatd_we_hit) {
+            this.ui_state.selected_entity = whatd_we_hit;
+            whatd_we_hit.highlight();
+        }
+
+        // And react to the current UI mode.
+        switch (this.ui_state.mode) {
+            case UiModes.DrawWire: this.addWireVertex(); break;
+            case UiModes.AddInstance: this.commitInstance(); break;
+            default: break;
+        }
+    }
+    handleMouseUp = e => {
+        // console.log("mouse up");
+        // if (this.ui_state.selected_entity) {
+        //     this.ui_state.selected_entity.unhighlight();
+        //     this.ui_state.selected_entity = null;
+        // }
     }
     // Handle mouse click events.
     handleClick = e => {
-        // Hit test, finding which element was clicked on.
-        const whatd_we_hit = this.whatdWeHit(e);
         console.log("click");
+        // Hit test, finding which element was clicked on.
+        const whatd_we_hit = this.whatdWeHit(this.ui_state.mouse_pos);
+        console.log("WE HIT:");
+        console.log(whatd_we_hit);
 
         // And react to the current UI mode.
         switch (this.ui_state.mode) {
@@ -379,8 +579,9 @@ class SchEditor {
     startDrawWire = () => {
         this.ui_state.mode = UiModes.DrawWire;
         const start = nearestOnGrid(this.ui_state.mouse_pos);
-        const wire = Wire.from_points([start, start.copy()]);
+        const wire = new Wire([start, start.copy()]);
         this.ui_state.selected_entity = wire;
+        wire.draw();
     }
     // Update the rendering of an in-progress wire.
     updateDrawWire = () => {
@@ -397,8 +598,10 @@ class SchEditor {
         points.push(landing);
 
         // Remove the previous wire-path from the scene, and redraw it.
-        two.remove(wire.path);
-        this.ui_state.selected_entity = Wire.from_points(points);
+        two.remove(wire.drawing);
+        const newWire = new Wire(points);
+        this.ui_state.selected_entity = newWire;
+        newWire.draw();
         two.update();
     }
     // Add a new wire vertex to the currently-drawn wire.
@@ -421,8 +624,10 @@ class SchEditor {
         points.push(landing.copy());
 
         // Remove the previous wire-path from the scene, and redraw it.
-        two.remove(wire.path);
-        this.ui_state.selected_entity = Wire.from_points(points);
+        two.remove(wire.drawing);
+        const newWire = new Wire(points);
+        this.ui_state.selected_entity = newWire;
+        newWire.draw();
         two.update();
     }
     // Commit the currently-drawn wire to the schematic.
@@ -464,86 +669,80 @@ class SchEditor {
         const name = `nmos${this.ui_state.num_instances}`;
         this.ui_state.num_instances += 1;
         const of = `nmos(something)`;
-        const instance = new Instance(name, of, TheSchSymbols.Nmos, this.ui_state.mouse_pos, null, null);
+        const instance = new Instance({ name: name, of: of, kind: PrimitiveEnum.Nmos, loc: this.ui_state.mouse_pos, orientation: Orientation.default() });
         this.schematic.instances.push(instance);
         instance.draw();
+    }
+    updateAddInstance = () => {
+        console.log("FIXME: commitInstance!");
+    }
+    commitInstance = () => {
+        console.log("FIXME: commitInstance!");
+        this.ui_state.mode = UiModes.Idle;
     }
 
 }
 
+const schematicStyle = `
+<style>
+    /* Styling for Symbol and Wire Elements */
+    .hdl21-symbols {
+        fill: none;
+        stroke: black;
+        stroke-opacity: 1;
+        stroke-miterlimit: 0;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 4px;
+        stroke-dashoffset: 0px;
+    }
+
+    .hdl21-wire {
+        fill: none;
+        stroke: blue;
+        stroke-opacity: 1;
+        stroke-miterlimit: 0;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 4px;
+        stroke-dashoffset: 0px;
+    }
+
+    /* Styling for Text Labels */
+    .hdl21-labels,
+    .hdl21-instance-name,
+    .hdl21-instance-of,
+    .hdl21-wire-name {
+        fill: black;
+        font-family: comic sans ms;  /* We know, it's just too funny */
+        font-size: 16px;
+    }
+</style>
+`;
 
 // Serialize a schematic to an SVG string.
 const serialize = schematic => {
-    const outline = new Point(500, 500); // FIXME: get from the schematic.
 
     let svg = `<?xml version="1.0" encoding="utf-8"?>
-    <svg width="${outline.x}" height="${outline.y}" xmlns="http://www.w3.org/2000/svg">`;
+    <svg width="${schematic.size.x}" height="${schematic.size.y}" xmlns="http://www.w3.org/2000/svg">`;
 
-    // Add the symbol and styling <defs>.
+    // Add schematic styling.
     svg += `
-    <defs>
     <!-- Styling -->
-    <style>
-        /* Styling for Symbol and Wire Elements */
-        .hdl21-symbols {
-            fill: none;
-            stroke: black;
-            stroke-opacity: 1;
-            stroke-miterlimit: 0;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-width: 4px;
-            stroke-dashoffset: 0px;
-        }
-
-        .hdl21-wire {
-            fill: none;
-            stroke: blue;
-            stroke-opacity: 1;
-            stroke-miterlimit: 0;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-width: 4px;
-            stroke-dashoffset: 0px;
-        }
-
-        /* Styling for Text Labels */
-        .hdl21-labels,
-        .hdl21-instance-name,
-        .hdl21-instance-of,
-        .hdl21-wire-name {
-            fill: black;
-            font-family: comic sans ms;
-            /* We know, it's just too funny */
-            font-size: 16px;
-        }
-    </style>
-
-    <!-- The Symbol Library -->
-    <g id="hdl21::primitives::nmos">
-        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
-        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
-        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
-    </g>
-    <g id="hdl21::primitives::pmos">
-        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
-        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
-        <path d="M 6 12 L 12 8 L 6 4 Z M 6 20" class="hdl21-symbols" />
-    </g>
-
-</defs> <!-- End Definitions -->
-    
-    <!-- Svg Schematic Content -->
-    `;
+    ${schematicStyle}
+    <!-- Svg Schematic Content -->\n`;
 
     // Create the SVG `<g>` group for an `Instance`. 
     const instanceSvg = inst => {
+        const primitive = PrimitiveMap.get(inst.kind);
+        if (!primitive) {
+            throw new Error(`No primitive for ${inst}`);
+        }
         const name = inst.name || 'unnamed';
         const of = inst.of || 'unknown';
         return `
         <g class="hdl21-instance" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">
-            <!-- FIXME: sadly <use> fails in some of our favorite renderers! --> 
-            <use  x="0" y="0"  class="hdl21::primitives::nmos" /> 
+            ${primitive.svgStr}
 
             <text x="5" y="0"  class="hdl21-instance-name">${name}</text>
             <text x="5" y="45" class="hdl21-instance-of">${of}</text>
@@ -554,15 +753,19 @@ const serialize = schematic => {
     for (let inst of schematic.instances) {
         svg += instanceSvg(inst);
     }
+    svg += `\n\n`;
 
-    // Create the SVG `<path>` element for a `Wire`. 
+    // Create the SVG `<g>` element for a `Wire`, including its path and wire-name. 
     const wireSvg = wire => {
         const [first, ...rest] = wire.points;
-        let rv = `<path class="hdl21-wire" d="M ${first.x} ${first.y}`;
+        let rv = `<g class="hdl21-wire"> \n    `;
+        rv += `<path class="hdl21-wire" d="M ${first.x} ${first.y}`;
         for (let p of rest) {
             rv += ` L ${p.x} ${p.y}`;
         }
-        rv += ` " />`;
+        rv += `" /> \n`;
+        rv += `<text visibility="hidden" class="hdl21-wire-name">??????</text> \n`;
+        rv += `</g> \n`;
         return rv;
     }
 
@@ -595,6 +798,10 @@ class Orientation {
     constructor(reflected, rotation) {
         this.reflected = reflected; // Boolean
         this.rotation = rotation;   // Rotation 
+    }
+    // The default orientation: no reflection, no rotation.
+    static default() /* => Orientation */ {
+        return new Orientation(false, Rotation.R0);
     }
     // Create an `Orientation` from an `OrientationMatrix`. 
     // A very small subset of possible matrices are valid; 
@@ -686,21 +893,12 @@ class Importer {
 
         // Walk its SVG children, adding HDL elements. 
         for (const child of svg.children) {
-            if (child.type === 'element') {
-                if (child.tagName === 'g') {
-                    if (child.properties.class === "hdl21-instance") {
-                        this.importInstance(child);
-                    } else {
-                        this.addOtherSvgElement(child);
-                    }
+            if (child.type === 'element' && child.tagName === 'g') {
 
-                } else if (child.tagName === "path") {
-                    if (child.properties.class === "hdl21-wire") {
-                        this.importWire(child);
-                    } else {
-                        this.addOtherSvgElement(child);
-                    }
-
+                if (child.properties.class === "hdl21-instance") {
+                    this.importInstance(child);
+                } else if (child.properties.class === "hdl21-wire") {
+                    this.importWire(child);
                 } else {
                     this.addOtherSvgElement(child);
                 }
@@ -730,9 +928,9 @@ class Importer {
         // Get the symbol type from the symbol group.
         var kind;
         if (symbolGroup.properties.class === "hdl21::primitives::nmos") {
-            kind = Symbol.Nmos;
+            kind = PrimitiveEnum.Nmos;
         } else if (symbolGroup.properties.class === "hdl21::primitives::pmos") {
-            kind = Symbol.Nmos; // FIXME! an actual PMOS symbol
+            kind = PrimitiveEnum.Nmos; // FIXME! an actual PMOS symbol
         } else {
             throw new Error(`Instance ${svgGroup.properties.id} has unknown symbol class ${symbolGroup.properties.class}`);
         }
@@ -750,8 +948,7 @@ class Importer {
         const of = ofElem.children[0].value;
 
         // Create and add the instance 
-        console.log(`Instance @ (${loc.x}, ${loc.y}), ${orientation}`);
-        const instance = new Instance(name, of, kind, loc, orientation, null);
+        const instance = new Instance({ name: name, of: of, kind: kind, loc: loc, orientation: orientation });
         this.schematic.instances.push(instance);
     };
     // Import an SVG `transform` to a location `Point` and an `Orientation`. 
@@ -778,8 +975,38 @@ class Importer {
         const matrix = new OrientationMatrix(m[0], m[1], m[2], m[3]);
         return [loc, Orientation.fromMatrix(matrix)];
     };
+    // Import a wire group
     importWire = svgGroup => {
+        if (svgGroup.children.length !== 2) {
+            throw new Error(`Wire ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
+        }
 
+        // Get the two children: the path and the wire name
+        const [pathElem, nameElem] = svgGroup.children;
+
+        // Get the points from the path element.
+        const pathData = pathElem.properties.d;
+        const pathSplit = pathData.split(/\s/);
+        if (pathSplit[0] !== "M") {
+            throw new Error(`Wire ${svgGroup.properties.id} has invalid path data`);
+        }
+        let points = [];
+        for (let i = 1; i < pathSplit.length; i += 3) {
+            const x = parseInt(pathSplit[i]);
+            const y = parseInt(pathSplit[i + 1]);
+            points.push(new Point(x, y));
+        }
+
+        // Get the wire name.
+        if (nameElem.tagName !== "text") {
+            throw new Error(`Instance ${svgGroup.properties.id} has no name`);
+        }
+        const name = nameElem.children[0].value;
+        // FIXME: actually store it! 
+
+        // Create and add the wire
+        const wire = new Wire(points);
+        this.schematic.wires.push(wire);
     };
     // Add an element to the "other", non-schematic elements list.
     addOtherSvgElement = svgElement => {
@@ -787,23 +1014,19 @@ class Importer {
         console.log(svgElement);
         this.otherSvgElements.push(svgElement);
     };
-
 }
 
 
 // Create the `SchEditor` variable, in module scope. 
-// Initialization is performed by `handleLoadFile` below. 
-var the_editor;
+const the_editor = new SchEditor(null, new UiState());
+the_editor.startup();
 
 
 THE_PLATFORM.handleLoadFile((_event, content) => {
     // Load schematic content from the file.
     const schematic = Importer.import(content);
     // FIXME: error handling here
-    console.log(schematic);
-
-    the_editor = new SchEditor(schematic, new UiState());
-    the_editor.startup();
+    the_editor.loadSchematic(schematic);
 });
 
 // Send a message back to the main process, to indicate this has all run 

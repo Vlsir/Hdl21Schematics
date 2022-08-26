@@ -1,86 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <svg width="500" height="500" xmlns="http://www.w3.org/2000/svg">
-    <defs>
+    <svg width="1600" height="800" xmlns="http://www.w3.org/2000/svg">
     <!-- Styling -->
-    <style>
-        /* Styling for Symbol and Wire Elements */
-        .hdl21-symbols {
-            fill: none;
-            stroke: black;
-            stroke-opacity: 1;
-            stroke-miterlimit: 0;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-width: 4px;
-            stroke-dashoffset: 0px;
-        }
+    
+<style>
+    /* Styling for Symbol and Wire Elements */
+    .hdl21-symbols {
+        fill: none;
+        stroke: black;
+        stroke-opacity: 1;
+        stroke-miterlimit: 0;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 4px;
+        stroke-dashoffset: 0px;
+    }
 
-        .hdl21-wire {
-            fill: none;
-            stroke: blue;
-            stroke-opacity: 1;
-            stroke-miterlimit: 0;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            stroke-width: 4px;
-            stroke-dashoffset: 0px;
-        }
+    .hdl21-wire {
+        fill: none;
+        stroke: blue;
+        stroke-opacity: 1;
+        stroke-miterlimit: 0;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 4px;
+        stroke-dashoffset: 0px;
+    }
 
-        /* Styling for Text Labels */
-        .hdl21-labels,
-        .hdl21-instance-name,
-        .hdl21-instance-of,
-        .hdl21-wire-name {
-            fill: black;
-            font-family: comic sans ms;
-            /* We know, it's just too funny */
-            font-size: 16px;
-        }
-    </style>
+    /* Styling for Text Labels */
+    .hdl21-labels,
+    .hdl21-instance-name,
+    .hdl21-instance-of,
+    .hdl21-wire-name {
+        fill: black;
+        font-family: comic sans ms;  /* We know, it's just too funny */
+        font-size: 16px;
+    }
+</style>
 
-    <!-- The Symbol Library -->
-    <g id="hdl21::primitives::nmos">
+    <!-- Svg Schematic Content -->
+
+        <g class="hdl21-instance" transform="matrix(1 0 0 1 400 70)">
+            
+    <g class="hdl21::primitives::nmos">
         <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
         <path d="M 16 8 L 16 24" class="hdl21-symbols" />
         <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
     </g>
-    <g id="hdl21::primitives::pmos">
-        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
-        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
-        <path d="M 6 12 L 12 8 L 6 4 Z M 6 20" class="hdl21-symbols" />
-    </g>
-
-</defs> <!-- End Definitions -->
-    
-    <!-- Svg Schematic Content -->
-    
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 100 100)">
-            <!-- FIXME: sadly <use> fails in some of our favorite renderers! --> 
-            <use  x="0" y="0"  class="hdl21::primitives::nmos" /> 
 
             <text x="5" y="0"  class="hdl21-instance-name">nmos0</text>
             <text x="5" y="45" class="hdl21-instance-of">nmos(args)</text>
         </g>
         <g class="hdl21-instance" transform="matrix(1 0 0 1 100 30)">
-            <!-- FIXME: sadly <use> fails in some of our favorite renderers! --> 
-            <use  x="0" y="0"  class="hdl21::primitives::nmos" /> 
+            
+    <g class="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>
 
             <text x="5" y="0"  class="hdl21-instance-name">p0</text>
             <text x="5" y="45" class="hdl21-instance-of">pmos(args)</text>
         </g>
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 390 80)">
-            <!-- FIXME: sadly <use> fails in some of our favorite renderers! --> 
-            <use  x="0" y="0"  class="hdl21::primitives::nmos" /> 
+        <g class="hdl21-instance" transform="matrix(1 0 0 1 240 30)">
+            
+    <g class="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>
 
             <text x="5" y="0"  class="hdl21-instance-name">nmos0</text>
             <text x="5" y="45" class="hdl21-instance-of">nmos(something)</text>
         </g>
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 240 70)">
-            <!-- FIXME: sadly <use> fails in some of our favorite renderers! --> 
-            <use  x="0" y="0"  class="hdl21::primitives::nmos" /> 
+        <g class="hdl21-instance" transform="matrix(1 0 0 1 290 370)">
+            
+    <g class="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>
 
             <text x="5" y="0"  class="hdl21-instance-name">nmos0</text>
             <text x="5" y="45" class="hdl21-instance-of">nmos(something)</text>
         </g>
+        <g class="hdl21-instance" transform="matrix(1 0 0 1 110 160)">
+            
+    <g class="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>
+
+            <text x="5" y="0"  class="hdl21-instance-name">nmos0</text>
+            <text x="5" y="45" class="hdl21-instance-of">nmos(something)</text>
+        </g>
+        <g class="hdl21-instance" transform="matrix(1 0 0 1 510 200)">
+            
+    <g class="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>
+
+            <text x="5" y="0"  class="hdl21-instance-name">nmos0</text>
+            <text x="5" y="45" class="hdl21-instance-of">nmos(something)</text>
+        </g>
+        <g class="hdl21-instance" transform="matrix(1 0 0 1 110 280)">
+            
+    <g class="hdl21::primitives::nmos">
+        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
+        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
+        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
+    </g>
+
+            <text x="5" y="0"  class="hdl21-instance-name">nmos0</text>
+            <text x="5" y="45" class="hdl21-instance-of">nmos(something)</text>
+        </g>
+
+<g class="hdl21-wire"> 
+    <path class="hdl21-wire" d="M 330 340 L 330 110 L 350 110 L 140 110 L 140 100 L 140 100" /> 
+<text visibility="hidden" class="hdl21-wire-name">??????</text> 
+</g> 
+<g class="hdl21-wire"> 
+    <path class="hdl21-wire" d="M 500 300 L 500 400 L 600 400 L 600 300 L 610 300 L 610 300" /> 
+<text visibility="hidden" class="hdl21-wire-name">??????</text> 
+</g> 
+
 
 </svg>
