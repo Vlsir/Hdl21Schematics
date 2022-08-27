@@ -15,6 +15,68 @@ import './index.css';
 const THE_PLATFORM = window.electronAPI;
 
 
+// The schematic SVG / CSS style classes. 
+const schematicStyle = `
+<style>
+/* Styling for Symbol and Wire Elements */
+.hdl21-symbols {
+  fill: none;
+  stroke: black;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 10px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-instance-port {
+  fill: white;
+  stroke: black;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-dot {
+  fill: purple;
+  stroke: purple;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-wire {
+  fill: none;
+  stroke: blue;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 10px;
+  stroke-dashoffset: 0px;
+}
+
+/* Styling for Text Labels */
+.hdl21-labels,
+.hdl21-instance-name,
+.hdl21-instance-of,
+.hdl21-wire-name {
+  fill: black;
+  font-family: comic sans ms;
+  /* We know, it's just too funny */
+  font-size: 16px;
+}
+</style>
+`;
+
+
 // Global stuff, at least for now 
 // The Two.js "draw-er", canvas, whatever they call it. 
 const two = new Two({
@@ -30,13 +92,6 @@ const two = new Two({
     // width: 1600,
     // height: 800,
 }).appendTo(document.body);
-
-// Load the primitive symbols from the HTML document.
-// FIXME: ideally these would just be a string here in the code, 
-// but `two.interpret` wants something from the DOM, 
-// as returned by this `querySelector` call.
-// This also applies the styling in the HTML document, which, I guess helps. 
-const symbols = document.querySelectorAll('div#hdl21-symbol-library svg');
 
 
 // # Point
@@ -91,14 +146,13 @@ class Port {
 // # Primitive Element
 // 
 // The types of things which schematics can instantiate.
-// Primitives include the symbol drawing as an SVG object, 
+// Primitives include the symbol drawing as an SVG string, 
 // plus metadata indicating their port names and locations.
 // 
 class Primitive {
     constructor(args) {
         this.enumval = args.enumval; // PrimitiveEnum
-        this.svgObj = args.svgObj;   // SVG DOM object
-        this.svgStr = args.svgStr;   // string
+        this.svgStr = args.svgStr;   // SVG-valued string
         this.ports = args.ports;     // [Port]
         this.nameloc = args.nameloc; // Point
         this.ofloc = args.ofloc;     // Point
@@ -113,30 +167,18 @@ const PrimitiveMap = new Map();
 
 Primitive.add({
     enumval: PrimitiveEnum.Nmos,
-    svgObj: symbols[0],
     svgStr: `
     <g class="hdl21::primitives::nmos">
-        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
-        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
-        <path d="M 4 28 L -2 24 L 4 20 Z M 4 36" class="hdl21-symbols" />
-    </g>`,
-    ports: [
-        new Port({ name: "d", loc: new Point(0, 0) }),
-        new Port({ name: "g", loc: new Point(10, 0) }), // FIXME!
-        new Port({ name: "s", loc: new Point(10, 10) }), // FIXME!
-        new Port({ name: "b", loc: new Point(0, 10) }), // FIXME!
-    ],
-    nameloc: new Point(5, 0),
-    ofloc: new Point(5, 45),
-});
-Primitive.add({
-    enumval: PrimitiveEnum.Pmos,
-    svgObj: symbols[1],
-    svgStr: `
-    <g class="hdl21::primitives::pmos">
-        <path d="M 0 0 L 0 8 L 10 8 L 10 24 L 0 24 L 0 32" class="hdl21-symbols" />
-        <path d="M 16 8 L 16 24" class="hdl21-symbols" />
-        <path d="M 6 12 L 12 8 L 6 4 Z M 6 20" class="hdl21-symbols" />
+        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+        <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
+        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+        <path d="M 40 40 L 70 40" class="hdl21-symbols" />
+        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+        <!-- <circle cx="-20" cy="40" r="4" class="hdl21-dot" /> -->
     </g>
     `,
     ports: [
@@ -145,8 +187,33 @@ Primitive.add({
         new Port({ name: "s", loc: new Point(10, 10) }), // FIXME!
         new Port({ name: "b", loc: new Point(0, 10) }), // FIXME!
     ],
-    nameloc: new Point(5, 0),
-    ofloc: new Point(5, 45),
+    nameloc: new Point(10, 0),
+    ofloc: new Point(10, 80),
+});
+Primitive.add({
+    enumval: PrimitiveEnum.Pmos,
+    svgStr: `
+    <g class="hdl21::primitives::pmos">
+        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+        <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
+        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+        <path d="M 70 40 L 60 40" class="hdl21-symbols" />
+        <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
+        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+    </g>
+    `,
+    ports: [
+        new Port({ name: "d", loc: new Point(0, 0) }),
+        new Port({ name: "g", loc: new Point(10, 0) }), // FIXME!
+        new Port({ name: "s", loc: new Point(10, 10) }), // FIXME!
+        new Port({ name: "b", loc: new Point(0, 10) }), // FIXME!
+    ],
+    nameloc: new Point(10, 0),
+    ofloc: new Point(10, 80),
 });
 // FIXME: add all the other elements
 
@@ -220,8 +287,13 @@ class Instance {
         if (!primitive) {
             throw new Error(`No primitive for kind ${this.kind}`);
         }
-        const symbol = two.interpret(primitive.svgObj);
-        symbol.stroke = 'rgb(0, 0, 0)';
+
+        // Load the symbol as a Two.Group. 
+        // Note we apply the styling and wrap the content in <svg> elements.
+        const symbol = two.load(schematicStyle + "<svg>" + primitive.svgStr + "</svg>");
+        two.add(symbol);
+
+        // symbol.stroke = 'rgb(0, 0, 0)';
         this.bbox = symbol.getBoundingClientRect();
 
         // Create the Instance's drawing-Group, including its symbol, names, and ports.
@@ -241,12 +313,12 @@ class Instance {
 
         // Create and add the instance-name text object 
         const instanceName = makeText(this.name);
-        instanceName.translation.set(10, 0);
+        instanceName.translation.set(primitive.nameloc.x, primitive.nameloc.y);
         instanceGroup.add(instanceName);
 
         // Create and add the instance-name text object 
         const instanceOf = makeText(this.of);
-        instanceOf.translation.set(10, 40);
+        instanceOf.translation.set(primitive.ofloc.x, primitive.ofloc.y);
         instanceGroup.add(instanceOf);
 
         var dragging = false;
@@ -333,8 +405,10 @@ class Wire {
         drawing.visible = true;
         drawing.closed = false;
         drawing.noFill();
-        drawing.stroke = 'rgb(150, 100, 255)';
-        drawing.linewidth = 5;
+        drawing.stroke = 'blue';
+        drawing.linewidth = 10;
+        drawing.cap = 'round';
+        drawing.join = 'round';
 
         this.drawing = drawing;
         two.update();
@@ -448,6 +522,8 @@ class SchEditor {
         window.addEventListener("dblclick", this.handleDoubleClick);
     }
     loadSchematic = schematic => {
+        this.schematic = schematic;
+
         // Clear the drawing window, in case we have a previous drawing.
         two.clear();
 
@@ -455,7 +531,6 @@ class SchEditor {
         this.setupGrid();
 
         // And draw the loaded schematic
-        this.schematic = schematic;
         this.schematic.draw();
     }
     // Set up the background grid
@@ -476,11 +551,11 @@ class SchEditor {
                 line.linewidth = 0.5;
             }
         };
-        for (let i = 0; i < x; i += 10) {
+        for (let i = 0; i <= x; i += 10) {
             const line = two.makeLine(i, 0, i, y);
             styleLine(line, i % 100 == 0);
         }
-        for (let i = 0; i < y; i += 10) {
+        for (let i = 0; i <= y; i += 10) {
             const line = two.makeLine(0, i, x, i);
             styleLine(line, i % 100 == 0);
         }
@@ -683,43 +758,6 @@ class SchEditor {
 
 }
 
-const schematicStyle = `
-<style>
-    /* Styling for Symbol and Wire Elements */
-    .hdl21-symbols {
-        fill: none;
-        stroke: black;
-        stroke-opacity: 1;
-        stroke-miterlimit: 0;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        stroke-width: 4px;
-        stroke-dashoffset: 0px;
-    }
-
-    .hdl21-wire {
-        fill: none;
-        stroke: blue;
-        stroke-opacity: 1;
-        stroke-miterlimit: 0;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        stroke-width: 4px;
-        stroke-dashoffset: 0px;
-    }
-
-    /* Styling for Text Labels */
-    .hdl21-labels,
-    .hdl21-instance-name,
-    .hdl21-instance-of,
-    .hdl21-wire-name {
-        fill: black;
-        font-family: comic sans ms;  /* We know, it's just too funny */
-        font-size: 16px;
-    }
-</style>
-`;
-
 // Serialize a schematic to an SVG string.
 const serialize = schematic => {
 
@@ -728,7 +766,19 @@ const serialize = schematic => {
 
     // Add schematic styling.
     svg += `
-    <!-- Styling -->
+    
+    <defs>
+        <!-- Grid Background -->
+        <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
+        </pattern>
+        <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+        <rect width="100" height="100" fill="url(#smallGrid)"/>
+        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+        </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#grid)" stroke="gray" stroke-width="1"/>
+
     ${schematicStyle}
     <!-- Svg Schematic Content -->\n`;
 
@@ -744,8 +794,8 @@ const serialize = schematic => {
         <g class="hdl21-instance" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">
             ${primitive.svgStr}
 
-            <text x="5" y="0"  class="hdl21-instance-name">${name}</text>
-            <text x="5" y="45" class="hdl21-instance-of">${of}</text>
+            <text x="${primitive.nameloc.x}" y="${primitive.nameloc.y}"  class="hdl21-instance-name">${name}</text>
+            <text x="${primitive.ofloc.x}" y="${primitive.ofloc.y}" class="hdl21-instance-of">${of}</text>
         </g>`;
     }
 
@@ -757,6 +807,9 @@ const serialize = schematic => {
 
     // Create the SVG `<g>` element for a `Wire`, including its path and wire-name. 
     const wireSvg = wire => {
+        if (!wire.points) {
+            return;
+        }
         const [first, ...rest] = wire.points;
         let rv = `<g class="hdl21-wire"> \n    `;
         rv += `<path class="hdl21-wire" d="M ${first.x} ${first.y}`;
@@ -930,7 +983,7 @@ class Importer {
         if (symbolGroup.properties.class === "hdl21::primitives::nmos") {
             kind = PrimitiveEnum.Nmos;
         } else if (symbolGroup.properties.class === "hdl21::primitives::pmos") {
-            kind = PrimitiveEnum.Nmos; // FIXME! an actual PMOS symbol
+            kind = PrimitiveEnum.Pmos; // FIXME! all the other symbols
         } else {
             throw new Error(`Instance ${svgGroup.properties.id} has unknown symbol class ${symbolGroup.properties.class}`);
         }
