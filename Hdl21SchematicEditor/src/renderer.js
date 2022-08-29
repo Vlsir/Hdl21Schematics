@@ -152,21 +152,27 @@ class Port {
 class Primitive {
     constructor(args) {
         this.enumval = args.enumval; // PrimitiveEnum
+        this.svgTag = args.svgTag;   // string, svg class-name
         this.svgStr = args.svgStr;   // SVG-valued string
         this.ports = args.ports;     // [Port]
         this.nameloc = args.nameloc; // Point
         this.ofloc = args.ofloc;     // Point
     }
-    // Create a new Primitive, and add it to the `PrimitiveMap` mapping.
+    // Create a new Primitive, and add it to module-scope mappings.
     static add(args) {
-        PrimitiveMap.set(args.enumval, new Primitive(args));
+        const prim = new Primitive(args);
+        PrimitiveMap.set(args.enumval, prim);
+        PrimitiveTags.set(args.svgTag, prim);
     }
 }
 // Map from enumerated keys to `Primitive` objects.
 const PrimitiveMap = new Map();
+// Map from tags to `Primitive` objects.
+const PrimitiveTags = new Map();
 
 Primitive.add({
     enumval: PrimitiveEnum.Nmos,
+    svgTag: "hdl21::primitives::nmos",
     svgStr: `
     <g class="hdl21::primitives::nmos">
         <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
@@ -192,6 +198,7 @@ Primitive.add({
 });
 Primitive.add({
     enumval: PrimitiveEnum.Pmos,
+    svgTag: "hdl21::primitives::pmos",
     svgStr: `
     <g class="hdl21::primitives::pmos">
         <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
@@ -205,7 +212,7 @@ Primitive.add({
         <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
         <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
     </g>
-    `,
+        `,
     ports: [
         new Port({ name: "d", loc: new Point(0, 0) }),
         new Port({ name: "g", loc: new Point(10, 0) }), // FIXME!
@@ -214,6 +221,54 @@ Primitive.add({
     ],
     nameloc: new Point(10, 0),
     ofloc: new Point(10, 80),
+});
+Primitive.add({
+    enumval: PrimitiveEnum.Input,
+    svgTag: "hdl21::primitives::input",
+    svgStr: `
+    <g class="hdl21::primitives::input">
+        <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
+        <path d="M 30 10 L 50 10" class="hdl21-symbols" />
+        <circle cx="50" cy="10" r="4" class="hdl21-instance-port" />
+    </g>
+    `,
+    ports: [
+        new Port({ name: "FIXME", loc: new Point(50, 10) }),
+    ],
+    nameloc: new Point(10, -15),
+    ofloc: new Point(10, 35),
+});
+Primitive.add({
+    enumval: PrimitiveEnum.Output,
+    svgTag: "hdl21::primitives::output",
+    svgStr: `
+    <g class="hdl21::primitives::output">
+        <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
+        <path d="M -20 10 L 0 10" class="hdl21-symbols" />
+        <circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />
+    </g>
+    `,
+    ports: [
+        new Port({ name: "FIXME", loc: new Point(-20, 10) }),
+    ],
+    nameloc: new Point(10, -15),
+    ofloc: new Point(10, 35),
+});
+Primitive.add({
+    enumval: PrimitiveEnum.Inout,
+    svgTag: "hdl21::primitives::inout",
+    svgStr: `
+    <g class="hdl21::primitives::inout">
+        <path d="M 0 0 L -10 10 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
+        <path d="M -20 10 L -10 10" class="hdl21-symbols" />
+        <circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />
+    </g>
+    `,
+    ports: [
+        new Port({ name: "FIXME", loc: new Point(-20, 10) }),
+    ],
+    nameloc: new Point(10, -15),
+    ofloc: new Point(10, 35),
 });
 // FIXME: add all the other elements
 
@@ -285,6 +340,8 @@ class Instance {
     draw = () => {
         const primitive = PrimitiveMap.get(this.kind);
         if (!primitive) {
+            console.log(this.kind);
+            console.log(PrimitiveMap);
             throw new Error(`No primitive for kind ${this.kind}`);
         }
 
@@ -321,9 +378,13 @@ class Instance {
         instanceOf.translation.set(primitive.ofloc.x, primitive.ofloc.y);
         instanceGroup.add(instanceOf);
 
+
+        // FIXME: all of the instance-editing action-code is here for now. 
+        // It is to be moved into a global handler on `SchEditor`, 
+        // so we can discern more detailed things like Ports and Labels. 
+
         var dragging = false;
         var mouse = new Two.Vector();
-
 
         function mousedown(e) {
             mouse.x = e.clientX;
@@ -361,7 +422,6 @@ class Instance {
             window.removeEventListener('mouseup', mouseup, false);
         }
 
-        // FIXME: move this to a central hit tester! 
         // Update the renderer in order to generate
         // the SVG DOM Elements. Then bind the events
         // to those elements directly.
@@ -777,7 +837,7 @@ const serialize = schematic => {
         <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
         </pattern>
     </defs>
-    <rect width="100%" height="100%" fill="url(#grid)" stroke="gray" stroke-width="1"/>
+    <rect id="hdl21-schematic-grid" width="100%" height="100%" fill="url(#grid)" stroke="gray" stroke-width="1"/>
 
     ${schematicStyle}
     <!-- Svg Schematic Content -->\n`;
@@ -817,7 +877,7 @@ const serialize = schematic => {
             rv += ` L ${p.x} ${p.y}`;
         }
         rv += `" /> \n`;
-        rv += `<text visibility="hidden" class="hdl21-wire-name">??????</text> \n`;
+        rv += `<text visibility="hidden" class="hdl21-wire-name">FIXME</text> \n`;
         rv += `</g> \n`;
         return rv;
     }
@@ -979,14 +1039,28 @@ class Importer {
         const [symbolGroup, nameElem, ofElem] = svgGroup.children;
 
         // Get the symbol type from the symbol group.
-        var kind;
-        if (symbolGroup.properties.class === "hdl21::primitives::nmos") {
-            kind = PrimitiveEnum.Nmos;
-        } else if (symbolGroup.properties.class === "hdl21::primitives::pmos") {
-            kind = PrimitiveEnum.Pmos; // FIXME! all the other symbols
-        } else {
-            throw new Error(`Instance ${svgGroup.properties.id} has unknown symbol class ${symbolGroup.properties.class}`);
+        const svgTag = symbolGroup.properties.class;
+        const prim = PrimitiveTags.get(svgTag);
+        if (!prim) {
+            console.log(svgTag);
+            throw new Error(`Unknown symbol type: ${svgTag}`);
         }
+        const kind = prim.enumval;
+        // var kind;
+        // if (symbolGroup.properties.class === "hdl21::primitives::nmos") {
+        //     kind = PrimitiveEnum.Nmos;
+        // } else if (symbolGroup.properties.class === "hdl21::primitives::pmos") {
+        //     kind = PrimitiveEnum.Pmos;
+        // } else if (symbolGroup.properties.class === "hdl21::primitives::input") {
+        //     kind = PrimitiveEnum.Input;
+        // } else if (symbolGroup.properties.class === "hdl21::primitives::output") {
+        //     kind = PrimitiveEnum.Output;
+        // } else if (symbolGroup.properties.class === "hdl21::primitives::inout") {
+        //     kind = PrimitiveEnum.Inout;
+        // } else {
+        //     // FIXME! all the other symbols
+        //     throw new Error(`Instance ${svgGroup.properties.id} has unknown symbol class ${symbolGroup.properties.class}`);
+        // }
 
         // Get the instance name.
         if (nameElem.tagName !== "text") {
