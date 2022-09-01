@@ -1,76 +1,34 @@
+""" 
+# Module
+
+Circuits extracted from schematics, 
+and the action-code to extract them.
+"""
+
 from typing import Dict, List, Optional
 from enum import Enum, auto
 from dataclasses import dataclass, field
 
 # Local imports
-from .svg import (
+from .schematic import (
     Schematic,
     Wire,
     Point,
-    PrimitiveEnum,
+    Instance as SchInstance,
     OrientationMatrix,
 )
+from .primitive import PrimitiveEnum, primitives
 
 
 class PortDir(Enum):
+    """Schematic Signal/ Port Direction
+    Including the `INTERNAL` variant for internal Signals"""
+
     INTERNAL = auto()
     INPUT = auto()
     OUTPUT = auto()
     INOUT = auto()
     PORT = auto()
-
-
-@dataclass
-class PrimitivePort:
-    name: str
-    loc: Point
-
-
-@dataclass
-class Primitive:
-    enumval: PrimitiveEnum
-    ports: List[PrimitivePort] = field(default_factory=list)
-
-
-# Create the mapping from `PrimitiveEnum` to `Primitive`s
-primitives = {
-    PrimitiveEnum.NMOS: Primitive(
-        enumval=PrimitiveEnum.NMOS,
-        ports=[
-            PrimitivePort(name="d", loc=Point(0, 0)),
-            PrimitivePort(name="g", loc=Point(70, 40)),
-            PrimitivePort(name="s", loc=Point(0, 80)),
-            PrimitivePort(name="b", loc=Point(-20, 40)),
-        ],
-    ),
-    PrimitiveEnum.PMOS: Primitive(
-        enumval=PrimitiveEnum.PMOS,
-        ports=[
-            PrimitivePort(name="d", loc=Point(0, 0)),
-            PrimitivePort(name="g", loc=Point(70, 40)),
-            PrimitivePort(name="s", loc=Point(0, 80)),
-            PrimitivePort(name="b", loc=Point(-20, 40)),
-        ],
-    ),
-    PrimitiveEnum.INPUT: Primitive(
-        enumval=PrimitiveEnum.INPUT,
-        ports=[
-            PrimitivePort(name="FIXME", loc=Point(50, 10)),
-        ],
-    ),
-    PrimitiveEnum.OUTPUT: Primitive(
-        enumval=PrimitiveEnum.OUTPUT,
-        ports=[
-            PrimitivePort(name="FIXME", loc=Point(-20, 10)),
-        ],
-    ),
-    PrimitiveEnum.INOUT: Primitive(
-        enumval=PrimitiveEnum.INOUT,
-        ports=[
-            PrimitivePort(name="FIXME", loc=Point(-20, 10)),
-        ],
-    ),
-}
 
 
 @dataclass
@@ -86,17 +44,22 @@ class Signal:
 
 @dataclass
 class Instance:
-    name: str
-    of: str
-    conns: Dict[str, Signal] = field(default_factory=dict)
+    """Module Instance"""
+
+    name: str  # Instance Name
+    of: str  # Instance-Of Code-String
+    sch_instance: SchInstance = field(repr=False)  # Source Schematic Instance
+    conns: Dict[str, Signal] = field(default_factory=dict)  # Connections
 
 
 @dataclass
 class Module:
+    name: str
     signals: Dict[str, Signal] = field(default_factory=dict)
     instances: Dict[str, Instance] = field(default_factory=dict)
 
 
+# List of the primitive kinds which are really port annotations
 port_primitive_types = (
     PrimitiveEnum.INOUT,
     PrimitiveEnum.INPUT,
@@ -109,15 +72,15 @@ class SchematicConverter:
 
     def __init__(self, sch: Schematic):
         self.sch = sch
-        self.module = Module()
-        self.num_signals = (
-            0  # FIXME! creating Signal names here, ignoring the SVG ones, for now
-        )
+        self.module = Module(name=sch.name)
+        # FIXME! creating Signal names here, ignoring the SVG ones, for now
+        self.num_signals = 0
 
     def convert(self):
         self.collect_signals()
         self.collect_ports()
         self.collect_instances()
+        return self.module
 
     def collect_signals(self):
         # Merge all the schematic's Wires into Signals
@@ -203,7 +166,9 @@ class SchematicConverter:
             if sch_instance.name in self.module.instances:
                 self.fail(f"Duplicate instance name {sch_instance.name}")
             module_instance = Instance(
-                name=sch_instance.name, of=sch_instance.of, conns={}
+                name=sch_instance.name,
+                of=sch_instance.of,
+                sch_instance=sch_instance,
             )
             self.module.instances[sch_instance.name] = module_instance
 
@@ -222,8 +187,6 @@ class SchematicConverter:
                     msg = f"Port {prim_port.name} on Instance {sch_instance} does not intersect with any existing signal"
                     self.fail(msg)
                 module_instance.conns[prim_port.name] = intersecting_signal
-
-        return self.module
 
     def intersecting_signal(self, loc: Point) -> Optional[Signal]:
         """Get the Signal at location `loc`.

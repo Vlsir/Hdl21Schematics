@@ -1,9 +1,29 @@
+""" 
+# SVG Importer
+
+SVG format parsing and conversion to `Schematic` objects.
+"""
+
 import re
 from os import PathLike
-from enum import Enum, auto
-from dataclasses import dataclass, field
+from pathlib import Path 
+from enum import Enum
 from xml.etree.ElementTree import parse, Element
-from typing import Dict, Tuple, List, Optional
+from typing import Tuple, Optional
+
+# Local imports
+from .point import Point
+from .primitive import PrimitiveEnum
+from .schematic import (
+    Schematic,
+    Instance,
+    Wire,
+    Orientation,
+    OrientationMatrix,
+    ManhattanSegment,
+    Direction,
+    valid_orientation_matrices,
+)
 
 
 class SvgTags(Enum):
@@ -24,15 +44,7 @@ class SvgTags(Enum):
         return SvgTags(etree_tag[len("{http://www.w3.org/2000/svg}") :])
 
 
-class SvgClassEnum(Enum):
-    @classmethod
-    def from_svg_class(cls, svg_class: str) -> Optional["PrimitiveEnum"]:
-        """Returns the PrimitiveEnum for the given SVG class"""
-        reverse = {v.value: v for v in cls.__members__.values()}
-        return reverse.get(svg_class, None)
-
-
-class SchSvgClasses(SvgClassEnum):
+class SchSvgClasses(Enum):
     """Enumerated SVG Classes used to identify Schematic content"""
 
     INSTANCE = "hdl21-instance"
@@ -41,133 +53,20 @@ class SchSvgClasses(SvgClassEnum):
     INSTANCE_OF = "hdl21-instance-of"
     WIRE_NAME = "hdl21-wire-name"
 
-
-class PrimitiveEnum(SvgClassEnum):
-    """Enumerated Primitive Types
-    Values equal their SVG tags"""
-
-    NMOS = "hdl21::primitives::nmos"
-    PMOS = "hdl21::primitives::pmos"
-    INPUT = "hdl21::primitives::input"
-    OUTPUT = "hdl21::primitives::output"
-    INOUT = "hdl21::primitives::inout"
+    @classmethod
+    def from_svg_class(cls, svg_class: str) -> Optional["SchSvgClasses"]:
+        """Returns the variant for the paired SVG class"""
+        reverse = {v.value: v for v in cls.__members__.values()}
+        return reverse.get(svg_class, None)
 
 
-class Rotation(Enum):
-    R0 = "R0"
-    R90 = "R90"
-    R180 = "R180"
-    R270 = "R270"
-
-
-@dataclass(frozen=True)
-class Orientation:
-    reflected: bool
-    rotation: Rotation
-
-
-@dataclass(frozen=True)
-class OrientationMatrix:
-    """
-    # Orientation Matrix
-
-    2x2 matrix representation of an `Orientation`
-    Largely corresponds to the values placed in SVG `matrix` attributes.
-    SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to
-    | a c |
-    | b d |
-    The fields of `OrientationMatrix` are named similarly.
-    """
-
-    a: float
-    b: float
-    c: float
-    d: float
-
-    @staticmethod
-    def from_orientation(orientation: Orientation) -> "OrientationMatrix":
-        """Returns the `OrientationMatrix` for the given `Orientation`"""
-        global valid_orientation_matrices
-        reverse_orientation_matrices = {
-            v: k for k, v in valid_orientation_matrices.items()
-        }
-        return reverse_orientation_matrices[orientation]
-
-
-# There are a total of eight valid values of the orientation matrix.
-# Check each, and if we have anything else, fail.
-# SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to
-# | a c |
-# | b d |
-valid_orientation_matrices: Dict[OrientationMatrix, Orientation] = {
-    OrientationMatrix(1, 0, 0, 1): Orientation(False, Rotation.R0),
-    OrientationMatrix(0, 1, -1, 0): Orientation(False, Rotation.R90),
-    OrientationMatrix(-1, 0, 0, -1): Orientation(False, Rotation.R180),
-    OrientationMatrix(0, -1, 1, 0): Orientation(False, Rotation.R270),
-    OrientationMatrix(1, 0, 0, -1): Orientation(True, Rotation.R0),
-    OrientationMatrix(0, 1, 1, 0): Orientation(True, Rotation.R90),
-    OrientationMatrix(-1, 0, 0, 1): Orientation(True, Rotation.R180),
-    OrientationMatrix(0, -1, -1, 0): Orientation(True, Rotation.R270),
+primitive_svg_classes = {
+    "hdl21::primitives::nmos": PrimitiveEnum.NMOS,
+    "hdl21::primitives::pmos": PrimitiveEnum.PMOS,
+    "hdl21::primitives::input": PrimitiveEnum.INPUT,
+    "hdl21::primitives::output": PrimitiveEnum.OUTPUT,
+    "hdl21::primitives::inout": PrimitiveEnum.INOUT,
 }
-
-
-@dataclass(frozen=True)
-class Point:
-    x: int
-    y: int
-
-
-@dataclass
-class Instance:
-    name: str
-    of: str
-    kind: PrimitiveEnum
-    loc: Point
-    orientation: Orientation
-
-
-class Direction(Enum):
-    HORIZ = auto()
-    VERT = auto()
-
-
-@dataclass
-class ManhattanSegment:
-    """
-    # Manhattan Wire Segment
-    Runs either horizontally or vertically in direction `dir_`,
-    at a constant coordinate `at` and between `start` and `end`.
-    """
-
-    dir_: Direction
-    at: int
-    start: int
-    end: int
-
-    def intersects(self, pt: Point) -> bool:
-        """Boolean indication of whether `pt` intersects this segment."""
-        if self.dir_ == Direction.HORIZ:
-            return self.at == pt.y and self.start <= pt.x <= self.end
-        else:
-            return self.at == pt.x and self.start <= pt.y <= self.end
-
-
-@dataclass
-class Wire:
-    name: str
-    points: List[Point]
-    segments: List[ManhattanSegment]
-
-    def intersects(self, pt: Point) -> bool:
-        """Boolean indication of whether `pt` intersects this wire."""
-        return any(seg.intersects(pt) for seg in self.segments)
-
-
-@dataclass
-class Schematic:
-    size: Point
-    instances: List[Instance] = field(default_factory=list)
-    wires: List[Wire] = field(default_factory=list)
 
 
 class SvgImporter:
@@ -185,12 +84,19 @@ class SvgImporter:
     def import_svg_file(self) -> Schematic:
         """Import a schematic from an SVG file."""
 
-        self.root = parse(self.svg_file).getroot()
+        # Parse the SVG content
+        path = Path(self.svg_file)
+        self.root = parse(path).getroot()
+        
+        # Extract a name from the file path
+        name = path.name.split(".")[0]
 
         # Import top-level attributes, including the outline dimensions
         width = self.root.attrib.get(f"width", 1600)
         height = self.root.attrib.get(f"height", 800)
-        self.schematic = Schematic(size=Point(int(width), int(height)))
+
+        # Create the schematic
+        self.schematic = Schematic(name=name, size=Point(int(width), int(height)))
 
         # And import all the child elements
         for child in self.root:
@@ -253,7 +159,7 @@ class SvgImporter:
         symbol_class = symbol.attrib.get(f"class", None)
         if symbol_class is None:
             self.fail(f"Invalid Symbol {symbol}")
-        kind = PrimitiveEnum.from_svg_class(symbol_class)
+        kind = primitive_svg_classes.get(symbol_class, None)
         if kind is None:
             self.fail(f"Invalid Symbol {symbol}")
 

@@ -110,7 +110,7 @@
     
 
             <text x="10" y="0"  class="hdl21-instance-name">n0</text>
-            <text x="10" y="80" class="hdl21-instance-of">nmos(args)</text>
+            <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
         </g>
         <g class="hdl21-instance" transform="matrix(1 0 0 1 400 310)">
             
@@ -129,7 +129,7 @@
     
 
             <text x="10" y="0"  class="hdl21-instance-name">n1</text>
-            <text x="10" y="80" class="hdl21-instance-of">nmos(args)</text>
+            <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
         </g>
         <g class="hdl21-instance" transform="matrix(1 0 0 1 400 110)">
             
@@ -186,7 +186,7 @@
     
 
             <text x="10" y="0"  class="hdl21-instance-name">n2</text>
-            <text x="10" y="80" class="hdl21-instance-of">nmos(args)</text>
+            <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
         </g>
         <g class="hdl21-instance" transform="matrix(1 0 0 1 750 250)">
             
