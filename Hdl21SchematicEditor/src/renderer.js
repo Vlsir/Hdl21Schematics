@@ -189,9 +189,9 @@ Primitive.add({
     `,
     ports: [
         new Port({ name: "d", loc: new Point(0, 0) }),
-        new Port({ name: "g", loc: new Point(10, 0) }), // FIXME!
-        new Port({ name: "s", loc: new Point(10, 10) }), // FIXME!
-        new Port({ name: "b", loc: new Point(0, 10) }), // FIXME!
+        new Port({ name: "g", loc: new Point(70, 40) }),
+        new Port({ name: "s", loc: new Point(0, 80) }),
+        new Port({ name: "b", loc: new Point(-20, 40) }),
     ],
     nameloc: new Point(10, 0),
     ofloc: new Point(10, 80),
@@ -215,9 +215,9 @@ Primitive.add({
         `,
     ports: [
         new Port({ name: "d", loc: new Point(0, 0) }),
-        new Port({ name: "g", loc: new Point(10, 0) }), // FIXME!
-        new Port({ name: "s", loc: new Point(10, 10) }), // FIXME!
-        new Port({ name: "b", loc: new Point(0, 10) }), // FIXME!
+        new Port({ name: "g", loc: new Point(70, 40) }),
+        new Port({ name: "s", loc: new Point(0, 80) }),
+        new Port({ name: "b", loc: new Point(-20, 40) }),
     ],
     nameloc: new Point(10, 0),
     ofloc: new Point(10, 80),
@@ -308,13 +308,18 @@ class HitTestResult {
     }
 }
 
+const LabelKind = Object.freeze({
+    Name: Symbol("Name"),
+    Of: Symbol("Of"),
+});
 // # Text Label 
 // 
 class Label {
     constructor(args) {
-        this.text = args.text;
-        this.loc = args.loc;
-        this.parent = args.parent;
+        this.text = args.text; // string
+        this.loc = args.loc;   // Point
+        this.kind = args.kind; // LabelKind
+        this.parent = args.parent; // Entity
         this.drawing = null;
         this.bbox = null;
     }
@@ -323,6 +328,7 @@ class Label {
         this.text = text;
         this.drawing.value = text;
         this.bbox = this.drawing.getBoundingClientRect();
+        this.parent.updateLabel(this);
     }
     draw = () => {
         if (this.drawing) { // Remove any existing drawing 
@@ -436,11 +442,11 @@ class Instance {
         this.bbox = symbol.getBoundingClientRect();
 
         // Create and add the instance-name Label
-        this.nameLabel = new Label({ text: this.name, loc: primitive.nameloc, parent: this });
+        this.nameLabel = new Label({ text: this.name, kind: LabelKind.Name, loc: primitive.nameloc, parent: this });
         this.nameLabel.draw();
 
         // Create and add the instance-of Label 
-        this.ofLabel = new Label({ text: this.of, loc: primitive.ofloc, parent: this });
+        this.ofLabel = new Label({ text: this.of, kind: LabelKind.Of, loc: primitive.ofloc, parent: this });
         this.ofLabel.draw();
     }
     // Boolean indication of whether `point` is inside the Instance's bounding box.
@@ -458,6 +464,16 @@ class Instance {
         if (this.drawing) { // Remove any existing drawing 
             two.remove(this.drawing);
             this.drawing = null;
+        }
+    }
+    // Update the string-value from a `Label`. 
+    updateLabel = label => {
+        if (label.kind === LabelKind.Name) {
+            this.name = label.text;
+        } else if (label.kind === LabelKind.Of) {
+            this.of = label.text;
+        } else {
+            console.log("Unknown label kind");
         }
     }
 }
@@ -690,36 +706,43 @@ class SchEditor {
         }
         return null;
     }
+    // Make `entity` the selected, highlighted entity.
+    select = entity => {
+        this.ui_state.selected_entity = entity;
+        entity.highlight();
+    }
+    // Deselect the highlighted entity, if any.
+    deselect = () => {
+        if (this.ui_state.selected_entity) {
+            this.ui_state.selected_entity.unhighlight();
+        }
+        this.ui_state.selected_entity = null;
+    }
     handleMouseDown = e => {
         console.log("mouse down");
 
         // Hit test, finding which element was clicked on.
         const whatd_we_hit = this.whatdWeHit(this.ui_state.mouse_pos);
-        console.log("MOUSEDOWN HIT:");
-        console.log(whatd_we_hit);
-        if (whatd_we_hit) {
-            this.ui_state.selected_entity = whatd_we_hit.entity;
-            whatd_we_hit.entity.highlight();
-        }
 
         // And react to the current UI mode.
         switch (this.ui_state.mode) {
             case UiModes.Idle: {
+                // In idle mode, if we clicked on something, react and update our UI state.
                 if (!whatd_we_hit) {
-                    break;
+                    return; // Hit nothing, do nothing. 
                 }
+                // Select the clicked-on entity.
 
+                // And react based on its type. 
                 switch (whatd_we_hit.kind) {
                     case EntityKind.Instance: {
                         // Start moving the instance.
                         this.ui_state.mode = UiModes.MoveInstance;
-                        this.ui_state.selected_entity = whatd_we_hit.entity;
-                        break;
+                        return this.select(whatd_we_hit.entity);
                     }
                     case EntityKind.Label: {
                         this.ui_state.mode = UiModes.EditLabel;
-                        this.ui_state.selected_entity = whatd_we_hit.entity;
-                        break;
+                        return this.select(whatd_we_hit.entity);
                     }
                     case EntityKind.Port: {
                         // FIXME: start drawing a wire.
@@ -732,7 +755,7 @@ class SchEditor {
                 }
                 break;
             }
-            case UiModes.DrawWire: this.addWireVertex(); break;
+            case UiModes.DrawWire: /*this.addWireVertex();*/ break; // Do this on mouse-up
             case UiModes.AddInstance: this.commitInstance(); break;
             default: break;
         }
@@ -747,12 +770,7 @@ class SchEditor {
         switch (this.ui_state.mode) {
             case UiModes.DrawWire: this.addWireVertex(); break;
             case UiModes.AddInstance: this.commitInstance(); break;
-            case UiModes.MoveInstance: {
-                // Done moving the instance. Move back to the idle state. 
-                this.ui_state.mode = UiModes.Idle;
-                this.selected_entity = null;
-                break;
-            }
+            case UiModes.MoveInstance: return self.goUiIdle();
             default: break;
         }
     }
@@ -940,7 +958,7 @@ class SchEditor {
         // Filter down to "identifier characters": letters, numbers, and underscores.
         if (e.key.length !== 1 || e.key === Keys.Space) {
             return;
-        } 
+        }
 
         // Add the character to the label.
         return label.update(label.text + e.key);
@@ -1179,7 +1197,7 @@ class Importer {
             console.log(svgTag);
             throw new Error(`Unknown symbol type: ${svgTag}`);
         }
-        const kind = prim.enumval; 
+        const kind = prim.enumval;
 
         // Get the instance name.
         if (nameElem.tagName !== "text") {

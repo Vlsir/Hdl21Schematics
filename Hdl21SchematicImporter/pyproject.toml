@@ -6,10 +6,10 @@ authors = ["Dan Fritchman <dan@fritch.mn>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-svgelements = "^1.7.5"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "7.1.2"
+black = "22.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

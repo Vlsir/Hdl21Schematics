@@ -1,12 +1,13 @@
 import re
+from os import PathLike
+from enum import Enum, auto
+from dataclasses import dataclass, field
 from xml.etree.ElementTree import parse, Element
 from typing import Dict, Tuple, List, Optional
-from enum import Enum
-from dataclasses import dataclass, field
 
 
 class SvgTags(Enum):
-    """ Enumerated SVG Node-Type Tags"""
+    """Enumerated SVG Node-Type Tags"""
 
     DEFS = "defs"
     GROUP = "g"
@@ -16,7 +17,7 @@ class SvgTags(Enum):
 
     @staticmethod
     def from_etree_tag(etree_tag: str) -> Optional["SvgTags"]:
-        """ Converts an etree tag to a SvgTags enum value """
+        """Converts an etree tag to a SvgTags enum value"""
         if not etree_tag.startswith("{http://www.w3.org/2000/svg}"):
             return None
         # Remove the namespace prefix, and convert to an `SvgTags` enum value
@@ -26,13 +27,13 @@ class SvgTags(Enum):
 class SvgClassEnum(Enum):
     @classmethod
     def from_svg_class(cls, svg_class: str) -> Optional["PrimitiveEnum"]:
-        """ Returns the PrimitiveEnum for the given SVG class """
+        """Returns the PrimitiveEnum for the given SVG class"""
         reverse = {v.value: v for v in cls.__members__.values()}
         return reverse.get(svg_class, None)
 
 
 class SchSvgClasses(SvgClassEnum):
-    """ Enumerated SVG Classes used to identify Schematic content """
+    """Enumerated SVG Classes used to identify Schematic content"""
 
     INSTANCE = "hdl21-instance"
     WIRE = "hdl21-wire"
@@ -42,8 +43,8 @@ class SchSvgClasses(SvgClassEnum):
 
 
 class PrimitiveEnum(SvgClassEnum):
-    """ Enumerated Primitive Types 
-    Values equal their SVG tags """
+    """Enumerated Primitive Types
+    Values equal their SVG tags"""
 
     NMOS = "hdl21::primitives::nmos"
     PMOS = "hdl21::primitives::pmos"
@@ -68,20 +69,29 @@ class Orientation:
 @dataclass(frozen=True)
 class OrientationMatrix:
     """
-    # Orientation Matrix 
-    
+    # Orientation Matrix
+
     2x2 matrix representation of an `Orientation`
     Largely corresponds to the values placed in SVG `matrix` attributes.
-    SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to 
+    SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to
     | a c |
     | b d |
-    The fields of `OrientationMatrix` are named similarly. 
+    The fields of `OrientationMatrix` are named similarly.
     """
 
     a: float
     b: float
     c: float
     d: float
+
+    @staticmethod
+    def from_orientation(orientation: Orientation) -> "OrientationMatrix":
+        """Returns the `OrientationMatrix` for the given `Orientation`"""
+        global valid_orientation_matrices
+        reverse_orientation_matrices = {
+            v: k for k, v in valid_orientation_matrices.items()
+        }
+        return reverse_orientation_matrices[orientation]
 
 
 # There are a total of eight valid values of the orientation matrix.
@@ -116,10 +126,41 @@ class Instance:
     orientation: Orientation
 
 
+class Direction(Enum):
+    HORIZ = auto()
+    VERT = auto()
+
+
+@dataclass
+class ManhattanSegment:
+    """
+    # Manhattan Wire Segment
+    Runs either horizontally or vertically in direction `dir_`,
+    at a constant coordinate `at` and between `start` and `end`.
+    """
+
+    dir_: Direction
+    at: int
+    start: int
+    end: int
+
+    def intersects(self, pt: Point) -> bool:
+        """Boolean indication of whether `pt` intersects this segment."""
+        if self.dir_ == Direction.HORIZ:
+            return self.at == pt.y and self.start <= pt.x <= self.end
+        else:
+            return self.at == pt.x and self.start <= pt.y <= self.end
+
+
 @dataclass
 class Wire:
-    name: str 
+    name: str
     points: List[Point]
+    segments: List[ManhattanSegment]
+
+    def intersects(self, pt: Point) -> bool:
+        """Boolean indication of whether `pt` intersects this wire."""
+        return any(seg.intersects(pt) for seg in self.segments)
 
 
 @dataclass
@@ -130,19 +171,19 @@ class Schematic:
 
 
 class SvgImporter:
-    """ 
-    # SvgImporter 
-    Uses the standard library's XML module to parse SVG syntax into the abstract `Schematic` model. 
+    """
+    # SvgImporter
+    Uses the standard library's XML module to parse SVG syntax into the abstract `Schematic` model.
     """
 
-    def __init__(self, svg_file):
+    def __init__(self, svg_file: PathLike):
         self.svg_file = svg_file
         self.root = None
         self.schematic = None
         self.other_svg_elems = list()
 
     def import_svg_file(self) -> Schematic:
-        """ Import a schematic from an SVG file. """
+        """Import a schematic from an SVG file."""
 
         self.root = parse(self.svg_file).getroot()
 
@@ -154,12 +195,12 @@ class SvgImporter:
         # And import all the child elements
         for child in self.root:
             self.import_element(child)
-        
+
         # Return the resulting schematic
         return self.schematic
 
     def import_element(self, element: Element):
-        """ Import a hierarchical element, depending on its tag."""
+        """Import a hierarchical element, depending on its tag."""
 
         svgtag = SvgTags.from_etree_tag(element.tag)
 
@@ -177,12 +218,12 @@ class SvgImporter:
             self.fail(f"Invalid {element}")
 
     def import_group(self, group: Element):
-        """ Import a group element. """
+        """Import a group element."""
 
         svg_class = group.attrib.get(f"class", None)
         if svg_class is None:
             self.fail(f"Invalid {group}")
-            
+
         sch_svg_class = SchSvgClasses.from_svg_class(svg_class)
         if sch_svg_class is None:
             self.other_svg_elems.append(group)
@@ -194,7 +235,7 @@ class SvgImporter:
             self.other_svg_elems.append(group)
 
     def import_instance(self, group: Element):
-        """ Import an `Instance` from an SVG group. """
+        """Import an `Instance` from an SVG group."""
 
         # Import its SVG `transform` into a location and orientation
         transform = group.attrib.get(f"transform", None)
@@ -231,8 +272,8 @@ class SvgImporter:
         self.schematic.instances.append(instance)
 
     def import_transform(self, transform) -> Tuple[Point, Orientation]:
-        """ Import an SVG `transform` to a location `Point` and an `Orientation`. """
-        
+        """Import an SVG `transform` to a location `Point` and an `Orientation`."""
+
         # Start splitting up the `transform` string.
         transform = transform.strip()
         parens = re.compile(r"\(|\)")
@@ -258,10 +299,10 @@ class SvgImporter:
         return (loc, orientation)
 
     def import_wire(self, group: Element):
-        """ Import a `Wire` from an SVG group. """
+        """Import a `Wire` from an SVG group."""
 
         child_list = list(group)
-        if len(child_list) != 2 :
+        if len(child_list) != 2:
             self.fail(f"Invalid SVG Wire Group {group}")
 
         # Get the two children: the path and the wire name
@@ -272,7 +313,7 @@ class SvgImporter:
         if path_data is None:
             self.fail(f"Invalid Path {path_elem}")
         path_data = path_data.split()
-        if (path_data[0] != "M") :
+        if path_data[0] != "M":
             self.fail(f"Wire {group} has invalid path data")
 
         points = []
@@ -281,16 +322,37 @@ class SvgImporter:
             y = int(path_data[i + 1])
             points.append(Point(x, y))
 
+        # Extract Manhattan segments from those Points
+        segments = []
+        pt = points[0]
+        for nxt in points[1:]:
+            if pt.x == nxt.x:
+                start = min(pt.y, nxt.y)
+                end = max(pt.y, nxt.y)
+                seg = ManhattanSegment(
+                    dir_=Direction.VERT, at=pt.x, start=start, end=end
+                )
+            elif pt.y == nxt.y:
+                start = min(pt.x, nxt.x)
+                end = max(pt.x, nxt.x)
+                seg = ManhattanSegment(
+                    dir_=Direction.HORIZ, at=pt.y, start=start, end=end
+                )
+            else:
+                self.fail(f"Wire {group} has non-Manhattan path data")
+            segments.append(seg)
+            pt = nxt
+
         # Get the wire name
         self.expect(name_elem, tag=SvgTags.TEXT, class_=SchSvgClasses.WIRE_NAME)
         name = name_elem.text
 
         # Create and add the wire
-        wire = Wire(name=name, points=points)
+        wire = Wire(name=name, points=points, segments=segments)
         self.schematic.wires.append(wire)
 
     def expect(self, elem: Element, tag: SvgTags, class_: SchSvgClasses):
-        """ Check that an SVG element has the expected tag and class. """
+        """Check that an SVG element has the expected tag and class."""
 
         if SvgTags.from_etree_tag(elem.tag) != tag:
             self.fail(f"Invalid {elem}")
@@ -302,10 +364,10 @@ class SvgImporter:
             self.fail(f"Invalid SVG class for {elem}")
 
     def fail(self, msg: str):
-        """ Error helper """
+        """Error helper"""
         raise RuntimeError(msg)
 
 
 def import_svg(svg_file):
-    """ Import a schematic from an SVG file. """
+    """Import a schematic from an SVG file."""
     return SvgImporter(svg_file).import_svg_file()
