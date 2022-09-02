@@ -296,8 +296,8 @@ const EntityKind = Object.freeze({
     Port: Symbol("Port"),
     Label: Symbol("Label"),
     Wire: Symbol("Wire"),
-    WireSegment: Symbol("WireSegment"),
 });
+
 // # Schematic Entity 
 // 
 // All the methods for interacting with a schematic entity.
@@ -400,11 +400,14 @@ class Label {
 class Instance {
     constructor(args) {
         // Instance Data
-        this.name = args.name; // string
-        this.of = args.of;// string
-        this.kind = args.kind;// PrimitiveEnum
-        this.loc = args.loc;//Point
-        this.orientation = args.orientation;// Orientation
+        this.name = args.name;   // string
+        this.of = args.of;       // string
+        this.kind = args.kind;   // PrimitiveEnum
+        this.loc = args.loc;     // Point
+        this.orientation = args.orientation;  // Orientation
+
+        // Number, unique ID. Not a constructor argument. 
+        this.entityId = null;
 
         // Drawing data, set during calls to `draw()`.
         // The two.js drawing, implemented as a Two.Group.
@@ -515,9 +518,15 @@ class Wire {
         this.points = points;
         this.drawing = null; /* Two.Path, set by `draw()` */
         this.highlighted = false; // bool
+        // Number, unique ID. Not a constructor argument. 
+        this.entityId = null;
     }
     // Create from a list of `Point`s. Primarily creates the drawn `Path`. 
     draw = () => {
+        if (this.drawing) { // Remove any existing drawing
+            two.remove(this.drawing);
+            this.drawing = null;
+        }
         // Flatten coordinates into the form [x1, y1, x2, y2, ...]
         let coords = [];
         for (let point of this.points) {
@@ -538,8 +547,6 @@ class Wire {
         this.drawing = drawing;
 
         if (this.highlighted) { this.highlight(); }
-
-        two.update();
     }
     // Abort drawing an in-progress wire.
     abort = () => {
@@ -555,15 +562,72 @@ class Wire {
 class Schematic {
     constructor(size) {
         this.size = size || new Point(1600, 800);
-        this.instances = [];
-        this.wires = [];
+        this.wires = new Map();      // Map<Number, Wire>
+        this.instances = new Map();  // Map<Number, Instance>
+        this.entities = new Map();   // Map<Number, Entity>
+
+        // Running count of added instances, for naming. 
+        this.num_instances = 0;
+        // Running count of added schematic entities. Serves as their "primary key" in each Map.
+        this.num_entities = 0;
+    }
+    // Add an element to the `entities` mapping. Returns its ID if successful. 
+    addEntity = entity => {
+        const entityId = entity.obj.entityId;
+        // Increment the number of entities even if we fail, hopefully breaking out of failure cases. 
+        this.num_entities += 1;
+        if (this.entities.has(entityId)) {
+            console.log(`Entity ${entity.entityId} already exists`);
+            console.log("Not adding:");
+            console.log(entity);
+            return null;
+        }
+        this.entities.set(entity.obj.entityId, entity);
+        return entityId;
+    }
+    addWire = wire => {
+        // Set the instance's entityId
+        wire.entityId = this.num_entities;
+
+        // Add it to both the instance and entity maps
+        this.wires.set(wire.entityId, wire);
+        this.addEntity(new Entity({ kind: EntityKind.Wire, obj: wire }));
+    }
+    removeWire = wire => {
+        console.log("FIXME removeWire");
+    }
+    addInstance = instance => {
+        // Set the instance's entityId
+        instance.entityId = this.num_entities;
+
+        // Add it to both the instance and entity maps
+        this.instances.set(instance.entityId, instance);
+        this.addEntity(new Entity({ kind: EntityKind.Instance, obj: instance }));
+
+        // Increment both our instances and entities counts.
+        // FIXME: need to also add Entities per Port 
+        this.num_instances += 1;
+    }
+    removeInstance = instance => {
+        if (!this.instances.has(instance.entityId)) {
+            console.log("Instance not found in schematic");
+            return;
+        }
+        this.instances.delete(instance.entityId);
+        this.entities.delete(instance.entityId);
+        // FIXME: delete its port and label entities too 
+
+        // Remove the instance's drawing
+        if (instance.drawing) {
+            two.remove(instance.drawing);
+        }
     }
     // Draw all elements in the schematic.
     draw = () => {
-        for (let instance of this.instances) {
+        for (let [key, instance] of this.instances) {
             instance.draw();
         }
-        for (let wire of this.wires) {
+        for (let [key, wire] of this.wires) {
             wire.draw();
         }
     }
@@ -603,13 +667,11 @@ class UiState {
         this.changes = [];
         // Kind of the last instance added. Serves as the default when adding new ones. 
         this.lastPrimEnum = PrimitiveEnum.Nmos;
-        // Running count of added instances, for naming. 
-        this.num_instances = 0;
         // The currently selected entity (instance, wire, port, etc.)
         this.selected_entity = null;
         // Track the mouse position at all times. 
         // Initializes to the center of the `two` canvas.
-        this.mouse_pos = new Two.Vector(two.width / 2, two.height / 2);
+        this.mouse_pos = new Point(two.width / 2, two.height / 2);
     }
 }
 
@@ -738,23 +800,27 @@ class SchEditor {
             default: console.log(`Key we dont use: '${e.key}'`);
         }
     }
-    // Delete the selected entity
+    // Delete the selected entity, if we have one, and it is deletable.
     deleteSelectedEntity = () => {
         if (!this.ui_state.selected_entity) { return; }
         const entity = this.ui_state.selected_entity;
-        switch(entity.kind) {
-            case EntityKind.Instance: console.log("DEL INSTANCE"); break;
+        switch (entity.kind) {
+            case EntityKind.Instance: {
+                // Delete the selected Instance
+                this.deselect();
+                this.schematic.removeInstance(entity.obj);
+                return this.goUiIdle();
+            }
             case EntityKind.Label: return;
             case EntityKind.Port: return;
             case EntityKind.Wire: return;
-            case EntityKind.WireSegment: return;
         }
     }
     // Hit test all schematic entities. 
     // Returns the "highest priority" entity that is hit, or `null` if none are hit.
     whatdWeHit = point => { /* Entity | null */
         // Check all Instance Labels
-        for (let instance of this.schematic.instances) {
+        for (let [key, instance] of this.schematic.instances) {
             for (let label of instance.labels()) {
                 if (label.hitTest(point)) {
                     return new Entity({ kind: EntityKind.Label, obj: label });
@@ -762,7 +828,7 @@ class SchEditor {
             }
         }
         // Check all Instance symbols / bodies
-        for (let instance of this.schematic.instances) {
+        for (let [key, instance] of this.schematic.instances) {
             if (instance.hitTest(point)) {
                 return new Entity({ kind: EntityKind.Instance, obj: instance });
             }
@@ -770,7 +836,7 @@ class SchEditor {
         return null;
     }
     // Get the inner `obj` field from our selected entity, if we have one.
-    selected_object = () => {/* Entity | null */
+    selected_object = () => {
         if (!this.ui_state.selected_entity) { return null; }
         return this.ui_state.selected_entity.obj;
     }
@@ -815,8 +881,8 @@ class SchEditor {
                         // FIXME: start drawing a wire.
                         break;
                     }
-                    case EntityKind.WireSegment: {
-                        // FIXME: highlight and/or move the wire segment.
+                    case EntityKind.Wire: {
+                        // FIXME: highlight and/or move the wire.
                         break;
                     }
                 }
@@ -888,12 +954,9 @@ class SchEditor {
         points = points.slice(0, -1);
         points.push(landing);
 
-        // Remove the previous wire-path from the scene, and redraw it.
-        two.remove(wire.drawing);
-        const newWire = new Wire(points);
-        this.select(new Entity({ kind: EntityKind.Wire, obj: newWire }));
-        newWire.draw();
-        two.update();
+        // Update the wire and redraw it.
+        wire.points = points;
+        wire.draw();
     }
     // Add a new wire vertex to the currently-drawn wire.
     addWireVertex = () => {
@@ -914,19 +977,16 @@ class SchEditor {
         points.push(landing);
         points.push(landing.copy());
 
-        // Remove the previous wire-path from the scene, and redraw it.
-        two.remove(wire.drawing);
-        const newWire = new Wire(points);
-        this.select(new Entity({ kind: EntityKind.Wire, obj: newWire }));
-        newWire.draw();
-        two.update();
+        // Update the wire and redraw it.
+        wire.points = points;
+        wire.draw();;
     }
     // Commit the currently-drawn wire to the schematic.
     // Removes it from `selected_entity` and adds it to the schematic.
     commitWire = () => {
         // Add the wire to the schematic.
         const wire = this.selected_object();
-        this.schematic.wires.push(wire);
+        this.schematic.addWire(wire);
 
         // And go back to the UI Idle, nothing selected state.
         this.deselect();
@@ -950,21 +1010,32 @@ class SchEditor {
         }
         return nearestOnGrid(landing1);
     }
-    // Start adding a new Instance
-    startAddInstance = () => {
+    // Create a new Instance
+    createInstance = () => {
         // Create the provisional `Instance`.
         // Use the `kind` of the last instance we added
+        // FIXME: probably copy more instance attributes, including the orientation. 
         const kind = this.ui_state.lastPrimEnum;
+
         // FIXME: switch these based on `kind`
-        const name = `nmos${this.ui_state.num_instances}`;
+        const name = `nmos${this.schematic.num_instances}`;
         const of = `nmos(args)`;
-        const instance = new Instance(
-            { name: name, of: of, kind: kind, loc: this.ui_state.mouse_pos, orientation: Orientation.default() }
-        );
+        const instance = new Instance({
+            name: name,
+            of: of,
+            kind: kind,
+            loc: this.ui_state.mouse_pos,
+            orientation: Orientation.default(),
+        });
+        return instance;
+    }
+    // Start adding a new Instance
+    startAddInstance = () => {
+        // Create the provisional `Instance`. Note it is *not* added to the schematic yet.
+        const instance = this.createInstance();
 
         // Update our UI state.
         this.ui_state.mode = UiModes.AddInstance;
-        this.ui_state.num_instances += 1;
         this.select(new Entity({ kind: EntityKind.Instance, obj: instance }));
 
         // And draw the instance.
@@ -991,10 +1062,10 @@ class SchEditor {
         instance.loc = snapped;
         instance.draw();
     }
-    // Add the currently-selected instance to the schematic.
+    // Add the currently-pending instance to the schematic.
     commitInstance = () => {
         const instance = this.selected_object();
-        this.schematic.instances.push(instance);
+        this.schematic.addInstance(instance);
         this.deselect();
         this.goUiIdle();
     }
@@ -1044,7 +1115,7 @@ class SchEditor {
         if (this.ui_state.selected_entity.kind !== EntityKind.Instance) { return; }
 
         // We have a selected Instance. Rotate it. 
-        const instance = this.selected_object();
+        const instance = this.selected_object();    
         instance.orientation.rotation = nextRotation(instance.orientation.rotation);
         instance.draw();
     }
@@ -1092,7 +1163,7 @@ const serialize = schematic => {
     }
 
     // Write each instance to the SVG.
-    for (let inst of schematic.instances) {
+    for (let [key, inst] of schematic.instances) {
         svg += instanceSvg(inst);
     }
     svg += `\n\n`;
@@ -1310,7 +1381,7 @@ class Importer {
 
         // Create and add the instance 
         const instance = new Instance({ name: name, of: of, kind: kind, loc: loc, orientation: orientation });
-        this.schematic.instances.push(instance);
+        this.schematic.addInstance(instance);
     };
     // Import an SVG `transform` to a location `Point` and an `Orientation`. 
     importTransform = transform => {
@@ -1367,7 +1438,7 @@ class Importer {
 
         // Create and add the wire
         const wire = new Wire(points);
-        this.schematic.wires.push(wire);
+        this.schematic.addWire(wire);
     };
     // Add an element to the "other", non-schematic elements list.
     addOtherSvgElement = svgElement => {
