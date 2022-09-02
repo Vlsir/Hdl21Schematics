@@ -14,6 +14,24 @@ import './index.css';
 // For now its just a reference to the `window.electronAPI` object.
 const THE_PLATFORM = window.electronAPI;
 
+// Recursively traverse a node with a list of `children`, 
+// applying `fn` to each node.
+const traverseAndApply = (node, fn) => {
+    fn(node);
+    if (node.children) {
+        node.children.forEach(child => traverseAndApply(child, fn));
+    }
+}
+
+// Apply the `hdl21-symbols` styling in two.js terms
+const symbolStyle = symbol => {
+    symbol.noFill();
+    symbol.stroke = 'black';
+    symbol.linewidth = 10;
+    symbol.cap = 'round';
+    symbol.join = 'round';
+    return symbol;
+}
 
 // The schematic SVG / CSS style classes. 
 const schematicStyle = `
@@ -272,7 +290,14 @@ Primitive.add({
 });
 // FIXME: add all the other elements
 
-
+// Enumerated Kinds of Schematic Entities
+const EntityKind = Object.freeze({
+    Instance: Symbol("Instance"),
+    Port: Symbol("Port"),
+    Label: Symbol("Label"),
+    Wire: Symbol("Wire"),
+    WireSegment: Symbol("WireSegment"),
+});
 // # Schematic Entity 
 // 
 // All the methods for interacting with a schematic entity.
@@ -284,30 +309,21 @@ Primitive.add({
 // if we find one, it'll become that. 
 // 
 class Entity {
-    // Create and add the drawn, graphical representation
-    draw = () => { }
-    // Update styling to indicate highlighted-ness
-    highlight = () => { }
-    // Update styling to indicate the lack of highlighted-ness
-    unhighlight = () => { }
-    // Boolean indication of whether `point` is inside the instance.
-    hitTest = point => { }
-    // Abort an in-progress instance.
-    abort = () => { }
-}
-const EntityKind = Object.freeze({
-    Instance: Symbol("Instance"),
-    Port: Symbol("Port"),
-    Label: Symbol("Label"),
-    WireSegment: Symbol("WireSegment"),
-});
-class HitTestResult {
     constructor(args) {
-        this.kind = args.kind;
-        this.entity = args.entity;
+        this.kind = args.kind; // EntityKind
+        this.obj = args.obj;   // Inner object
     }
+    // Create and add the drawn, graphical representation
+    draw = () => { return this.obj.draw(); }
+    // Update styling to indicate highlighted-ness
+    highlight = () => { return this.obj.highlight(); }
+    // Update styling to indicate the lack of highlighted-ness
+    unhighlight = () => { return this.obj.unhighlight(); }
+    // Boolean indication of whether `point` is inside the instance.
+    hitTest = point => { return this.obj.hitTest(point); }
+    // Abort an in-progress instance.
+    abort = () => { return this.obj.abort(); }
 }
-
 const LabelKind = Object.freeze({
     Name: Symbol("Name"),
     Of: Symbol("Of"),
@@ -355,7 +371,6 @@ class Label {
     }
     // Boolean indication of whether `point` is inside the instance.
     hitTest = point => {
-        console.log(this.bbox);
         if (!this.bbox) {
             return false;
         }
@@ -366,14 +381,17 @@ class Label {
     // Update styling to indicate highlighted-ness
     highlight = () => {
         this.drawing.stroke = "pink";
+        this.highlighted = true;
     }
     // Update styling to indicate the lack of highlighted-ness
     unhighlight = () => {
         this.drawing.stroke = "black";
+        this.highlighted = false;
     }
     // Abort an in-progress instance.
     abort = () => { }
 }
+
 
 // # Schematic Instance 
 // 
@@ -393,22 +411,17 @@ class Instance {
         this.drawing = null;
         // The bounding box for hit testing. 
         this.bbox = null;
+        this.highlighted = false; // bool
     }
     highlight = () => {
-        if (!this.drawing) {
-            return;
-        }
-        for (let child of this.drawing.children) {
-            child.stroke = 'rgb(150, 100, 255)';
-        }
+        this.highlighted = true;
+        if (!this.drawing) { return; }
+        traverseAndApply(this.drawing, node => { node.stroke = "purple"; });
     }
     unhighlight = () => {
-        if (!this.drawing) {
-            return;
-        }
-        for (let child of this.drawing.children) {
-            child.stroke = 'rgb(0,0,0)';
-        }
+        this.highlighted = false;
+        if (!this.drawing) { return; }
+        traverseAndApply(this.drawing, node => { node.stroke = "black"; });
     }
     // Get references to our child `Label`s.
     labels = () => {
@@ -428,14 +441,32 @@ class Instance {
 
         // Load the symbol as a Two.Group. 
         // Note we apply the styling and wrap the content in <svg> elements.
-        const symbolSvgStr = schematicStyle + "<svg>" + primitive.svgStr + "</svg>";
+        const symbolSvgStr = /*schematicStyle +*/ "<svg>" + primitive.svgStr + "</svg>";
         const symbol = two.load(symbolSvgStr);
+        traverseAndApply(symbol, symbolStyle);
         two.add(symbol);
 
         // Create the Instance's drawing-Group, including its symbol, names, and ports.
         this.drawing = two.makeGroup();
-        this.drawing.translation.set(this.loc.x, this.loc.y);
         this.drawing.add(symbol);
+
+        // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
+        this.drawing.scale = 1;
+        if (this.orientation.reflected) {
+            this.drawing.scale = new Two.Vector(1, -1);
+        }
+        // Apply rotation. Note two.js applies rotation *clockwise*, 
+        // hence the negation of 90 and 270 degrees. 
+        const radianRotation = () => {
+            switch (this.orientation.rotation) {
+                case Rotation.R0: return 0;
+                case Rotation.R90: return -Math.PI / 2;
+                case Rotation.R180: return Math.PI;
+                case Rotation.R270: return Math.PI / 2;
+            }
+        }
+        this.drawing.rotation = radianRotation();
+        this.drawing.translation.set(this.loc.x, this.loc.y);
 
         // Set the bounding box for hit testing.
         // Note this must come *after* the drawing is added to the scene.
@@ -448,6 +479,8 @@ class Instance {
         // Create and add the instance-of Label 
         this.ofLabel = new Label({ text: this.of, kind: LabelKind.Of, loc: primitive.ofloc, parent: this });
         this.ofLabel.draw();
+
+        if (this.highlighted) { this.highlight(); }
     }
     // Boolean indication of whether `point` is inside the Instance's bounding box.
     hitTest = point => {
@@ -481,6 +514,7 @@ class Wire {
     constructor(points /* Point[] */) {
         this.points = points;
         this.drawing = null; /* Two.Path, set by `draw()` */
+        this.highlighted = false; // bool
     }
     // Create from a list of `Point`s. Primarily creates the drawn `Path`. 
     draw = () => {
@@ -502,6 +536,9 @@ class Wire {
         drawing.join = 'round';
 
         this.drawing = drawing;
+
+        if (this.highlighted) { this.highlight(); }
+
         two.update();
     }
     // Abort drawing an in-progress wire.
@@ -585,17 +622,26 @@ const nearestOnGrid = loc /* Point */ => /* Point */ {
     );
 };
 
+// # Horizontal / Vertical Direction Enum 
+const Direction = Object.freeze({
+    Horiz: Symbol("Horiz"),
+    Vert: Symbol("Vert"),
+});
+
 // # Keyboard Inputs 
 // (That we care about)
 const Keys = Object.freeze({
-    i: "i",
-    w: "w",
-    Comma: ",",
-    Escape: "Escape",
-    Backspace: "Backspace",
-    Delete: "Delete",
-    Enter: "Enter",
-    Space: " ",
+    i: "i", // Instance
+    w: "w", // Wire
+    r: "r", // Rotate 
+    h: "h", // Horizontal flip
+    v: "v", // Vertical flip
+    Comma: ",", // Save(?)
+    Escape: "Escape", // Cancel
+    Backspace: "Backspace", // Delete
+    Delete: "Delete", // Delete
+    Enter: "Enter", // Finish
+    Space: " ", // Filter this out of names
 });
 
 // # The Schematic Editor UI 
@@ -613,7 +659,7 @@ class SchEditor {
     // Perform all of our one-time startup activity, binding events, etc.
     startup = () => {
         // Bind UI events
-        window.addEventListener('resize', e => console.log(e));
+        // window.addEventListener('resize', e => console.log(e));
         window.addEventListener("keydown", this.handleKey);
         window.addEventListener('mousedown', this.handleMouseDown, true);
         window.addEventListener('mouseup', this.handleMouseUp, true);
@@ -621,6 +667,7 @@ class SchEditor {
         window.addEventListener("dblclick", this.handleDoubleClick);
         // window.addEventListener("click", this.handleClick);
     }
+    // Load `schematic` into the UI and draw it.
     loadSchematic = schematic => {
         this.schematic = schematic;
 
@@ -635,9 +682,9 @@ class SchEditor {
     }
     // Set up the background grid
     setupGrid = () => {
-        // FIXME: get outline from the schematic somehow
-        const x = 1600;
-        const y = 800;
+        // Get the outline size from the Schematic
+        const x = this.schematic.size.x;
+        const y = this.schematic.size.y;
 
         // Closure to add grid-line styling
         const styleLine = (line, isMajor) => {
@@ -660,19 +707,15 @@ class SchEditor {
             styleLine(line, i % 100 == 0);
         }
     }
-    // Go to the "UI Idle" state, in which nothing is moving, selected, being drawn, or really doing anything. 
+    // Go to the "UI Idle" state, in which nothing is moving, being drawn, or really doing anything. 
     goUiIdle = () => {
-        if (this.ui_state.selected_entity) {
-            this.ui_state.selected_entity.unhighlight();
-            this.ui_state.selected_entity.abort();
-        }
-        this.ui_state.selected_entity = null;
         this.ui_state.mode = UiModes.Idle;
     }
     // Handle keystrokes. 
     handleKey = (e) => {
         // Always go back to idle mode on escape.
         if (e.key === Keys.Escape) {
+            this.deselect();
             return this.goUiIdle();
         }
         // In the update Text Labels state, forward all other keystrokes to its handler. 
@@ -681,33 +724,59 @@ class SchEditor {
         }
         // All other UI states: check for "command" keystrokes.
         switch (e.key) {
-            case Keys.i: this.startAddInstance(); break;
-            case Keys.w: this.startDrawWire(); break;
-            case Keys.Comma: THE_PLATFORM.sendSaveFile(serialize(this.schematic)); break;
-            default: console.log(`Key we dont use: '${e.key}'`); break;
+            case Keys.Delete:
+            case Keys.Backspace: {
+                // Delete the selected entity
+                return this.deleteSelectedEntity();
+            }
+            case Keys.i: return this.startAddInstance();
+            case Keys.w: return this.startDrawWire();
+            case Keys.r: return this.rotateSelected();
+            case Keys.v: return this.flipSelected(Direction.Vert);
+            case Keys.h: return this.flipSelected(Direction.Horiz);
+            case Keys.Comma: return THE_PLATFORM.sendSaveFile(serialize(this.schematic));
+            default: console.log(`Key we dont use: '${e.key}'`);
+        }
+    }
+    // Delete the selected entity
+    deleteSelectedEntity = () => {
+        if (!this.ui_state.selected_entity) { return; }
+        const entity = this.ui_state.selected_entity;
+        switch(entity.kind) {
+            case EntityKind.Instance: console.log("DEL INSTANCE"); break;
+            case EntityKind.Label: return;
+            case EntityKind.Port: return;
+            case EntityKind.Wire: return;
+            case EntityKind.WireSegment: return;
         }
     }
     // Hit test all schematic entities. 
     // Returns the "highest priority" entity that is hit, or `null` if none are hit.
-    whatdWeHit = point => /* HitTestResult | null */ {
+    whatdWeHit = point => { /* Entity | null */
         // Check all Instance Labels
         for (let instance of this.schematic.instances) {
             for (let label of instance.labels()) {
                 if (label.hitTest(point)) {
-                    return new HitTestResult({ kind: EntityKind.Label, entity: label });
+                    return new Entity({ kind: EntityKind.Label, obj: label });
                 }
             }
         }
         // Check all Instance symbols / bodies
         for (let instance of this.schematic.instances) {
             if (instance.hitTest(point)) {
-                return new HitTestResult({ kind: EntityKind.Instance, entity: instance });
+                return new Entity({ kind: EntityKind.Instance, obj: instance });
             }
         }
         return null;
     }
+    // Get the inner `obj` field from our selected entity, if we have one.
+    selected_object = () => {/* Entity | null */
+        if (!this.ui_state.selected_entity) { return null; }
+        return this.ui_state.selected_entity.obj;
+    }
     // Make `entity` the selected, highlighted entity.
     select = entity => {
+        this.deselect();
         this.ui_state.selected_entity = entity;
         entity.highlight();
     }
@@ -719,8 +788,6 @@ class SchEditor {
         this.ui_state.selected_entity = null;
     }
     handleMouseDown = e => {
-        console.log("mouse down");
-
         // Hit test, finding which element was clicked on.
         const whatd_we_hit = this.whatdWeHit(this.ui_state.mouse_pos);
 
@@ -729,20 +796,20 @@ class SchEditor {
             case UiModes.Idle: {
                 // In idle mode, if we clicked on something, react and update our UI state.
                 if (!whatd_we_hit) {
-                    return; // Hit nothing, do nothing. 
+                    return this.deselect(); // Hit nothing, do nothing. 
                 }
-                // Select the clicked-on entity.
+                // Select the clicked-on entity
 
                 // And react based on its type. 
                 switch (whatd_we_hit.kind) {
                     case EntityKind.Instance: {
                         // Start moving the instance.
                         this.ui_state.mode = UiModes.MoveInstance;
-                        return this.select(whatd_we_hit.entity);
+                        return this.select(whatd_we_hit);
                     }
                     case EntityKind.Label: {
                         this.ui_state.mode = UiModes.EditLabel;
-                        return this.select(whatd_we_hit.entity);
+                        return this.select(whatd_we_hit);
                     }
                     case EntityKind.Port: {
                         // FIXME: start drawing a wire.
@@ -755,23 +822,21 @@ class SchEditor {
                 }
                 break;
             }
-            case UiModes.DrawWire: /*this.addWireVertex();*/ break; // Do this on mouse-up
-            case UiModes.AddInstance: this.commitInstance(); break;
+            case UiModes.AddInstance: return this.commitInstance();
+            // case UiModes.DrawWire: return this.addWireVertex(); // Do this on mouse-up
             default: break;
         }
     }
     handleMouseUp = e => {
         // Hit test, finding which element was clicked on.
         const whatd_we_hit = this.whatdWeHit(this.ui_state.mouse_pos);
-        console.log("MOUSE UP HIT:");
-        console.log(whatd_we_hit);
 
         // And react to the current UI mode.
         switch (this.ui_state.mode) {
-            case UiModes.DrawWire: this.addWireVertex(); break;
-            case UiModes.AddInstance: this.commitInstance(); break;
-            case UiModes.MoveInstance: return self.goUiIdle();
-            default: break;
+            case UiModes.DrawWire: return this.addWireVertex();
+            case UiModes.AddInstance: return this.commitInstance();
+            case UiModes.MoveInstance: return this.goUiIdle();
+            default: return;
         }
     }
     // // Handle mouse click events.
@@ -781,8 +846,6 @@ class SchEditor {
     handleDoubleClick = e => {
         // Hit test, finding which element was clicked on.
         const whatd_we_hit = this.whatdWeHit(this.ui_state.mouse_pos);
-        console.log("DOUBLE CLICK HIT:");
-        console.log(whatd_we_hit);
 
         // And react to the current UI mode.
         switch (this.ui_state.mode) {
@@ -808,13 +871,13 @@ class SchEditor {
         this.ui_state.mode = UiModes.DrawWire;
         const start = nearestOnGrid(this.ui_state.mouse_pos);
         const wire = new Wire([start, start.copy()]);
-        this.ui_state.selected_entity = wire;
         wire.draw();
+        this.select(new Entity({ kind: EntityKind.Wire, obj: wire }));
     }
     // Update the rendering of an in-progress wire.
     updateDrawWire = () => {
         // Get the active Wire, its points, and the second-to-last one for relative calculations.
-        const wire = this.ui_state.selected_entity;
+        const wire = this.selected_object();
         let points = wire.points;
         const prev_point = points[wire.points.length - 2];
 
@@ -828,14 +891,14 @@ class SchEditor {
         // Remove the previous wire-path from the scene, and redraw it.
         two.remove(wire.drawing);
         const newWire = new Wire(points);
-        this.ui_state.selected_entity = newWire;
+        this.select(new Entity({ kind: EntityKind.Wire, obj: newWire }));
         newWire.draw();
         two.update();
     }
     // Add a new wire vertex to the currently-drawn wire.
     addWireVertex = () => {
         // Get the active Wire, its points, and the second-to-last one for relative calculations.
-        const wire = this.ui_state.selected_entity;
+        const wire = this.selected_object();
         let points = wire.points;
         const prev_point = points[wire.points.length - 2];
 
@@ -854,24 +917,23 @@ class SchEditor {
         // Remove the previous wire-path from the scene, and redraw it.
         two.remove(wire.drawing);
         const newWire = new Wire(points);
-        this.ui_state.selected_entity = newWire;
+        this.select(new Entity({ kind: EntityKind.Wire, obj: newWire }));
         newWire.draw();
         two.update();
     }
     // Commit the currently-drawn wire to the schematic.
     // Removes it from `selected_entity` and adds it to the schematic.
     commitWire = () => {
-        // Get the wire, and replace it in `ui_state` with null.
-        const wire = this.ui_state.selected_entity;
-        this.ui_state.selected_entity = null;
-        this.ui_state.mode = UiModes.Idle;
+        // Add the wire to the schematic.
+        const wire = this.selected_object();
+        this.schematic.wires.push(wire);
+
+        // And go back to the UI Idle, nothing selected state.
+        this.deselect();
+        this.goUiIdle();
 
         // FIXME: this will probably want some more computing at commit-time, 
-        // adding entity stuff, figuring out hit-test areas, etc. 
-
-        // Add the wire to the schematic.
-        this.schematic.wires.push(wire);
-        console.log(this.schematic);
+        // figuring out hit-test areas, etc. 
     }
     // Find the nearest Manhattan-separated point on the grid relative to `relativeTo`.
     nearestManhattan = (loc, relativeTo) => {
@@ -903,7 +965,7 @@ class SchEditor {
         // Update our UI state.
         this.ui_state.mode = UiModes.AddInstance;
         this.ui_state.num_instances += 1;
-        this.ui_state.selected_entity = instance;
+        this.select(new Entity({ kind: EntityKind.Instance, obj: instance }));
 
         // And draw the instance.
         instance.draw();
@@ -913,30 +975,28 @@ class SchEditor {
     }
     // Update the rendering of an in-progress instance.
     updateAddInstance = () => {
-        const instance = this.ui_state.selected_entity;
+        const instance = this.selected_object();
         // Snap to our grid
         const snapped = nearestOnGrid(this.ui_state.mouse_pos);
         // Set the location of both the instance and its drawing 
-        // instanceGroup.translation.set(snapped.x, snapped.y);
         instance.loc = snapped;
         instance.draw();
     }
     // Update the rendering of an in-progress instance move.
     updateMoveInstance = () => {
-        const instance = this.ui_state.selected_entity;
+        const instance = this.selected_object();
         // Snap to our grid
         const snapped = nearestOnGrid(this.ui_state.mouse_pos);
         // Set the location of both the instance and its drawing 
-        // instanceGroup.translation.set(snapped.x, snapped.y);
         instance.loc = snapped;
         instance.draw();
     }
     // Add the currently-selected instance to the schematic.
     commitInstance = () => {
-        const instance = this.ui_state.selected_entity;
-        this.ui_state.selected_entity = null;
+        const instance = this.selected_object();
         this.schematic.instances.push(instance);
-        this.ui_state.mode = UiModes.Idle;
+        this.deselect();
+        this.goUiIdle();
     }
     // Add or remove a character from a `Label`. 
     // Text editing is thus far pretty primitive. 
@@ -949,7 +1009,7 @@ class SchEditor {
             return this.goUiIdle();
         }
         // Get the active Label 
-        const label = this.ui_state.selected_entity;
+        const label = this.selected_object();
 
         if (e.key === Keys.Backspace) {
             // Subtract last character of the label
@@ -963,7 +1023,31 @@ class SchEditor {
         // Add the character to the label.
         return label.update(label.text + e.key);
     }
+    // Flip the selected instance, if one is selected.
+    flipSelected = dir => {
+        if (!this.ui_state.selected_entity) { return; }
+        if (this.ui_state.selected_entity.kind !== EntityKind.Instance) { return; }
 
+        // We have a selected Instance. Flip it. 
+        const instance = this.selected_object();
+
+        // Always flip vertically. Horizontal flips are comprised of a vertical flip and two rotations.
+        instance.orientation.reflected = !instance.orientation.reflected;
+        if (dir === Direction.Horiz) {
+            instance.orientation.rotation = nextRotation(nextRotation(instance.orientation.rotation));
+        }
+        instance.draw();
+    }
+    // Rotate the selected instance by 90 degrees, if one is selected.
+    rotateSelected = () => {
+        if (!this.ui_state.selected_entity) { return; }
+        if (this.ui_state.selected_entity.kind !== EntityKind.Instance) { return; }
+
+        // We have a selected Instance. Rotate it. 
+        const instance = this.selected_object();
+        instance.orientation.rotation = nextRotation(instance.orientation.rotation);
+        instance.draw();
+    }
 }
 
 // Serialize a schematic to an SVG string.
@@ -1051,6 +1135,19 @@ const Rotation = Object.freeze({
     R180: Symbol("R180"),
     R270: Symbol("R270"),
 });
+
+const nextRotation = rotation => {
+    switch (rotation) {
+        case Rotation.R0:
+            return Rotation.R90;
+        case Rotation.R90:
+            return Rotation.R180;
+        case Rotation.R180:
+            return Rotation.R270;
+        case Rotation.R270:
+            return Rotation.R0;
+    }
+}
 
 // Instance Orientation 
 // including reflection & rotation 
