@@ -80,7 +80,6 @@ valid_orientation_matrices: Dict[OrientationMatrix, Orientation] = {
 }
 
 
-
 @dataclass
 class Instance:
     """# Schematic Instance"""
@@ -114,8 +113,8 @@ class ManhattanSegment:
         """Boolean indication of whether `pt` intersects this segment."""
         if self.dir_ == Direction.HORIZ:
             return self.at == pt.y and self.start <= pt.x <= self.end
-        else:
-            return self.at == pt.x and self.start <= pt.y <= self.end
+        # Vertical segment
+        return self.at == pt.x and self.start <= pt.y <= self.end
 
 
 @dataclass

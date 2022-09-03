@@ -36,6 +36,7 @@ const symbolStyle = symbol => {
 // The schematic SVG / CSS style classes. 
 const schematicStyle = `
 <style>
+
 /* Styling for Symbol and Wire Elements */
 .hdl21-symbols {
   fill: none;
@@ -60,8 +61,8 @@ const schematicStyle = `
 }
 
 .hdl21-dot {
-  fill: purple;
-  stroke: purple;
+  fill: black;
+  stroke: black;
   stroke-opacity: 1;
   stroke-miterlimit: 0;
   stroke-linecap: round;
@@ -90,6 +91,25 @@ const schematicStyle = `
   font-family: comic sans ms;
   /* We know, it's just too funny */
   font-size: 16px;
+}
+
+/* Dark Mode Color Overrides */
+@media (prefers-color-scheme:dark) {
+    svg {
+        background-color: #1e1e1e;
+    }
+    .hdl21-wire {
+        stroke: #87d3f8;
+    }
+    .hdl21-symbols {
+        stroke: darkgrey;
+    }
+    .hdl21-labels,
+    .hdl21-instance-name,
+    .hdl21-instance-of,
+    .hdl21-wire-name {
+        fill: grey;
+    }
 }
 </style>
 `;
@@ -175,6 +195,8 @@ class Primitive {
         this.ports = args.ports;     // [Port]
         this.nameloc = args.nameloc; // Point
         this.ofloc = args.ofloc;     // Point
+        this.defaultNamePrefix = args.defaultNamePrefix || "x"; // string
+        this.defaultOf = args.defaultOf || "of()";      // string
     }
     // Create a new Primitive, and add it to module-scope mappings.
     static add(args) {
@@ -213,6 +235,8 @@ Primitive.add({
     ],
     nameloc: new Point(10, 0),
     ofloc: new Point(10, 80),
+    defaultNamePrefix: "n",
+    defaultOf: "nmos()",
 });
 Primitive.add({
     enumval: PrimitiveEnum.Pmos,
@@ -239,6 +263,8 @@ Primitive.add({
     ],
     nameloc: new Point(10, 0),
     ofloc: new Point(10, 80),
+    defaultNamePrefix: "p",
+    defaultOf: "pmos()",
 });
 Primitive.add({
     enumval: PrimitiveEnum.Input,
@@ -255,6 +281,8 @@ Primitive.add({
     ],
     nameloc: new Point(10, -15),
     ofloc: new Point(10, 35),
+    defaultNamePrefix: "i",
+    defaultOf: "input()",
 });
 Primitive.add({
     enumval: PrimitiveEnum.Output,
@@ -271,6 +299,8 @@ Primitive.add({
     ],
     nameloc: new Point(10, -15),
     ofloc: new Point(10, 35),
+    defaultNamePrefix: "o",
+    defaultOf: "output()",
 });
 Primitive.add({
     enumval: PrimitiveEnum.Inout,
@@ -287,6 +317,8 @@ Primitive.add({
     ],
     nameloc: new Point(10, -15),
     ofloc: new Point(10, 35),
+    defaultNamePrefix: "io",
+    defaultOf: "inout()",
 });
 // FIXME: add all the other elements
 
@@ -380,12 +412,17 @@ class Label {
     }
     // Update styling to indicate highlighted-ness
     highlight = () => {
-        this.drawing.stroke = "pink";
+        // FIXME: merge with styling
+        // FIXME: keep `stroke` off for text
+        // this.drawing.stroke = "red";
+        this.drawing.fill = "red";
         this.highlighted = true;
     }
     // Update styling to indicate the lack of highlighted-ness
     unhighlight = () => {
-        this.drawing.stroke = "black";
+        // FIXME: merge with styling
+        // this.drawing.stroke = "black";
+        this.drawing.fill = "black";
         this.highlighted = false;
     }
     // Abort an in-progress instance.
@@ -419,12 +456,22 @@ class Instance {
     highlight = () => {
         this.highlighted = true;
         if (!this.drawing) { return; }
-        traverseAndApply(this.drawing, node => { node.stroke = "purple"; });
+        traverseAndApply(this.drawing, node => {
+            // FIXME: merge with styling
+            // FIXME: this needs to set `fill` for text elements
+            // node.fill = "red";
+            node.stroke = "red";
+        });
     }
     unhighlight = () => {
         this.highlighted = false;
         if (!this.drawing) { return; }
-        traverseAndApply(this.drawing, node => { node.stroke = "black"; });
+        traverseAndApply(this.drawing, node => {
+            // FIXME: merge with styling
+            // FIXME: this needs to set `fill` for text elements
+            // node.fill = "black";
+            node.stroke = "black";
+        });
     }
     // Get references to our child `Label`s.
     labels = () => {
@@ -513,11 +560,41 @@ class Instance {
         }
     }
 }
+
+// # Horizontal / Vertical Direction Enum 
+const Direction = Object.freeze({
+    Horiz: Symbol("Horiz"),
+    Vert: Symbol("Vert"),
+});
+
+// # Manhattan Wire Segment
+// Runs either horizontally or vertically in direction `dir`,
+// at a constant coordinate `at` and between `start` and `end`.
+class ManhattanWireSegment {
+    constructor(args) {
+        this.direction = args.direction; // Direction
+        this.at = args.at; // Number
+        this.start = args.start; // Number
+        this.end = args.end; // Number
+    }
+    // Boolean indication of whether `pt` intersects this segment."""
+    hitTest = pt => {  // Boolean
+        const HIT_TEST_WIDTH = 10; // Equaly to the drawn width.
+
+        if (this.direction === Direction.Horiz) {
+            return Math.abs(pt.y - this.at) < HIT_TEST_WIDTH / 2 && pt.x >= this.start && pt.x <= this.end;
+        }
+        // Vertical segment
+        return Math.abs(pt.x - this.at) < HIT_TEST_WIDTH / 2 && pt.y >= this.start && pt.y <= this.end;
+    }
+}
+
 class Wire {
     constructor(points /* Point[] */) {
         this.points = points;
         this.drawing = null; /* Two.Path, set by `draw()` */
         this.highlighted = false; // bool
+        this.segments = null;
         // Number, unique ID. Not a constructor argument. 
         this.entityId = null;
     }
@@ -553,11 +630,44 @@ class Wire {
         two.remove(this.drawing);
     }
     // Update styling to indicate highlighted-ness
-    highlight = () => { }
+    highlight = () => {
+        this.drawing.stroke = "red";
+        this.highlighted = true;
+    }
     // Update styling to indicate the lack of highlighted-ness
-    unhighlight = () => { }
+    unhighlight = () => {
+        this.drawing.stroke = "blue";
+        this.highlighted = false;
+    }
     // Boolean indication of whether `point` is inside the instance.
-    hitTest = point => { return false; }
+    hitTest = point => {
+        if (!this.segments) {
+            this.calcSegments();
+        }
+        return this.segments.some(segment => segment.hitTest(point));
+    }
+    // Extract Manhattan segments from the wire's points.
+    calcSegments = () => {
+        this.segments = [];
+        let [pt, ...rest] = this.points;
+        for (let nxt of rest) {
+            var seg;
+            if (pt.x == nxt.x) {
+                const start = Math.min(pt.y, nxt.y)
+                const end = Math.max(pt.y, nxt.y)
+                seg = new ManhattanWireSegment({ direction: Direction.Vert, at: pt.x, start: start, end: end });
+            } else if (pt.y == nxt.y) {
+                const start = Math.min(pt.x, nxt.x)
+                const end = Math.max(pt.x, nxt.x)
+                seg = new ManhattanWireSegment({ direction: Direction.Horiz, at: pt.y, start: start, end: end });
+            } else {
+                console.log("Wire segment is neither horizontal nor vertical");
+                return;
+            }
+            this.segments.push(seg)
+            pt = nxt;
+        }
+    }
 }
 class Schematic {
     constructor(size) {
@@ -573,40 +683,50 @@ class Schematic {
     }
     // Add an element to the `entities` mapping. Returns its ID if successful. 
     addEntity = entity => {
-        const entityId = entity.obj.entityId;
+        // Set the entity's ID
+        const entityId = this.num_entities;
+        entity.obj.entityId = entityId;
+
         // Increment the number of entities even if we fail, hopefully breaking out of failure cases. 
         this.num_entities += 1;
+
         if (this.entities.has(entityId)) {
-            console.log(`Entity ${entity.entityId} already exists`);
-            console.log("Not adding:");
-            console.log(entity);
+            console.log(`Entity ${entityId} already exists. Cannot add ${entity}.`);
             return null;
         }
-        this.entities.set(entity.obj.entityId, entity);
+        // Success, add it to the map and return the ID. 
+        this.entities.set(entityId, entity);
         return entityId;
     }
-    addWire = wire => {
-        // Set the instance's entityId
-        wire.entityId = this.num_entities;
-
-        // Add it to both the instance and entity maps
-        this.wires.set(wire.entityId, wire);
-        this.addEntity(new Entity({ kind: EntityKind.Wire, obj: wire }));
+    // Add a wire to the schematic. Returns its ID if successful, or `null` if not. 
+    addWire = wire => { /* Number | null */
+        // Attempt to add it to our `entities` mapping.
+        const entityId = this.addEntity(new Entity({ kind: EntityKind.Wire, obj: wire }));
+        // And if successful, add it to our `wires` mapping.
+        if (entityId !== null) {
+            this.wires.set(entityId, wire);
+        }
     }
+    // Remove a wire from the schematic.
     removeWire = wire => {
-        console.log("FIXME removeWire");
+        this.wires.delete(wire.entityId);
+        this.entities.delete(wire.entityId);
+
+        // Remove the wire's drawing
+        if (wire.drawing) {
+            two.remove(wire.drawing);
+        }
     }
-    addInstance = instance => {
-        // Set the instance's entityId
-        instance.entityId = this.num_entities;
-
-        // Add it to both the instance and entity maps
-        this.instances.set(instance.entityId, instance);
-        this.addEntity(new Entity({ kind: EntityKind.Instance, obj: instance }));
-
-        // Increment both our instances and entities counts.
-        // FIXME: need to also add Entities per Port 
+    // Add an instance to the schematic.
+    addInstance = instance => { /* Number | null */
+        // Attempt to add it to our `entities` mapping.
+        const entityId = this.addEntity(new Entity({ kind: EntityKind.Instance, obj: instance }));
+        // Increment our instance count, whether we succeeded or not.
         this.num_instances += 1;
+        if (entityId !== null) {
+            this.instances.set(entityId, instance);
+        }
+        // FIXME: need to also add Entities per Port and Label
     }
     removeInstance = instance => {
         if (!this.instances.has(instance.entityId)) {
@@ -667,6 +787,17 @@ class UiState {
         this.changes = [];
         // Kind of the last instance added. Serves as the default when adding new ones. 
         this.lastPrimEnum = PrimitiveEnum.Nmos;
+
+        // The last instance added. Serves as the default when adding new ones.
+        // This initial value is never drawn; it just serves as the initial default instance.
+        this.lastInstance = new Instance({
+            name: "",
+            of: "",
+            kind: PrimitiveEnum.Nmos,
+            loc: new Point(0, 0),
+            orientation: Orientation.default(),
+        });
+
         // The currently selected entity (instance, wire, port, etc.)
         this.selected_entity = null;
         // Track the mouse position at all times. 
@@ -683,12 +814,6 @@ const nearestOnGrid = loc /* Point */ => /* Point */ {
         Math.round(loc.y / grid_size) * grid_size
     );
 };
-
-// # Horizontal / Vertical Direction Enum 
-const Direction = Object.freeze({
-    Horiz: Symbol("Horiz"),
-    Vert: Symbol("Vert"),
-});
 
 // # Keyboard Inputs 
 // (That we care about)
@@ -791,11 +916,14 @@ class SchEditor {
                 // Delete the selected entity
                 return this.deleteSelectedEntity();
             }
+            // FIXME: if already in these states, we start a new entity without *really* finishing the pending one!
             case Keys.i: return this.startAddInstance();
             case Keys.w: return this.startDrawWire();
+            // Rotation & refelection
             case Keys.r: return this.rotateSelected();
             case Keys.v: return this.flipSelected(Direction.Vert);
             case Keys.h: return this.flipSelected(Direction.Horiz);
+            // Save with... comma(?). FIXME: modifier keys plz!
             case Keys.Comma: return THE_PLATFORM.sendSaveFile(serialize(this.schematic));
             default: console.log(`Key we dont use: '${e.key}'`);
         }
@@ -811,9 +939,14 @@ class SchEditor {
                 this.schematic.removeInstance(entity.obj);
                 return this.goUiIdle();
             }
-            case EntityKind.Label: return;
+            case EntityKind.Wire: {
+                // Delete the selected Instance
+                this.deselect();
+                this.schematic.removeWire(entity.obj);
+                return this.goUiIdle();
+            }
+            case EntityKind.Label:
             case EntityKind.Port: return;
-            case EntityKind.Wire: return;
         }
     }
     // Hit test all schematic entities. 
@@ -833,6 +966,13 @@ class SchEditor {
                 return new Entity({ kind: EntityKind.Instance, obj: instance });
             }
         }
+        // Check all Wires
+        for (let [key, wire] of this.schematic.wires) {
+            if (wire.hitTest(point)) {
+                return new Entity({ kind: EntityKind.Wire, obj: wire });
+            }
+        }
+        // Didn't hit anything, return null.
         return null;
     }
     // Get the inner `obj` field from our selected entity, if we have one.
@@ -882,8 +1022,7 @@ class SchEditor {
                         break;
                     }
                     case EntityKind.Wire: {
-                        // FIXME: highlight and/or move the wire.
-                        break;
+                        return this.select(whatd_we_hit);
                     }
                 }
                 break;
@@ -1013,20 +1152,22 @@ class SchEditor {
     // Create a new Instance
     createInstance = () => {
         // Create the provisional `Instance`.
-        // Use the `kind` of the last instance we added
-        // FIXME: probably copy more instance attributes, including the orientation. 
-        const kind = this.ui_state.lastPrimEnum;
+        // Use the last one added as a template.
+        const lastInstance = this.ui_state.lastInstance;
+        const { kind } = lastInstance;
+        const prim = PrimitiveMap.get(kind) || PrimitiveEnum.Nmos;
 
         // FIXME: switch these based on `kind`
-        const name = `nmos${this.schematic.num_instances}`;
-        const of = `nmos(args)`;
+        const name = `${prim.defaultNamePrefix}${this.schematic.num_instances}`;
+        const of = prim.defaultOf;
         const instance = new Instance({
             name: name,
             of: of,
             kind: kind,
             loc: this.ui_state.mouse_pos,
-            orientation: Orientation.default(),
+            orientation: lastInstance.orientation.copy(),
         });
+        this.ui_state.lastInstance = instance;
         return instance;
     }
     // Start adding a new Instance
@@ -1077,6 +1218,7 @@ class SchEditor {
     updateEditLabel = e => {
         if (e.key === Keys.Enter) {
             // Done editing. Commit the label.
+            this.deselect();
             return this.goUiIdle();
         }
         // Get the active Label 
@@ -1115,7 +1257,7 @@ class SchEditor {
         if (this.ui_state.selected_entity.kind !== EntityKind.Instance) { return; }
 
         // We have a selected Instance. Rotate it. 
-        const instance = this.selected_object();    
+        const instance = this.selected_object();
         instance.orientation.rotation = nextRotation(instance.orientation.rotation);
         instance.draw();
     }
@@ -1133,11 +1275,11 @@ const serialize = schematic => {
     <defs>
         <!-- Grid Background -->
         <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
+            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
         </pattern>
         <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-        <rect width="100" height="100" fill="url(#smallGrid)"/>
-        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+            <rect width="100" height="100" fill="url(#smallGrid)"/>
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
         </pattern>
     </defs>
     <rect id="hdl21-schematic-grid" width="100%" height="100%" fill="url(#grid)" stroke="gray" stroke-width="1"/>
@@ -1186,7 +1328,7 @@ const serialize = schematic => {
     }
 
     // Write each wire to the SVG.
-    for (let wire of schematic.wires) {
+    for (let [key, wire] of schematic.wires) {
         svg += wireSvg(wire);
     }
 
@@ -1228,6 +1370,8 @@ class Orientation {
         this.reflected = reflected; // Boolean
         this.rotation = rotation;   // Rotation 
     }
+    // Create a copy of this orientation.
+    copy = () => new Orientation(this.reflected, this.rotation);
     // The default orientation: no reflection, no rotation.
     static default() /* => Orientation */ {
         return new Orientation(false, Rotation.R0);

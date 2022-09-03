@@ -4,17 +4,18 @@
     <defs>
         <!-- Grid Background -->
         <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
+            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
         </pattern>
         <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-        <rect width="100" height="100" fill="url(#smallGrid)"/>
-        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+            <rect width="100" height="100" fill="url(#smallGrid)"/>
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
         </pattern>
     </defs>
     <rect id="hdl21-schematic-grid" width="100%" height="100%" fill="url(#grid)" stroke="gray" stroke-width="1"/>
 
     
 <style>
+
 /* Styling for Symbol and Wire Elements */
 .hdl21-symbols {
   fill: none;
@@ -69,6 +70,25 @@
   font-family: comic sans ms;
   /* We know, it's just too funny */
   font-size: 16px;
+}
+
+/* Dark Mode Color Overrides */
+@media (prefers-color-scheme:dark) {
+    svg {
+        background-color: #1e1e1e;
+    }
+    .hdl21-wire {
+        stroke: #87d3f8;
+    }
+    .hdl21-symbols {
+        stroke: darkgrey;
+    }
+    .hdl21-labels,
+    .hdl21-instance-name,
+    .hdl21-instance-of,
+    .hdl21-wire-name {
+        fill: grey;
+    }
 }
 </style>
 
