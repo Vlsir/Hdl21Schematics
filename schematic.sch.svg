@@ -40,8 +40,8 @@
 }
 
 .hdl21-dot {
-  fill: purple;
-  stroke: purple;
+  fill: black;
+  stroke: black;
   stroke-opacity: 1;
   stroke-miterlimit: 0;
   stroke-linecap: round;

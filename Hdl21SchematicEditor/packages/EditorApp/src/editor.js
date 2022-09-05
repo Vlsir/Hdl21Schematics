@@ -1,18 +1,15 @@
-/**
- * # Hdl21 Schematics Renderer
+/*
+ * # Hdl21 Schematics Editor
  * 
  * Essentially the entirety of the schematic GUI, drawing logic, saving and loading logic. 
  */
 
 import { parse as svgparse } from 'svg-parser';
 import Two from 'two.js';
-import './index.css';
+// import './index.css';
 
-
-// The platform "abstraction". 
-// Eventually this will be a module and layer over Electron, VsCode, and however the browser is implemented.
-// For now its just a reference to the `window.electronAPI` object.
-const THE_PLATFORM = window.electronAPI;
+import { doPlatformStuff } from "PlatformInterface";
+doPlatformStuff();
 
 // Recursively traverse a node with a list of `children`, 
 // applying `fn` to each node.
@@ -838,10 +835,12 @@ const Keys = Object.freeze({
 // Includes essentially all behavior of the schematic editor; 
 // core attributes `schematic` and `ui_state` are largely "data only". 
 // 
-class SchEditor {
-    constructor(schematic, ui_state) {
-        this.schematic = schematic;
-        this.ui_state = ui_state;
+export class SchEditor {
+    constructor(platform) {
+        this.platform = platform;
+        this.schematic = null;
+        this.ui_state = new UiState();
+        this.startup();
     }
     // Perform all of our one-time startup activity, binding events, etc.
     startup = () => {
@@ -853,6 +852,22 @@ class SchEditor {
         window.addEventListener('mousemove', this.handleMouseMove, true);
         window.addEventListener("dblclick", this.handleDoubleClick);
         // window.addEventListener("click", this.handleClick);
+
+        // Bind Platform Events 
+        this.platform.handleLoadFile((_event, content) => {
+            // Load schematic content from the file.
+            const schematic = Importer.import(content);
+            // FIXME: error handling here
+            this.loadSchematic(schematic);
+        });
+
+        // Send a message back to the main process, to indicate this has all run 
+        this.platform.sendRendererUp("Renderer is ALIIIIIIIVE");
+    }
+    // Load a new schematic into the editor.
+    newSchematic = () => {
+        const schematic = new Schematic();
+        this.loadSchematic(schematic);
     }
     // Load `schematic` into the UI and draw it.
     loadSchematic = schematic => {
@@ -924,7 +939,7 @@ class SchEditor {
             case Keys.v: return this.flipSelected(Direction.Vert);
             case Keys.h: return this.flipSelected(Direction.Horiz);
             // Save with... comma(?). FIXME: modifier keys plz!
-            case Keys.Comma: return THE_PLATFORM.sendSaveFile(serialize(this.schematic));
+            case Keys.Comma: return this.platform.sendSaveFile(serialize(this.schematic));
             default: console.log(`Key we dont use: '${e.key}'`);
         }
     }
@@ -1591,19 +1606,3 @@ class Importer {
         this.otherSvgElements.push(svgElement);
     };
 }
-
-
-// Create the `SchEditor` variable, in module scope. 
-const the_editor = new SchEditor(null, new UiState());
-the_editor.startup();
-
-
-THE_PLATFORM.handleLoadFile((_event, content) => {
-    // Load schematic content from the file.
-    const schematic = Importer.import(content);
-    // FIXME: error handling here
-    the_editor.loadSchematic(schematic);
-});
-
-// Send a message back to the main process, to indicate this has all run 
-THE_PLATFORM.sendRendererUp("Renderer is ALIIIIIIIVE");
