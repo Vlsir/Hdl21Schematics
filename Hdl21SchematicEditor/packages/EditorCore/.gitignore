@@ -1,5 +1,5 @@
-out
-dist
+out 
+*.tsbuildinfo
 scratch
 .webpack 
 

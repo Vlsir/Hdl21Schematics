@@ -7,14 +7,16 @@
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('electronAPI', {
+// Local Imports
+const { Channels } = require('./channels');
 
+
+// Create the `electronIPC` object, which shows up affixed to the renderer's `window` object, 
+// and its two methods for sending and receiving messages.
+contextBridge.exposeInMainWorld('electronIPC', {
     // Messages sent main => renderer
-    handleLoadFile: (callback) => ipcRenderer.on('load-file', callback),
-    handleLogInRenderer: (callback) => ipcRenderer.on('log-in-renderer', callback),
-    
+    registerMessageHandler: (callback) => ipcRenderer.on(Channels.MainToRenderer, callback),
+
     // Messages sent renderer => main
-    sendSaveFile: (contents) => ipcRenderer.send('save-file', contents),
-    sendRendererUp: (contents) => ipcRenderer.send('renderer-up', contents),
-    sendLogInMain: (contents) => ipcRenderer.send('log-in-main', contents),
+    sendMessage: msg => ipcRenderer.send(Channels.RendererToMain, msg),
 });

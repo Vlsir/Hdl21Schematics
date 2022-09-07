@@ -1,11 +1,10 @@
 {
   "name": "PlatformInterface",
+  "private": true,
   "version": "1.0.0",
   "description": "Hdl21 Schematics Platform Interface",
   "main": "dist/index",
-  "types": "dist/index",
   "license": "MIT",
-  "private": true,
   "devDependencies": {
     "typescript": "^4.8.2"
   }

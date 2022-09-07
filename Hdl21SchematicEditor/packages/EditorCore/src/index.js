@@ -6,10 +6,13 @@
 
 import { parse as svgparse } from 'svg-parser';
 import Two from 'two.js';
-// import './index.css';
 
+// FIXME: this should import the Message types and maybe the Platform interface, 
+// both here and in the "platform main" code. 
+// So far it's just a placeholder import, glueing the packages together.
 import { doPlatformStuff } from "PlatformInterface";
 doPlatformStuff();
+
 
 // Recursively traverse a node with a list of `children`, 
 // applying `fn` to each node.
@@ -830,21 +833,29 @@ const Keys = Object.freeze({
 
 // # The Schematic Editor UI 
 // 
-// The "top-level" singleton type for the schematic editor UI, 
+// The "top-level" for the schematic editor UI, 
 // including all UI state and the contents of the schematic. 
 // Includes essentially all behavior of the schematic editor; 
 // core attributes `schematic` and `ui_state` are largely "data only". 
 // 
+// Schematic Editors communicate with an underlying "platform" via Message passing. 
+// The platform is responsible for tasks such as file I/O and launching the editor in the first place. 
+// Each platform-type implements the `Platform` interface, which consists of two methods: 
+// * 
+// 
+// At construction time, each editor needs a sole attribute: its `Platform`. 
+// The platform is responsible for providing initial schematic content, 
+// after the editor is constructed and indicates it is ready via a `renderer-up` message. 
+// 
 export class SchEditor {
     constructor(platform) {
+        // Initialize the editor state 
         this.platform = platform;
         this.schematic = null;
         this.ui_state = new UiState();
-        this.startup();
-    }
-    // Perform all of our one-time startup activity, binding events, etc.
-    startup = () => {
-        // Bind UI events
+
+        // Perform all of our one-time startup activity, binding events, etc.
+
         // window.addEventListener('resize', e => console.log(e));
         window.addEventListener("keydown", this.handleKey);
         window.addEventListener('mousedown', this.handleMouseDown, true);
@@ -853,16 +864,31 @@ export class SchEditor {
         window.addEventListener("dblclick", this.handleDoubleClick);
         // window.addEventListener("click", this.handleClick);
 
-        // Bind Platform Events 
-        this.platform.handleLoadFile((_event, content) => {
-            // Load schematic content from the file.
-            const schematic = Importer.import(content);
-            // FIXME: error handling here
-            this.loadSchematic(schematic);
-        });
+        // Register our message-handler with the platform.
+        this.platform.registerMessageHandler(this.handleMessage);
 
-        // Send a message back to the main process, to indicate this has all run 
-        this.platform.sendRendererUp("Renderer is ALIIIIIIIVE");
+        // Send a message back to the main process, to indicate this has all run. 
+        this.platform.sendMessage({ kind: "renderer-up" });
+    }
+    // Send the schematic's SVG content to the platform for saving. 
+    sendSaveFile = () => {
+        const svgContent = serialize(this.schematic);
+        return this.platform.sendMessage({ kind: "save-file", body: svgContent });
+    }
+    // Handle incoming Messages from the platform.
+    handleMessage = msg => {
+        switch (msg.kind) {
+            case 'load-file': {
+                // Load schematic content from the file.
+                const schematic = Importer.import(msg.body);
+                // FIXME: error handling here
+                this.loadSchematic(schematic);
+            }
+            default: {
+                console.log("UNKNOWN MESSAGE");
+                console.log(msg);
+            }
+        }
     }
     // Load a new schematic into the editor.
     newSchematic = () => {
@@ -939,7 +965,7 @@ export class SchEditor {
             case Keys.v: return this.flipSelected(Direction.Vert);
             case Keys.h: return this.flipSelected(Direction.Horiz);
             // Save with... comma(?). FIXME: modifier keys plz!
-            case Keys.Comma: return this.platform.sendSaveFile(serialize(this.schematic));
+            case Keys.Comma: return this.sendSaveFile();
             default: console.log(`Key we dont use: '${e.key}'`);
         }
     }
@@ -1462,7 +1488,7 @@ class OrientationMatrix {
 
 // # Schematic SVG Importer
 // 
-class Importer {
+export class Importer {
     constructor() {
         this.schematic = new Schematic();
         this.otherSvgElements = [];

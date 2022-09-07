@@ -4,12 +4,21 @@
  * Executes the graphical rendering for the editor app.
  */
 
-import { SchEditor } from "./editor";
+import { SchEditor } from "EditorCore";
 
-// The platform "abstraction". 
-// Eventually this will be a module and layer over Electron, VsCode, and however the browser is implemented.
-// For now its just a reference to the `window.electronAPI` object.
-const THE_PLATFORM = window.electronAPI;
+const { electronIPC } = window;
 
-// Create the `SchEditor` variable, in module scope. 
-const theEditor = new SchEditor(THE_PLATFORM);
+// Create the Electron `Platform` interface-implementer. 
+const electronPlatform = {
+    // Send a message from the editor to its platform.
+    sendMessage: msg /* Message */ => {
+        return electronIPC.sendMessage(msg);
+    },
+    // Register a function to handle messages from the platform to the editor.
+    registerMessageHandler: handler => {
+        // Note we drop the Electron `event` argument here and pass along the `msg` argument only.
+        electronIPC.registerMessageHandler((_event, msg) => handler(msg));
+    }
+}
+// Create the `SchEditor` variable, with Electron as its `platform`.
+const theEditor = new SchEditor(electronPlatform);
