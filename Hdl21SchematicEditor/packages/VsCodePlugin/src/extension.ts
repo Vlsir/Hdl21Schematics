@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { TextDecoder } from "util";
 
 export function getNonce() {
   let text = "";
@@ -10,8 +11,13 @@ export function getNonce() {
   return text;
 }
 
-interface SchematicEdit {
-  readonly editId: string;
+// Read text content from the file at `uri`.
+async function readFile(uri: vscode.Uri): Promise<string> {
+  if (uri.scheme === "untitled") {
+    return ""; // New file, no content.
+  }
+  const bytes = await vscode.workspace.fs.readFile(uri);
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
 // # Schematic Document Model
@@ -23,166 +29,171 @@ interface SchematicEdit {
 // is offloaded to each individual `SchematicDocument` instance.
 //
 class SchematicDocument implements vscode.CustomDocument {
+  // The `CustomDocument` Interface
+  readonly uri: vscode.Uri;
   public dispose(): any {
     // Does nothing.
     // If we eventually add any subscriptions or event listeners,
     // we'll need to dispose of them here.
-    return;
-  }
-
-  protected _register<T extends vscode.Disposable>(value: T): T {
-    // FIXME: delete
-    return value;
   }
 
   static async create(
     uri: vscode.Uri,
-    backupId: string | undefined
+    backupId: string | undefined,
+    provider: SchematicEditorProvider
   ): Promise<SchematicDocument | PromiseLike<SchematicDocument>> {
     // If we have a backup, read that. Otherwise read the resource from the workspace
     const dataFile =
       typeof backupId === "string" ? vscode.Uri.parse(backupId) : uri;
-    const fileData = await SchematicDocument.readFile(dataFile);
-    return new SchematicDocument(uri, fileData);
+    const fileData = await readFile(dataFile);
+    return new SchematicDocument(uri, fileData, provider);
   }
 
-  private static async readFile(uri: vscode.Uri): Promise<Uint8Array> {
-    if (uri.scheme === "untitled") {
-      return new Uint8Array();
-    }
-    return new Uint8Array(await vscode.workspace.fs.readFile(uri));
-  }
+  // SVG string value of the document
+  documentData: string;
+  // Reference to the provider
+  provider: SchematicEditorProvider;
+  // Reference to our webview panel.
+  // Set to `null` at creation time, and then set during `resolveCustomEditor`.
+  webviewPanel: vscode.WebviewPanel | null;
 
-  readonly uri: vscode.Uri;
-  documentData: Uint8Array;
-
-  private _edits: Array<SchematicEdit> = [];
-  private _savedEdits: Array<SchematicEdit> = [];
-
-  private constructor(uri: vscode.Uri, initialContent: Uint8Array) {
+  private constructor(
+    uri: vscode.Uri,
+    initialContent: string,
+    provider: SchematicEditorProvider
+  ) {
     this.uri = uri;
     this.documentData = initialContent;
-  }
-
-  // public get uri() {
-  //   return this._uri;
-  // }
-
-  private readonly _onDidDispose = this._register(
-    new vscode.EventEmitter<void>()
-  );
-  /**
-   * Fired when the document is disposed of.
-   */
-  public readonly onDidDispose = this._onDidDispose.event;
-
-  private readonly _onDidChangeDocument = this._register(
-    new vscode.EventEmitter<{
-      readonly content?: Uint8Array;
-      readonly edits: readonly SchematicEdit[];
-    }>()
-  );
-  /**
-   * Fired to notify webviews that the document has changed.
-   */
-  public readonly onDidChangeContent = this._onDidChangeDocument.event;
-
-  private readonly _onDidChange = this._register(
-    new vscode.EventEmitter<{
-      readonly label: string;
-      undo(): void;
-      redo(): void;
-    }>()
-  );
-  /**
-   * Fired to tell VS Code that an edit has occurred in the document.
-   *
-   * This updates the document's dirty indicator.
-   */
-  public readonly onDidChange = this._onDidChange.event;
-
-  /**
-   * Called when the user edits the document in a webview.
-   *
-   * This fires an event to notify VS Code that the document has been edited.
-   */
-  makeEdit(edit: SchematicEdit) {
-    this._edits.push(edit);
-
-    this._onDidChange.fire({
-      label: "Stroke",
-      undo: async () => {
-        this._edits.pop();
-        this._onDidChangeDocument.fire({
-          edits: this._edits,
-        });
-      },
-      redo: async () => {
-        this._edits.push(edit);
-        this._onDidChangeDocument.fire({
-          edits: this._edits,
-        });
-      },
-    });
+    this.provider = provider;
+    this.webviewPanel = null;
   }
 
   // Save to our current location
   async save(cancellation: vscode.CancellationToken): Promise<void> {
     await this.saveAs(this.uri, cancellation);
-    this._savedEdits = Array.from(this._edits);
   }
 
-  // Save to a new location
+  // Save to a new location. *Does not* update our URI field.
   async saveAs(
     targetResource: vscode.Uri,
     cancellation: vscode.CancellationToken
   ): Promise<void> {
+    console.log("SAVE AS");
     if (cancellation.isCancellationRequested) {
       return;
     }
-    await vscode.workspace.fs.writeFile(targetResource, this.documentData);
+    const bytes = Buffer.from(this.documentData, "utf8");
+    await vscode.workspace.fs.writeFile(targetResource, bytes);
   }
 
   // Revert to the content on disk
   async revert(_cancellation: vscode.CancellationToken): Promise<void> {
-    const diskContent = await SchematicDocument.readFile(this.uri);
-    this.documentData = diskContent;
-    this._edits = this._savedEdits;
-    this._onDidChangeDocument.fire({
-      content: diskContent,
-      edits: this._edits,
-    });
+    // Reload the data from disk
+    this.documentData = await readFile(this.uri);
+    // Send it to the webview for rendering
+    this.sendMessage({ kind: "load-file", body: this.documentData });
+    // Notify the VsCode API that we've reverted
+    // FIXME: does it want us to do this? Their example does.
+    this.notifyChange();
   }
 
-  // Back up to a temporary destination 
+  // Back up to a temporary destination
   async backup(
     destination: vscode.Uri,
     cancellation: vscode.CancellationToken
   ): Promise<vscode.CustomDocumentBackup> {
+    // Save to the destination
     await this.saveAs(destination, cancellation);
 
+    // And give VsCode a function to delete it
+    const deleter = async () => {
+      try {
+        await vscode.workspace.fs.delete(destination);
+      } catch {
+        /* noop */
+      }
+    };
     return {
       id: destination.toString(),
-      delete: async () => {
-        try {
-          await vscode.workspace.fs.delete(destination);
-        } catch {
-          // noop
-        }
-      },
+      delete: deleter,
     };
+  }
+
+  // Send a message to the webiew
+  private sendMessage(msg: any) {
+    if (!this.webviewPanel) {
+      console.log("ERROR: sendMessage called with no webviewPanel");
+      return;
+    }
+    return this.webviewPanel.webview.postMessage(msg);
+  }
+  undo() {
+    console.log("GOT AN UNDO!"); // FIXME!
+  }
+  redo() {
+    console.log("GOT AN UNDO!"); // FIXME!
+  }
+  // Notify VsCode of a change to the document
+  notifyChange() {
+    return this.provider.changer.fire({
+      document: this,
+      undo: this.undo.bind(this),
+      redo: this.redo.bind(this),
+    });
+  }
+
+  // Handle incoming messages from the webview process.
+  async handleMessage(msg: any) {
+    switch (msg.kind) {
+      case "renderer-up": {
+        // Editor has reported it's alive, send it some schematic content
+        const content = await readFile(this.uri);
+        return this.sendMessage({
+          kind: "load-file",
+          body: content,
+        });
+      }
+      case "change": {
+        console.log("GOT CHANGE MESSAGE");
+        console.log(msg);
+        return this.notifyChange();
+      }
+      case "save-file": {
+        // FIXME: this should really be renamed to "update contents"; the save-request comes from the VsCode side.
+        this.documentData = msg.body;
+        // return this.save(msg.body);
+        return;
+      }
+      case "log-in-main":
+        return console.log(msg.body);
+      default: {
+        console.log("UNKNOWN MESSAGE KIND: ");
+        console.log(msg);
+      }
+    }
   }
 }
 
-class ProviderInner {
-  constructor(private readonly context: vscode.ExtensionContext) {}
-  /**
-   * Tracks all known webviews
+//
+// # Schematic Editor Provider
+//
+// Implements the `CustomEditorProvider` interface, which is the main entry point
+// for most of the VsCode API.
+// Manages all `SchematicDocument` instances, forwarding many of the VsCode API
+// calls to the appropriate `SchematicDocument` instance.
+//
+export class SchematicEditorProvider
+  implements vscode.CustomEditorProvider<SchematicDocument>
+{
+  constructor(private readonly context: vscode.ExtensionContext) {
+    this.context = context;
+  }
+  // Global counter of files, largely for new-file naming
+  static newSchematicFileId = 1;
+
+  /*
+   * # The `CustomEditorProvider` Interface
    */
-  private readonly webviews = new WebviewCollection();
-
-  //#region CustomEditorProvider
-
   async openCustomDocument(
     uri: vscode.Uri,
     openContext: { backupId?: string },
@@ -190,84 +201,42 @@ class ProviderInner {
   ): Promise<SchematicDocument> {
     const document: SchematicDocument = await SchematicDocument.create(
       uri,
-      openContext.backupId
+      openContext.backupId,
+      this
     );
-
-    const listeners: vscode.Disposable[] = [];
-
-    listeners.push(
-      document.onDidChange((e) => {
-        // Tell VS Code that the document has been edited by the use.
-        this._onDidChangeCustomDocument.fire({
-          document,
-          ...e,
-        });
-      })
-    );
-
-    listeners.push(
-      document.onDidChangeContent((e) => {
-        // Update all webviews when the document changes
-        for (const webviewPanel of this.webviews.get(document.uri)) {
-          this.postMessage(webviewPanel, "update", {
-            edits: e.edits,
-            content: e.content,
-          });
-        }
-      })
-    );
-
-    // FIXME: remove
-    document.onDidDispose(() => {});
-
     return document;
   }
 
+  // "Resolve" the combination of a document and a webview.
   async resolveCustomEditor(
     document: SchematicDocument,
     webviewPanel: vscode.WebviewPanel,
     _token: vscode.CancellationToken
   ): Promise<void> {
-    // Add the webview to our internal set of active webviews
-    this.webviews.add(document.uri, webviewPanel);
+    // Give the document a reference to its webview panel
+    document.webviewPanel = webviewPanel;
 
     // Setup initial content for the webview
-    webviewPanel.webview.options = {
-      enableScripts: true,
-    };
-    webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
+    const { webview } = webviewPanel;
+    webview.options = { enableScripts: true };
+    webview.html = this.initialHtml(webview);
 
-    webviewPanel.webview.onDidReceiveMessage((e) =>
-      this.onMessage(document, e)
-    );
+    // And register the document handler for incoming messages from the webview
+    webview.onDidReceiveMessage(document.handleMessage.bind(document));
 
-    // Wait for the webview to be properly ready before we init
-    webviewPanel.webview.onDidReceiveMessage((e) => {
-      if (e.type === "ready") {
-        if (document.uri.scheme === "untitled") {
-          this.postMessage(webviewPanel, "init", {
-            untitled: true,
-            editable: true,
-          });
-        } else {
-          const editable = vscode.workspace.fs.isWritableFileSystem(
-            document.uri.scheme
-          );
-
-          this.postMessage(webviewPanel, "init", {
-            value: document.documentData,
-            editable,
-          });
-        }
-      }
-    });
+    // FIXME: roll in this editable vs read-only stuff
+    // const editable = vscode.workspace.fs.isWritableFileSystem(
+    //   document.uri.scheme
+    // );
   }
 
-  private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<
+  // The change-notification event system.
+  // Each `SchematicDocument` has a reference to us, and fires this event it when it changes.
+  public changer = new vscode.EventEmitter<
     vscode.CustomDocumentEditEvent<SchematicDocument>
   >();
-  public readonly onDidChangeCustomDocument =
-    this._onDidChangeCustomDocument.event;
+  // This `event` field is the part the `CustomEditorProvider` interface requires.
+  public readonly onDidChangeCustomDocument = this.changer.event;
 
   public saveCustomDocument(
     document: SchematicDocument,
@@ -298,9 +267,12 @@ class ProviderInner {
   ): Thenable<vscode.CustomDocumentBackup> {
     return document.backup(context.destination, cancellation);
   }
+  /*
+   * # End the `CustomEditorProvider` Interface
+   */
 
   // Get the initial HTML for `webview`.
-  private getHtmlForWebview(webview: vscode.Webview): string {
+  private initialHtml(webview: vscode.Webview): string {
     // Get the script-path, through VsCode's required URI methods
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.context.extensionUri, "out", "webview.js")
@@ -322,143 +294,13 @@ class ProviderInner {
       </body>
       </html>`;
   }
-
-  private _requestId = 1;
-  private readonly _callbacks = new Map<number, (response: any) => void>();
-
-  private postMessageWithResponse<R = unknown>(
-    panel: vscode.WebviewPanel,
-    type: string,
-    body: any
-  ): Promise<R> {
-    const requestId = this._requestId++;
-    const p = new Promise<R>((resolve) =>
-      this._callbacks.set(requestId, resolve)
-    );
-    panel.webview.postMessage({ type, requestId, body });
-    return p;
-  }
-
-  private postMessage(
-    panel: vscode.WebviewPanel,
-    type: string,
-    body: any
-  ): void {
-    panel.webview.postMessage({ type, body }); // NOTE: this is a core VsCode API
-  }
-
-  private onMessage(document: SchematicDocument, message: any) {
-    switch (message.type) {
-      case "stroke":
-        document.makeEdit(message as SchematicEdit);
-        return;
-
-      case "response": {
-        const callback = this._callbacks.get(message.requestId);
-        callback?.(message.body);
-        return;
-      }
-    }
-  }
-}
-export class SchematicEditorProvider
-  implements vscode.CustomEditorProvider<SchematicDocument>
-{
-  inner: ProviderInner;
-  constructor(private readonly context: vscode.ExtensionContext) {
-    this.context = context;
-    this.inner = new ProviderInner(context);
-  }
-  static newSchematicFileId = 1;
-  //#region CustomEditorProvider
-
-  async openCustomDocument(
-    uri: vscode.Uri,
-    openContext: { backupId?: string },
-    _token: vscode.CancellationToken
-  ): Promise<SchematicDocument> {
-    return this.inner.openCustomDocument(uri, openContext, _token);
-  }
-
-  async resolveCustomEditor(
-    document: SchematicDocument,
-    webviewPanel: vscode.WebviewPanel,
-    _token: vscode.CancellationToken
-  ): Promise<void> {
-    return this.inner.resolveCustomEditor(document, webviewPanel, _token);
-  }
-
-  // FIXME: what this does
-  public readonly onDidChangeCustomDocument = new vscode.EventEmitter<
-    vscode.CustomDocumentEditEvent<SchematicDocument>
-  >().event;
-
-  public saveCustomDocument(
-    document: SchematicDocument,
-    cancellation: vscode.CancellationToken
-  ): Thenable<void> {
-    return document.save(cancellation);
-  }
-
-  public saveCustomDocumentAs(
-    document: SchematicDocument,
-    destination: vscode.Uri,
-    cancellation: vscode.CancellationToken
-  ): Thenable<void> {
-    return document.saveAs(destination, cancellation);
-  }
-
-  public revertCustomDocument(
-    document: SchematicDocument,
-    cancellation: vscode.CancellationToken
-  ): Thenable<void> {
-    return document.revert(cancellation);
-  }
-
-  public backupCustomDocument(
-    document: SchematicDocument,
-    context: vscode.CustomDocumentBackupContext,
-    cancellation: vscode.CancellationToken
-  ): Thenable<vscode.CustomDocumentBackup> {
-    return document.backup(context.destination, cancellation);
-  }
 }
 
-/**
- * Tracks all webviews.
- */
-class WebviewCollection {
-  private readonly _webviews = new Set<{
-    readonly resource: string;
-    readonly webviewPanel: vscode.WebviewPanel;
-  }>();
-
-  /**
-   * Get all known webviews for a given uri.
-   */
-  public *get(uri: vscode.Uri): Iterable<vscode.WebviewPanel> {
-    const key = uri.toString();
-    for (const entry of this._webviews) {
-      if (entry.resource === key) {
-        yield entry.webviewPanel;
-      }
-    }
-  }
-
-  /**
-   * Add a new webview to the collection.
-   */
-  public add(uri: vscode.Uri, webviewPanel: vscode.WebviewPanel) {
-    const entry = { resource: uri.toString(), webviewPanel };
-    this._webviews.add(entry);
-
-    webviewPanel.onDidDispose(() => {
-      this._webviews.delete(entry);
-    });
-  }
-}
-
-function register(context: vscode.ExtensionContext): vscode.Disposable {
+// # Activation
+//
+// Primary VsCode entry point for registering the extension.
+//
+export function activate(context: vscode.ExtensionContext) {
   const viewType = "hdl21.schematics";
 
   vscode.commands.registerCommand("hdl21.schematics.new", () => {
@@ -476,7 +318,7 @@ function register(context: vscode.ExtensionContext): vscode.Disposable {
     vscode.commands.executeCommand("vscode.openWith", uri, viewType);
   });
 
-  return vscode.window.registerCustomEditorProvider(
+  const registration = vscode.window.registerCustomEditorProvider(
     viewType,
     new SchematicEditorProvider(context),
     {
@@ -489,13 +331,6 @@ function register(context: vscode.ExtensionContext): vscode.Disposable {
       supportsMultipleEditorsPerDocument: false,
     }
   );
-}
-
-// # Activation
-//
-// Primary VsCode entry point for registering the extension.
-//
-export function activate(context: vscode.ExtensionContext) {
-  // Register our custom editor providers
-  context.subscriptions.push(register(context));
+  // Finally, register it with the VsCode `context`.
+  context.subscriptions.push(registration);
 }

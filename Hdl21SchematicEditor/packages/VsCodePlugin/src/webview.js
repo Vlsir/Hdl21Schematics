@@ -19,12 +19,12 @@ const vsCodePlatform = {
     },
     // Register a function to handle messages from the platform to the editor.
     registerMessageHandler: handler => {
-        window.addEventListener('message', handler);
+        // Here we strip out the `data` field, which holds the `Message` itself, 
+        // from the VsCode `MessageEvent` provided by its `postMessage` API.
+        const _handler = event => handler(event.data);
+        window.addEventListener('message', _handler);
     },
 }
 
 // Create the `SchEditor` variable, with VsCode as its `platform`.
 const theEditor = new SchEditor(vsCodePlatform);
-
-// FIXME: load a fresh new schematic, until we can pipe through getting them from file.  
-theEditor.newSchematic();

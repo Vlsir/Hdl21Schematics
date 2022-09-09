@@ -875,14 +875,24 @@ export class SchEditor {
         const svgContent = serialize(this.schematic);
         return this.platform.sendMessage({ kind: "save-file", body: svgContent });
     }
+    // Send a schematic-changed message back to the platform.
+    sendChangeMessage = () => {
+        return this.platform.sendMessage({ kind: "change" });
+    }
     // Handle incoming Messages from the platform.
     handleMessage = msg => {
         switch (msg.kind) {
+            case 'new-schematic': return this.newSchematic();
             case 'load-file': {
                 // Load schematic content from the file.
                 const schematic = Importer.import(msg.body);
                 // FIXME: error handling here
-                this.loadSchematic(schematic);
+                return this.loadSchematic(schematic);
+            }
+            // Messages designed to sent *from* us, to the platform.
+            case 'change': {
+                console.log("Invalid message from platform to editor:");
+                console.log(msg);
             }
             default: {
                 console.log("UNKNOWN MESSAGE");
@@ -1172,6 +1182,9 @@ export class SchEditor {
         this.deselect();
         this.goUiIdle();
 
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
+
         // FIXME: this will probably want some more computing at commit-time, 
         // figuring out hit-test areas, etc. 
     }
@@ -1243,6 +1256,9 @@ export class SchEditor {
         // Set the location of both the instance and its drawing 
         instance.loc = snapped;
         instance.draw();
+
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
     }
     // Add the currently-pending instance to the schematic.
     commitInstance = () => {
@@ -1250,6 +1266,9 @@ export class SchEditor {
         this.schematic.addInstance(instance);
         this.deselect();
         this.goUiIdle();
+
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
     }
     // Add or remove a character from a `Label`. 
     // Text editing is thus far pretty primitive. 
@@ -1274,6 +1293,9 @@ export class SchEditor {
             return;
         }
 
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
+
         // Add the character to the label.
         return label.update(label.text + e.key);
     }
@@ -1291,6 +1313,9 @@ export class SchEditor {
             instance.orientation.rotation = nextRotation(nextRotation(instance.orientation.rotation));
         }
         instance.draw();
+
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
     }
     // Rotate the selected instance by 90 degrees, if one is selected.
     rotateSelected = () => {
@@ -1301,6 +1326,9 @@ export class SchEditor {
         const instance = this.selected_object();
         instance.orientation.rotation = nextRotation(instance.orientation.rotation);
         instance.draw();
+
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
     }
 }
 

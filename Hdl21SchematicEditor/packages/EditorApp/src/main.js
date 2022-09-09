@@ -44,6 +44,7 @@ const createWindow = () => {
     SaveFile: "save-file",
     LoadFile: "load-file",
     LogInMain: "log-in-main",
+    Change: "change",
   });
 
   // Send a message to the renderer, on our named channel.
@@ -53,23 +54,22 @@ const createWindow = () => {
 
   // Handle incoming messages from the renderer process.
   const handleMessage = (_event, msg) => {
-    console.log("MAIN GOT MESSAGE");
-    console.log(msg);
 
     switch (msg.kind) {
       case MessageKind.RendererUp: {
         // Editor has reported it's alive, send it some schematic content 
         return sendMessage({ kind: MessageKind.LoadFile, body: loadFile() });
-        // return mainWindow.webContents.send('load-file', loadFile());
       }
       case MessageKind.SaveFile: return saveFile(msg.body)
       case MessageKind.LogInMain: return console.log(msg.body)
+      case MessageKind.Change: return; // FIXME(?)
       default: {
         console.log("UNKNOWN MESSAGE KIND: ");
         console.log(msg);
       }
     }
-  }
+  };
+
   // Register our callback for incoming messages from the renderer process.
   ipcMain.on(Channels.RendererToMain, handleMessage);
 
