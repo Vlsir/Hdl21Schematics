@@ -7,12 +7,6 @@
 import { parse as svgparse } from 'svg-parser';
 import Two from 'two.js';
 
-// FIXME: this should import the Message types and maybe the Platform interface, 
-// both here and in the "platform main" code. 
-// So far it's just a placeholder import, glueing the packages together.
-import { doPlatformStuff } from "PlatformInterface";
-doPlatformStuff();
-
 
 // Recursively traverse a node with a list of `children`, 
 // applying `fn` to each node.

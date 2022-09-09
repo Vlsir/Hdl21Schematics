@@ -1,3 +1,4 @@
+*.tsbuildinfo
 out
 dist
 scratch

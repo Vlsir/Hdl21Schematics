@@ -12,6 +12,7 @@
         "sourceMap": true,
         "strict": true,
         "rootDir": "src",
+        "composite": true,
     },
     "exclude": [
         "node_modules",
@@ -19,4 +20,9 @@
         "out",
         "scratch"
     ],
+    "references": [
+        {
+            "path": "../EditorCore"
+        }
+    ]
 }
