@@ -5,9 +5,6 @@
   "description": "Hdl21 Schematics Editor",
   "main": "src/index",
   "license": "MIT",
-  "scripts": {
-    "build": "babel src --out-dir out"
-  },
   "dependencies": {
     "svg-parser": "^2.0.4",
     "two.js": "^0.8.10"

@@ -4,16 +4,13 @@
 Content of `Schematic`s, independent of SVG formatting.
 """
 
-import re
-from os import PathLike
 from enum import Enum, auto
 from dataclasses import dataclass, field
-from xml.etree.ElementTree import parse, Element
-from typing import Dict, Tuple, List, Optional
+from typing import Dict, List
 
 # Local imports
 from .point import Point
-from .primitive import PrimitiveEnum
+from .primitive import PrimitiveKind
 
 
 class Rotation(Enum):
@@ -86,7 +83,7 @@ class Instance:
 
     name: str
     of: str
-    kind: PrimitiveEnum
+    kind: PrimitiveKind
     loc: Point
     orientation: Orientation
 

@@ -4,18 +4,15 @@
 The instantiable primitive elements of a schematic.
 """
 
-import re
-from os import PathLike
 from enum import Enum, auto
 from dataclasses import dataclass, field
-from xml.etree.ElementTree import parse, Element
-from typing import Dict, Tuple, List, Optional
+from typing import List
 
 # Local imports
 from .point import Point
 
 
-class PrimitiveEnum(Enum):
+class PrimitiveKind(Enum):
     """# Enumerated Primitive Types"""
 
     NMOS = auto()
@@ -33,14 +30,14 @@ class PrimitivePort:
 
 @dataclass
 class Primitive:
-    enumval: PrimitiveEnum
+    kind: PrimitiveKind
     ports: List[PrimitivePort] = field(default_factory=list)
 
 
-# Create the mapping from `PrimitiveEnum` to `Primitive`s
+# Create the mapping from `PrimitiveKind` to `Primitive`s
 primitives = {
-    PrimitiveEnum.NMOS: Primitive(
-        enumval=PrimitiveEnum.NMOS,
+    PrimitiveKind.NMOS: Primitive(
+        kind=PrimitiveKind.NMOS,
         ports=[
             PrimitivePort(name="d", loc=Point(0, 0)),
             PrimitivePort(name="g", loc=Point(70, 40)),
@@ -48,8 +45,8 @@ primitives = {
             PrimitivePort(name="b", loc=Point(-20, 40)),
         ],
     ),
-    PrimitiveEnum.PMOS: Primitive(
-        enumval=PrimitiveEnum.PMOS,
+    PrimitiveKind.PMOS: Primitive(
+        kind=PrimitiveKind.PMOS,
         ports=[
             PrimitivePort(name="d", loc=Point(0, 80)),
             PrimitivePort(name="g", loc=Point(70, 40)),
@@ -57,20 +54,20 @@ primitives = {
             PrimitivePort(name="b", loc=Point(-20, 40)),
         ],
     ),
-    PrimitiveEnum.INPUT: Primitive(
-        enumval=PrimitiveEnum.INPUT,
+    PrimitiveKind.INPUT: Primitive(
+        kind=PrimitiveKind.INPUT,
         ports=[
             PrimitivePort(name="FIXME", loc=Point(50, 10)),
         ],
     ),
-    PrimitiveEnum.OUTPUT: Primitive(
-        enumval=PrimitiveEnum.OUTPUT,
+    PrimitiveKind.OUTPUT: Primitive(
+        kind=PrimitiveKind.OUTPUT,
         ports=[
             PrimitivePort(name="FIXME", loc=Point(-20, 10)),
         ],
     ),
-    PrimitiveEnum.INOUT: Primitive(
-        enumval=PrimitiveEnum.INOUT,
+    PrimitiveKind.INOUT: Primitive(
+        kind=PrimitiveKind.INOUT,
         ports=[
             PrimitivePort(name="FIXME", loc=Point(-20, 10)),
         ],

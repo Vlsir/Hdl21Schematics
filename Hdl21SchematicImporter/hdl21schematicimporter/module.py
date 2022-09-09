@@ -17,7 +17,7 @@ from .schematic import (
     Instance as SchInstance,
     OrientationMatrix,
 )
-from .primitive import PrimitiveEnum, primitives
+from .primitive import PrimitiveKind, primitives
 
 
 class PortDir(Enum):
@@ -61,9 +61,9 @@ class Module:
 
 # List of the primitive kinds which are really port annotations
 port_primitive_types = (
-    PrimitiveEnum.INOUT,
-    PrimitiveEnum.INPUT,
-    PrimitiveEnum.OUTPUT,
+    PrimitiveKind.INOUT,
+    PrimitiveKind.INPUT,
+    PrimitiveKind.OUTPUT,
 )
 
 
@@ -147,11 +147,11 @@ class SchematicConverter:
             self.module.signals.pop(intersecting_signal.name)
             intersecting_signal.name = port_instance.name
             self.module.signals[intersecting_signal.name] = intersecting_signal
-            if port_instance.kind == PrimitiveEnum.INPUT:
+            if port_instance.kind == PrimitiveKind.INPUT:
                 intersecting_signal.portdir = PortDir.INPUT
-            elif port_instance.kind == PrimitiveEnum.OUTPUT:
+            elif port_instance.kind == PrimitiveKind.OUTPUT:
                 intersecting_signal.portdir = PortDir.OUTPUT
-            elif port_instance.kind == PrimitiveEnum.INOUT:
+            elif port_instance.kind == PrimitiveKind.INOUT:
                 intersecting_signal.portdir = PortDir.INOUT
             else:  # Should be unreachable
                 self.fail(f"Unknown port type {port_instance.kind}")

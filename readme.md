@@ -278,7 +278,7 @@ An example `Primitive`, defined in JavaScript syntax:
 
 ```js 
 Primitive({
-    enumval: PrimitiveEnum.Nmos,
+    kind: PrimitiveKind.Nmos,
     svgStr: `
     <g class="hdl21::primitives::nmos">
         <!-- ... -->

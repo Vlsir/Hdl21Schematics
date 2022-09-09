@@ -6,14 +6,14 @@ SVG format parsing and conversion to `Schematic` objects.
 
 import re
 from os import PathLike
-from pathlib import Path 
+from pathlib import Path
 from enum import Enum
 from xml.etree.ElementTree import parse, Element
 from typing import Tuple, Optional
 
 # Local imports
 from .point import Point
-from .primitive import PrimitiveEnum
+from .primitive import PrimitiveKind
 from .schematic import (
     Schematic,
     Instance,
@@ -61,11 +61,11 @@ class SchSvgClasses(Enum):
 
 
 primitive_svg_classes = {
-    "hdl21::primitives::nmos": PrimitiveEnum.NMOS,
-    "hdl21::primitives::pmos": PrimitiveEnum.PMOS,
-    "hdl21::primitives::input": PrimitiveEnum.INPUT,
-    "hdl21::primitives::output": PrimitiveEnum.OUTPUT,
-    "hdl21::primitives::inout": PrimitiveEnum.INOUT,
+    "hdl21::primitives::nmos": PrimitiveKind.NMOS,
+    "hdl21::primitives::pmos": PrimitiveKind.PMOS,
+    "hdl21::primitives::input": PrimitiveKind.INPUT,
+    "hdl21::primitives::output": PrimitiveKind.OUTPUT,
+    "hdl21::primitives::inout": PrimitiveKind.INOUT,
 }
 
 
@@ -87,7 +87,7 @@ class SvgImporter:
         # Parse the SVG content
         path = Path(self.svg_file)
         self.root = parse(path).getroot()
-        
+
         # Extract a name from the file path
         name = path.name.split(".")[0]
 
