@@ -4,7 +4,7 @@
  * Executes the graphical rendering for the editor app.
  */
 
-import { SchEditor } from "EditorCore";
+import { start } from "EditorCore";
 
 const { electronIPC } = window;
 
@@ -20,5 +20,6 @@ const electronPlatform = {
         electronIPC.registerMessageHandler((_event, msg) => handler(msg));
     }
 }
-// Create the `SchEditor` variable, with Electron as its `platform`.
-const theEditor = new SchEditor(electronPlatform);
+
+// Create and start the `SchEditor`, with Electron as its `platform`.
+start(electronPlatform);

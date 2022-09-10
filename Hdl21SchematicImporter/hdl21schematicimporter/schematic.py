@@ -135,3 +135,5 @@ class Schematic:
     size: Point
     instances: List[Instance] = field(default_factory=list)
     wires: List[Wire] = field(default_factory=list)
+    # FIXME! Ports
+    # FIXME! Prelude

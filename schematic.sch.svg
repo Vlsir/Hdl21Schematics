@@ -208,7 +208,9 @@
             <text x="10" y="0"  class="hdl21-instance-name">n2</text>
             <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
         </g>
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 750 250)">
+
+
+        <g class="hdl21-port" transform="matrix(1 0 0 1 800 260)">
             
     <g class="hdl21::primitives::input">
         <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
@@ -217,10 +219,9 @@
     </g>
     
 
-            <text x="10" y="-15"  class="hdl21-instance-name">inp</text>
-            <text x="10" y="35" class="hdl21-instance-of">INPUT</text>
+            <text x="10" y="-15"  class="hdl21-port-name">inp</text>
         </g>
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 120 230)">
+        <g class="hdl21-port" transform="matrix(1 0 0 1 100 250)">
             
     <g class="hdl21::primitives::output">
         <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
@@ -229,10 +230,9 @@
     </g>
     
 
-            <text x="10" y="-15"  class="hdl21-instance-name">out</text>
-            <text x="10" y="35" class="hdl21-instance-of">OUTPUT</text>
+            <text x="10" y="-15"  class="hdl21-port-name">out</text>
         </g>
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 820 50)">
+        <g class="hdl21-port" transform="matrix(1 0 0 1 800 60)">
             
     <g class="hdl21::primitives::inout">
         <path d="M 0 0 L -10 10 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
@@ -241,10 +241,9 @@
     </g>
     
 
-            <text x="10" y="-15"  class="hdl21-instance-name">VDD</text>
-            <text x="10" y="35" class="hdl21-instance-of">INOUT</text>
+            <text x="10" y="-15"  class="hdl21-port-name">VDD</text>
         </g>
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 820 430)">
+        <g class="hdl21-port" transform="matrix(1 0 0 1 800 440)">
             
     <g class="hdl21::primitives::inout">
         <path d="M 0 0 L -10 10 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
@@ -253,8 +252,7 @@
     </g>
     
 
-            <text x="10" y="-15"  class="hdl21-instance-name">VSS</text>
-            <text x="10" y="35" class="hdl21-instance-of">INOUT</text>
+            <text x="10" y="-15"  class="hdl21-port-name">VSS</text>
         </g>
 
 <g class="hdl21-wire"> 

@@ -5,7 +5,7 @@
  * The code that runs inside VsCode's iframe-style webview panel. 
  */
 
-import { SchEditor } from "EditorCore";
+import { start } from "EditorCore";
 
 // Get a VsCode API "instance". 
 // Note VSC includes many, many admonitions to not do this more than once per "session". 
@@ -26,5 +26,5 @@ const vsCodePlatform = {
     },
 }
 
-// Create the `SchEditor` variable, with VsCode as its `platform`.
-const theEditor = new SchEditor(vsCodePlatform);
+// Create and start the `SchEditor`, with VsCode as its `platform`.
+start(vsCodePlatform);

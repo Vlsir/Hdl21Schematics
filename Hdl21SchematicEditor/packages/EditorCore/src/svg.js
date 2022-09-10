@@ -9,7 +9,8 @@ import { parse as svgparse } from 'svg-parser';
 // Local Imports
 import { Point } from "./point";
 import * as sch from "./schematic";
-import { PrimitiveMap, PrimitiveTags } from "./primitive";
+import { PrimitiveKind, PrimitiveMap, PrimitiveTags } from "./primitive";
+import { PortKind, PortMap, PortTags } from "./portsymbol";
 
 
 // # Schematic SVG Importer
@@ -41,12 +42,19 @@ export class Importer {
 
                 if (child.properties.class === "hdl21-instance") {
                     this.importInstance(child);
+                } else if (child.properties.class === "hdl21-port") {
+                    this.importPort(child);
                 } else if (child.properties.class === "hdl21-wire") {
                     this.importWire(child);
                 } else {
                     this.addOtherSvgElement(child);
                 }
-
+            } else if (child.type === 'element' && child.tagName === 'g') {
+                if (child.properties.class === "hdl21-dot") {
+                    this.importDot(child);
+                } else {
+                    this.addOtherSvgElement(child);
+                }
             } else {
                 this.addOtherSvgElement(child);
             }
@@ -57,6 +65,10 @@ export class Importer {
         }
         return this.schematic;
     };
+    importDot = svgCircle => {
+        // FIXME!
+        console.log("FIXME! importDot");
+    }
     // Import an instance
     importInstance = svgGroup => {
         const transform = svgGroup.properties.transform;
@@ -93,10 +105,52 @@ export class Importer {
         }
         const of = ofElem.children[0].value;
 
-        // Create and add the instance 
-        // const instance = new sch.Instance({ name: name, of: of, kind: kind, loc: loc, orientation: orientation });
-        const instance = new sch.Instance(name, of, kind, loc, orientation);
-        this.schematic.instances.push(instance);
+        // FIXME: a temporary "schema migration" happening here! 
+        // Convert Instances of the Port-types to `Port` objects instead. 
+        if (kind === PrimitiveKind.Input || kind === PrimitiveKind.Output || kind === PrimitiveKind.Inout) {
+            const port = new sch.Port(name, kind, loc, orientation);
+            this.schematic.ports.push(port);
+        } else {
+            // Create and add the instance 
+            // const instance = new sch.Instance({ name: name, of: of, kind: kind, loc: loc, orientation: orientation });
+            const instance = new sch.Instance(name, of, kind, loc, orientation);
+            this.schematic.instances.push(instance);
+        }
+    };
+    // Import a Port
+    importPort = svgGroup => {
+        
+        const transform = svgGroup.properties.transform;
+        if (!transform) {
+            throw new Error(`Instance ${svgGroup.properties.id} has no transform`);
+        }
+        const [loc, orientation] = this.importTransform(transform);
+
+        if (svgGroup.children.length !== 2) {
+            throw new Error(`Port group ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
+        }
+
+        // Get the two children: the symbol and port name
+        const [symbolGroup, nameElem] = svgGroup.children;
+
+        // Get the symbol type from the symbol group.
+        const svgTag = symbolGroup.properties.class;
+        const portsymbol = PortTags.get(svgTag);
+        if (!portsymbol) {
+            console.log(svgTag);
+            throw new Error(`Unknown symbol type: ${svgTag}`);
+        }
+        const { kind } = portsymbol;
+
+        // Get the port name.
+        if (nameElem.tagName !== "text") {
+            throw new Error(`Port ${svgGroup.properties.id} has no name`);
+        }
+        const name = nameElem.children[0].value;
+        
+        // Create the Port and add it to the schematic.
+        const port = new sch.Port(name, kind, loc, orientation);
+        this.schematic.ports.push(port); 
     };
     // Import an SVG `transform` to a location `Point` and an `Orientation`. 
     importTransform = transform => {
@@ -155,9 +209,6 @@ export class Importer {
         const wire = new sch.Wire(points);
         this.schematic.wires.push(wire);
     };
-    importPort = svgGroup => {
-        console.log("FIXME!");
-    };
     // Add an element to the "other", non-schematic elements list.
     addOtherSvgElement = svgElement => {
         console.log(`other elem:`);
@@ -212,6 +263,28 @@ export function serialize(schematic) {
     // Write each instance to the SVG.
     for (let inst of schematic.instances) {
         svg += instanceSvg(inst);
+    }
+    svg += `\n\n`;
+
+    // Create the SVG `<g>` group for an `Instance`. 
+    const portSvg = inst => {
+        const portsymbol = PrimitiveMap.get(inst.kind);
+        if (!portsymbol) {
+            console.log(inst);
+            throw new Error(`No portsymbol for ${inst}`);
+        }
+        const name = inst.name || 'unnamed';
+        return `
+        <g class="hdl21-port" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">
+            ${portsymbol.svgStr}
+
+            <text x="${portsymbol.nameloc.x}" y="${portsymbol.nameloc.y}"  class="hdl21-port-name">${name}</text>
+        </g>`;
+    }
+
+    // Write each port to the SVG.
+    for (let inst of schematic.ports) {
+        svg += portSvg(inst);
     }
     svg += `\n\n`;
 

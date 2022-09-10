@@ -1,2 +1,2 @@
 
-export { SchEditor } from "./editor";
+export { start } from "./editor";

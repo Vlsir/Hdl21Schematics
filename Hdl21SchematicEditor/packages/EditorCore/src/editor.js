@@ -8,22 +8,19 @@ import Two from 'two.js';
 
 // Local Imports 
 import { Point } from "./point";
-import * as schdata from "./schematic";
 import { PrimitiveMap, PrimitiveKind } from "./primitive";
+import { PortMap } from "./portsymbol";
 import { Importer, serialize } from "./svg";
+import * as schdata from "./schematic";
 
 
 // FIXME! fill these guys in
 class InstancePort { }
-class SchPort {
-    constructor(data) {
-        this.data = data; // schdata.Port
-    }
-}
 class Dot {
     constructor(loc) {
         this.loc = loc; // Point
     }
+    draw = () => { }
 }
 
 // Recursively traverse a node with a list of `children`, 
@@ -35,6 +32,17 @@ const traverseAndApply = (node, fn) => {
     }
 }
 
+// Apply the `hdl21-wire` styling in two.js terms
+const wireStyle = path => { /* Two.Path => void */
+    path.visible = true;
+    path.closed = false;
+    path.noFill();
+    path.stroke = 'blue';
+    path.linewidth = 10;
+    path.cap = 'round';
+    path.join = 'round';
+}
+
 // Apply the `hdl21-symbols` styling in two.js terms
 const symbolStyle = symbol => {
     symbol.noFill();
@@ -43,6 +51,14 @@ const symbolStyle = symbol => {
     symbol.cap = 'round';
     symbol.join = 'round';
     return symbol;
+}
+
+// Apply the `hdl21-labels` styling in two.js terms
+const labelStyle = textElem => { /* Two.Text => void */
+    textElem.alignment = 'left';
+    textElem.family = 'Comic Sans MS';
+    textElem.style = 'heavy';
+    textElem.size = 16;
 }
 
 
@@ -63,14 +79,14 @@ const two = new Two({
 }).appendTo(document.body);
 
 
-
-
 // Enumerated Kinds of Schematic Entities
 const EntityKind = Object.freeze({
     Instance: Symbol("Instance"),
-    Port: Symbol("Port"),
+    InstancePort: Symbol("InstancePort"),
+    SchPort: Symbol("SchPort"),
     Label: Symbol("Label"),
     Wire: Symbol("Wire"),
+    Dot: Symbol("Dot"),
 });
 
 // # Schematic Entity 
@@ -127,10 +143,7 @@ class Label {
         // Set its position
         textElem.translation.set(this.loc.x, this.loc.y);
         // Apply our label styling 
-        textElem.alignment = 'left';
-        textElem.family = 'Comic Sans MS';
-        textElem.style = 'heavy';
-        textElem.size = 16;
+        labelStyle(textElem);
         // Affix it as our `drawing` field
         this.drawing = textElem;
         // Add it to our parent 
@@ -177,9 +190,11 @@ class Instance {
         // Instance Data
         this.data = data; // schdata.Instance
 
+        this.nameLabel = null;
+        this.ofLabel = null;
+
         // Number, unique ID. Not a constructor argument. 
         this.entityId = null;
-
         // Drawing data, set during calls to `draw()`.
         // The two.js drawing, implemented as a Two.Group.
         this.drawing = null;
@@ -295,6 +310,128 @@ class Instance {
     }
 }
 
+// # Schematic Port 
+// 
+// An instance-like object with a drawing and location, 
+// which annotates a net as being externally accessible.
+// 
+class SchPort {
+    constructor(data) {
+        this.data = data; // schdata.Port
+
+        // Text port-name `Label`
+        this.nameLabel = null;
+        // Number, unique ID. Not a constructor argument. 
+        this.entityId = null;
+        // Drawing data, set during calls to `draw()`.
+        // The two.js drawing, implemented as a Two.Group.
+        this.drawing = null;
+        // The bounding box for hit testing. 
+        this.bbox = null;
+        this.highlighted = false; // bool
+    }
+    highlight = () => {
+        this.highlighted = true;
+        if (!this.drawing) { return; }
+        traverseAndApply(this.drawing, node => {
+            // FIXME: merge with styling
+            // FIXME: this needs to set `fill` for text elements
+            // node.fill = "red";
+            node.stroke = "red";
+        });
+    }
+    unhighlight = () => {
+        this.highlighted = false;
+        if (!this.drawing) { return; }
+        traverseAndApply(this.drawing, node => {
+            // FIXME: merge with styling
+            // FIXME: this needs to set `fill` for text elements
+            // node.fill = "black";
+            node.stroke = "black";
+        });
+    }
+    // Get references to our child `Label`s.
+    labels = () => {
+        return [this.nameLabel];
+    }
+    // Create and draw the Instance's `drawing`. 
+    draw = () => {
+        const portsymbol = PortMap.get(this.data.kind);
+        if (!portsymbol) {
+            console.log(`No portsymbol for kind ${this.data.kind}`);
+            return;
+        }
+        if (this.drawing) { // Remove any existing drawing 
+            two.remove(this.drawing);
+            this.drawing = null;
+        }
+
+        // Load the symbol as a Two.Group. 
+        // Note we apply the styling and wrap the content in <svg> elements.
+        const symbolSvgStr = /*schematicStyle +*/ "<svg>" + portsymbol.svgStr + "</svg>";
+        const symbol = two.load(symbolSvgStr);
+        traverseAndApply(symbol, symbolStyle);
+        two.add(symbol);
+
+        // Create the Instance's drawing-Group, including its symbol, names, and ports.
+        this.drawing = two.makeGroup();
+        this.drawing.add(symbol);
+
+        // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
+        this.drawing.scale = 1;
+        if (this.data.orientation.reflected) {
+            this.drawing.scale = new Two.Vector(1, -1);
+        }
+        // Apply rotation. Note two.js applies rotation *clockwise*, 
+        // hence the negation of 90 and 270 degrees. 
+        const radianRotation = () => {
+            switch (this.data.orientation.rotation) {
+                case Rotation.R0: return 0;
+                case Rotation.R90: return -Math.PI / 2;
+                case Rotation.R180: return Math.PI;
+                case Rotation.R270: return Math.PI / 2;
+            }
+        }
+        this.drawing.rotation = radianRotation();
+        this.drawing.translation.set(this.data.loc.x, this.data.loc.y);
+
+        // Set the bounding box for hit testing.
+        // Note this must come *after* the drawing is added to the scene.
+        this.bbox = symbol.getBoundingClientRect();
+
+        // Create and add the port-name Label
+        this.nameLabel = new Label({ text: this.data.name, kind: LabelKind.Name, loc: portsymbol.nameloc, parent: this });
+        this.nameLabel.draw();
+
+        if (this.highlighted) { this.highlight(); }
+    }
+    // Boolean indication of whether `point` is inside the Instance's bounding box.
+    hitTest = point => {
+        if (!this.bbox) {
+            return false;
+        }
+        const bbox = this.bbox;
+        return point.x > bbox.left && point.x < bbox.right
+            && point.y > bbox.top && point.y < bbox.bottom;
+
+    }
+    // Abort drawing an in-progress instance.
+    abort = () => {
+        if (this.drawing) { // Remove any existing drawing 
+            two.remove(this.drawing);
+            this.drawing = null;
+        }
+    }
+    // Update the string-value from a `Label`. 
+    updateLabel = label => {
+        if (label.kind === LabelKind.Name) {
+            this.data.name = label.text;
+        } else {
+            console.log("Unknown label kind");
+        }
+    }
+}
+
 // # Horizontal / Vertical Direction Enum 
 const Direction = Object.freeze({
     Horiz: Symbol("Horiz"),
@@ -344,18 +481,9 @@ class Wire {
             coords.push(point.x, point.y);
         }
         // Create the drawing 
-        const drawing = two.makePath(...coords);
-
+        this.drawing = two.makePath(...coords);
         // Set the wire style 
-        drawing.visible = true;
-        drawing.closed = false;
-        drawing.noFill();
-        drawing.stroke = 'blue';
-        drawing.linewidth = 10;
-        drawing.cap = 'round';
-        drawing.join = 'round';
-
-        this.drawing = drawing;
+        wireStyle(this.drawing);
 
         if (this.highlighted) { this.highlight(); }
     }
@@ -406,16 +534,17 @@ class Wire {
 class Schematic {
     constructor(size) {
         this.size = size || new Point(1600, 800);
+
+        // Internal data stores
         this.wires = new Map();      // Map<Number, Wire>
         this.instances = new Map();  // Map<Number, Instance>
-        this.instance_ports = new Map();  // Map<Number, InstancePort>
-        this.sch_ports = new Map();       // Map<Number, SchPort>
-        this.labels = new Map();     // Map<Number, Label>
+        this.ports = new Map();      // Map<Number, SchPort>
         this.dots = new Map();       // Map<Number, Dot>
         this.entities = new Map();   // Map<Number, Entity>
 
         // Running count of added instances, for naming. 
         this.num_instances = 0;
+        this.num_ports = 0;
         // Running count of added schematic entities. Serves as their "primary key" in each Map.
         this.num_entities = 0;
     }
@@ -447,7 +576,7 @@ class Schematic {
         for (let [id, inst] of this.instances) {
             schData.instances.push(inst.data);
         }
-        for (let [id, port] of this.sch_ports) {
+        for (let [id, port] of this.ports) {
             schData.ports.push(port.data);
         }
         for (let [id, wire] of this.wires) {
@@ -475,9 +604,47 @@ class Schematic {
         this.entities.set(entityId, entity);
         return entityId;
     }
-    // Add a port to the schematic. Returns its ID if successful, or `null` if not. 
+    // Remove an entity from the schematic. Largely dispatches according to the entity's kind.
+    removeEntity = entity => { /* Entity => void */
+        switch (entity.kind) {
+            // Delete-able entities
+            case EntityKind.SchPort: return this.removePort(entity.obj);
+            case EntityKind.Dot: return this.removeDot(entity.obj);
+            case EntityKind.Wire: return this.removeWire(entity.obj);
+            case EntityKind.Instance: return this.removeInstance(entity.obj);
+            // Non-delete-able "child" entities
+            case EntityKind.Label:
+            case EntityKind.InstancePort: {
+                console.log("Not a deletable entity");
+                console.log(entity);
+                return;
+            }
+        }
+    }
+    // Add an port to the schematic.
     addPort = port => { /* Port => Number | null */
-        // FIXME!
+        // Attempt to add it to our `entities` mapping.
+        const entityId = this.addEntity(new Entity({ kind: EntityKind.SchPort, obj: port }));
+        // Increment our port count, whether we succeeded or not.
+        this.num_ports += 1;
+        if (entityId !== null) {
+            this.ports.set(entityId, port);
+        }
+        // FIXME: need to also add Entities per Port and Label
+    }
+    removePort = port => {
+        if (!this.ports.has(port.entityId)) {
+            console.log("Port not found in schematic");
+            return;
+        }
+        this.ports.delete(port.entityId);
+        this.entities.delete(port.entityId);
+        // FIXME: delete its port and label entities too 
+
+        // Remove the port's drawing
+        if (port.drawing) {
+            two.remove(port.drawing);
+        }
     }
     // Add a wire to the schematic. Returns its ID if successful, or `null` if not. 
     addWire = wire => { /* Wire => Number | null */
@@ -523,13 +690,40 @@ class Schematic {
             two.remove(instance.drawing);
         }
     }
+    // Add an dot to the schematic.
+    addDot = dot => { /* Dot => Number | null */
+        // Attempt to add it to our `entities` mapping.
+        const entityId = this.addEntity(new Entity({ kind: EntityKind.Dot, obj: dot }));
+        if (entityId !== null) {
+            this.dots.set(entityId, dot);
+        }
+    }
+    removeDot = dot => {
+        if (!this.dots.has(dot.entityId)) {
+            console.log("Dot not found in schematic");
+            return;
+        }
+        this.dots.delete(dot.entityId);
+        this.entities.delete(dot.entityId);
+
+        // Remove the dot's drawing
+        if (dot.drawing) {
+            two.remove(dot.drawing);
+        }
+    }
     // Draw all elements in the schematic.
     draw = () => {
         for (let [key, instance] of this.instances) {
             instance.draw();
         }
+        for (let [key, port] of this.ports) {
+            port.draw();
+        }
         for (let [key, wire] of this.wires) {
             wire.draw();
+        }
+        for (let [key, dot] of this.dots) {
+            dot.draw();
         }
     }
 }
@@ -626,7 +820,7 @@ const Keys = Object.freeze({
 // The platform is responsible for providing initial schematic content, 
 // after the editor is constructed and indicates it is ready via a `renderer-up` message. 
 // 
-export class SchEditor {
+class SchEditor {
     constructor(platform) {
         // Initialize the editor state 
         this.platform = platform;
@@ -681,10 +875,9 @@ export class SchEditor {
             }
         }
     }
-    // Load a new schematic into the editor.
+    // Load a new and empty schematic into the editor.
     newSchematic = () => {
-        const schematic = new Schematic();
-        this.loadSchematic(schematic);
+        this.loadSchematic(new Schematic());
     }
     // Load `schematic` into the UI and draw it.
     loadSchematic = schematic => {
@@ -765,20 +958,20 @@ export class SchEditor {
         if (!this.ui_state.selected_entity) { return; }
         const entity = this.ui_state.selected_entity;
         switch (entity.kind) {
+            // Delete-able entities
+            case EntityKind.SchPort:
+            case EntityKind.Dot:
+            case EntityKind.Wire:
             case EntityKind.Instance: {
-                // Delete the selected Instance
+                // Delete the selected entity
                 this.deselect();
-                this.schematic.removeInstance(entity.obj);
+                this.schematic.removeEntity(entity);
                 return this.goUiIdle();
             }
-            case EntityKind.Wire: {
-                // Delete the selected Instance
-                this.deselect();
-                this.schematic.removeWire(entity.obj);
-                return this.goUiIdle();
-            }
+            // Non-delete-able "child" entities
             case EntityKind.Label:
-            case EntityKind.Port: return;
+            case EntityKind.InstancePort:
+                return;
         }
     }
     // Hit test all schematic entities. 
@@ -792,10 +985,24 @@ export class SchEditor {
                 }
             }
         }
+        // Check all Port Labels
+        for (let [key, port] of this.schematic.ports) {
+            for (let label of port.labels()) {
+                if (label.hitTest(point)) {
+                    return new Entity({ kind: EntityKind.Label, obj: label });
+                }
+            }
+        }
         // Check all Instance symbols / bodies
         for (let [key, instance] of this.schematic.instances) {
             if (instance.hitTest(point)) {
                 return new Entity({ kind: EntityKind.Instance, obj: instance });
+            }
+        }
+        // Check all Port symbols / bodies
+        for (let [key, port] of this.schematic.ports) {
+            if (port.hitTest(point)) {
+                return new Entity({ kind: EntityKind.SchPort, obj: port });
             }
         }
         // Check all Wires
@@ -840,6 +1047,7 @@ export class SchEditor {
 
                 // And react based on its type. 
                 switch (whatd_we_hit.kind) {
+                    case EntityKind.SchPort:
                     case EntityKind.Instance: {
                         // Start moving the instance.
                         this.ui_state.mode = UiModes.MoveInstance;
@@ -849,12 +1057,16 @@ export class SchEditor {
                         this.ui_state.mode = UiModes.EditLabel;
                         return this.select(whatd_we_hit);
                     }
-                    case EntityKind.Port: {
+                    case EntityKind.Wire: {
+                        return this.select(whatd_we_hit);
+                    }
+                    case EntityKind.InstancePort: {
                         // FIXME: start drawing a wire.
                         break;
                     }
-                    case EntityKind.Wire: {
-                        return this.select(whatd_we_hit);
+                    case EntityKind.Dot:
+                    default: {
+                        break;
                     }
                 }
                 break;
@@ -1084,30 +1296,32 @@ export class SchEditor {
     // Flip the selected instance, if one is selected.
     flipSelected = dir => {
         if (!this.ui_state.selected_entity) { return; }
-        if (this.ui_state.selected_entity.kind !== EntityKind.Instance) { return; }
+        const { kind } = this.ui_state.selected_entity;
+        if (!(kind === EntityKind.Instance || kind === EntityKind.SchPort)) { return; }
 
-        // We have a selected Instance. Flip it. 
-        const instance = this.selected_object();
+        // We have a flippable selected entity. Flip it. 
+        const obj = this.selected_object();
 
         // Always flip vertically. Horizontal flips are comprised of a vertical flip and two rotations.
-        instance.data.orientation.reflected = !instance.data.orientation.reflected;
+        obj.data.orientation.reflected = !obj.data.orientation.reflected;
         if (dir === Direction.Horiz) {
-            instance.data.orientation.rotation = nextRotation(nextRotation(instance.data.orientation.rotation));
+            obj.data.orientation.rotation = nextRotation(nextRotation(obj.data.orientation.rotation));
         }
-        instance.draw();
+        obj.draw();
 
         // Notify the platform that the schematic has changed.
         this.sendChangeMessage();
     }
-    // Rotate the selected instance by 90 degrees, if one is selected.
+    // Rotate the selected entity by 90 degrees, if one is selected.
     rotateSelected = () => {
         if (!this.ui_state.selected_entity) { return; }
-        if (this.ui_state.selected_entity.kind !== EntityKind.Instance) { return; }
+        const { kind } = this.ui_state.selected_entity;
+        if (!(kind === EntityKind.Instance || kind === EntityKind.SchPort)) { return; }
 
         // We have a selected Instance. Rotate it. 
-        const instance = this.selected_object();
-        instance.data.orientation.rotation = nextRotation(instance.data.orientation.rotation);
-        instance.draw();
+        const obj = this.selected_object();
+        obj.data.orientation.rotation = nextRotation(obj.data.orientation.rotation);
+        obj.draw();
 
         // Notify the platform that the schematic has changed.
         this.sendChangeMessage();
@@ -1138,4 +1352,12 @@ const nextRotation = rotation => {
         case Rotation.R270:
             return Rotation.R0;
     }
+}
+
+
+// The singleton `SchEditor`, and our entrypoint to start it up.
+let theEditor = null;
+export function start(platform) { /* Platform => void */
+    if (theEditor) { return; }
+    theEditor = new SchEditor(platform);
 }

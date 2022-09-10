@@ -14,75 +14,74 @@ import { Point } from "./point";
 // and the key stored on each `Port` object.
 //
 export enum PortKind {
-  Input = "INPUT",
-  Output = "OUTPUT",
-  Inout = "INOUT",
+  Input = "Input",
+  Output = "Output",
+  Inout = "Inout",
 }
 
-// # Port Element
+// # Port "Symbol"
+// (This name maybe could be improved.)
 //
 // The types of things which schematics can instantiate.
 // Ports include the symbol drawing as an SVG string,
 // plus metadata indicating their port names and locations.
 //
-export class PortSymbol {
-  kind: PortKind;
-  svgTag: string;
-  svgStr: string;
-  nameloc: Point;
-  constructor(kind: PortKind, svgTag: string, svgStr: string, nameloc: Point) {
-    this.kind = kind; // PortKind
-    this.svgTag = svgTag; // string, svg class-name
-    this.svgStr = svgStr; // SVG-valued string
-    this.nameloc = nameloc; // Point
-  }
-  // Create a new Port, and add it to module-scope mappings.
-  static add(portsym: PortSymbol) {
+export interface PortSymbol {
+  kind: PortKind; // Enumerated port type
+  svgTag: string; // SVG tag
+  svgStr: string; // SVG symbol text
+  nameloc: Point; // Location of name label
+}
+
+// Map from enumerated keys to `PortSymbol` objects.
+export const PortMap: Map<PortKind, PortSymbol> = new Map();
+// Map from SVG class tags to `PortSymbol` objects.
+export const PortTags: Map<string, PortSymbol> = new Map();
+
+// Add `PortSymbol`s to the module-scope mappings.
+function add(portsyms: Array<PortSymbol>) {
+  for (let portsym of portsyms) {
     PortMap.set(portsym.kind, portsym);
     PortTags.set(portsym.svgTag, portsym);
   }
 }
-// Map from enumerated keys to `Port` objects.
-export const PortMap = new Map();
-// Map from tags to `Port` objects.
-export const PortTags = new Map();
 
-PortSymbol.add({
-  kind: PortKind.Input,
-  svgTag: "hdl21::primitives::input",
-  svgStr: `
+// Create the library of `PortSymbol`s.
+add([
+  {
+    kind: PortKind.Input,
+    svgTag: "hdl21::primitives::input",
+    svgStr: `
     <g class="hdl21::primitives::input">
-        <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
-        <path d="M 30 10 L 50 10" class="hdl21-symbols" />
-        <circle cx="50" cy="10" r="4" class="hdl21-instance-port" />
+        <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
+        <path d="M -20 0 L 0 0" class="hdl21-symbols" />
+        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     </g>
     `,
-  //   ports: [new Port({ name: "FIXME", loc: new Point(50, 10) })],
-  nameloc: new Point(10, -15),
-});
-PortSymbol.add({
-  kind: PortKind.Output,
-  svgTag: "hdl21::primitives::output",
-  svgStr: `
+    nameloc: new Point(-50, -25),
+  },
+  {
+    kind: PortKind.Output,
+    svgTag: "hdl21::primitives::output",
+    svgStr: `
     <g class="hdl21::primitives::output">
-        <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
-        <path d="M -20 10 L 0 10" class="hdl21-symbols" />
-        <circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />
+      <path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
+      <path d="M 0 0 L 20 0" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     </g>
     `,
-  //   ports: [new Port({ name: "FIXME", loc: new Point(-20, 10) })],
-  nameloc: new Point(10, -15),
-});
-PortSymbol.add({
-  kind: PortKind.Inout,
-  svgTag: "hdl21::primitives::inout",
-  svgStr: `
+    nameloc: new Point(20, -25),
+  },
+  {
+    kind: PortKind.Inout,
+    svgTag: "hdl21::primitives::inout",
+    svgStr: `
     <g class="hdl21::primitives::inout">
-        <path d="M 0 0 L -10 10 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
-        <path d="M -20 10 L -10 10" class="hdl21-symbols" />
-        <circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />
+      <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
+      <path d="M 0 0 L 10 0" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     </g>
     `,
-  //   ports: [new Port({ name: "FIXME", loc: new Point(-20, 10) })],
-  nameloc: new Point(10, -15),
-});
+    nameloc: new Point(15, -25),
+  },
+]);

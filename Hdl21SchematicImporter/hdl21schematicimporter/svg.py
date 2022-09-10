@@ -48,10 +48,13 @@ class SchSvgClasses(Enum):
     """Enumerated SVG Classes used to identify Schematic content"""
 
     INSTANCE = "hdl21-instance"
-    WIRE = "hdl21-wire"
     INSTANCE_NAME = "hdl21-instance-name"
     INSTANCE_OF = "hdl21-instance-of"
+    WIRE = "hdl21-wire"
     WIRE_NAME = "hdl21-wire-name"
+    PORT = "hdl21-port"
+    PORT_NAME = "hdl21-port-name"
+    DOT = "hdl21-dot"
 
     @classmethod
     def from_svg_class(cls, svg_class: str) -> Optional["SchSvgClasses"]:
@@ -120,6 +123,17 @@ class SvgImporter:
         elif svgtag == SvgTags.GROUP:
             self.import_group(element)
 
+        elif svgtag == SvgTags.CIRCLE:
+            svg_class = element.attrib.get(f"class", None)
+            if svg_class is None:
+                return self.other_svg_elems.append(element)
+
+            sch_svg_class = SchSvgClasses.from_svg_class(svg_class)
+            if sch_svg_class == SchSvgClasses.DOT:
+                raise NotImplementedError("Ports not yet supported") # FIXME!
+            else:
+                return self.other_svg_elems.append(element)
+
         else:  # Ultimately we'll likely find other stuff to be covered, but for now generate errors.
             self.fail(f"Invalid {element}")
 
@@ -128,11 +142,13 @@ class SvgImporter:
 
         svg_class = group.attrib.get(f"class", None)
         if svg_class is None:
-            self.fail(f"Invalid {group}")
+            return self.other_svg_elems.append(group)
 
         sch_svg_class = SchSvgClasses.from_svg_class(svg_class)
         if sch_svg_class is None:
             self.other_svg_elems.append(group)
+        elif sch_svg_class == SchSvgClasses.PORT:
+            raise NotImplementedError("Ports not yet supported") # FIXME!
         elif sch_svg_class == SchSvgClasses.INSTANCE:
             self.import_instance(group)
         elif sch_svg_class == SchSvgClasses.WIRE:
