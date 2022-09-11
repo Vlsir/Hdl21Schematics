@@ -1,0 +1,42 @@
+[package]
+authors = ["Dan Fritchman <dan@fritch.mn>"]
+edition = "2018"
+name = "hdl21-schematic-schema"
+version = "0.1.0"
+
+[lib]
+# Name of the generated Python package (i.e. `import hdl21schematics`). 
+# NOTE: it is required that this *match* the name of the declared `#[pymodule]`.
+name = "hdl21schematics"
+# "cdylib" is necessary to produce a shared library for Python to import from.
+# Downstream Rust code (including code in `bin/`, `examples/`, and `tests/`) will not be able
+# to `use hdl21-schematic-schema;` unless the "rlib" or "lib" crate type is also included, e.g.:
+# crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+python = ["pyo3"]
+wasm = ["wasm-bindgen", "serde-wasm-bindgen", "console_error_panic_hook", "wee_alloc"]
+
+[dependencies]
+# Required for all features 
+schemars = {version = "0.8.10"}
+serde = {version = "1.0", features = ["derive"]}
+
+# Python Pyo3 Bindings 
+pyo3 = {version = "0.17.1", features = ["extension-module"], optional = true}
+
+# JS / WASM Bindings
+console_error_panic_hook = {version = "0.1.6", optional = true}
+serde-wasm-bindgen = {version = "0.4", optional = true}
+wasm-bindgen = {version = "0.2.63", optional = true}
+wee_alloc = {version = "0.4.5", optional = true}
+
+[dev-dependencies]
+# WASM is not always used, but dev dependencies may not be `optional`. 
+wasm-bindgen-test = {version = "0.3.13"}
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
