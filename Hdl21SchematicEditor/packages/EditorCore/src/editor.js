@@ -10,7 +10,8 @@ import Two from 'two.js';
 import { Point } from "./point";
 import { PrimitiveMap, PrimitiveKind } from "./primitive";
 import { PortMap } from "./portsymbol";
-import { Importer, serialize } from "./svg";
+import { Importer } from "./importer";
+import { Exporter } from "./exporter";
 import * as schdata from "./schematic";
 
 
@@ -846,7 +847,7 @@ class SchEditor {
     // Send the schematic's SVG content to the platform for saving. 
     sendSaveFile = () => {
         const schData = this.schematic.toData();
-        const svgContent = serialize(schData);
+        const svgContent = Exporter.export(schData);
         return this.platform.sendMessage({ kind: "save-file", body: svgContent });
     }
     // Send a schematic-changed message back to the platform.

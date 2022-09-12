@@ -1,7 +1,7 @@
 /* 
- * # SVG Import & Export
+ * # SVG Importer
  * 
- * SVG format parsing & conversion to & from `Schematic` objects.
+ * SVG format parsing & conversion to `Schematic` objects.
  */
 
 import { parse as svgparse } from 'svg-parser';
@@ -9,8 +9,8 @@ import { parse as svgparse } from 'svg-parser';
 // Local Imports
 import { Point } from "./point";
 import * as sch from "./schematic";
-import { PrimitiveKind, PrimitiveMap, PrimitiveTags } from "./primitive";
-import { PortKind, PortMap, PortTags } from "./portsymbol";
+import { PrimitiveKind, PrimitiveTags } from "./primitive";
+import { PortTags } from "./portsymbol";
 
 
 // # Schematic SVG Importer
@@ -119,7 +119,7 @@ export class Importer {
     };
     // Import a Port
     importPort = svgGroup => {
-        
+
         const transform = svgGroup.properties.transform;
         if (!transform) {
             throw new Error(`Instance ${svgGroup.properties.id} has no transform`);
@@ -147,10 +147,10 @@ export class Importer {
             throw new Error(`Port ${svgGroup.properties.id} has no name`);
         }
         const name = nameElem.children[0].value;
-        
+
         // Create the Port and add it to the schematic.
         const port = new sch.Port(name, kind, loc, orientation);
-        this.schematic.ports.push(port); 
+        this.schematic.ports.push(port);
     };
     // Import an SVG `transform` to a location `Point` and an `Orientation`. 
     importTransform = transform => {
@@ -217,185 +217,3 @@ export class Importer {
     };
 }
 
-
-// Serialize a schematic to an SVG string.
-export function serialize(schematic) {
-
-    let svg = `<?xml version="1.0" encoding="utf-8"?>
-    <svg width="${schematic.size.x}" height="${schematic.size.y}" xmlns="http://www.w3.org/2000/svg">`;
-
-    // Add schematic styling.
-    svg += `
-    
-    <defs>
-        <!-- Grid Background -->
-        <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
-        </pattern>
-        <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-            <rect width="100" height="100" fill="url(#smallGrid)"/>
-            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
-        </pattern>
-    </defs>
-    <rect id="hdl21-schematic-grid" width="100%" height="100%" fill="url(#grid)" stroke="gray" stroke-width="1"/>
-
-    ${schematicStyle}
-    <!-- Svg Schematic Content -->\n`;
-
-    // Create the SVG `<g>` group for an `Instance`. 
-    const instanceSvg = inst => {
-        const primitive = PrimitiveMap.get(inst.kind);
-        if (!primitive) {
-            console.log(inst);
-            throw new Error(`No primitive for ${inst}`);
-        }
-        const name = inst.name || 'unnamed';
-        const of = inst.of || 'unknown';
-        return `
-        <g class="hdl21-instance" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">
-            ${primitive.svgStr}
-
-            <text x="${primitive.nameloc.x}" y="${primitive.nameloc.y}"  class="hdl21-instance-name">${name}</text>
-            <text x="${primitive.ofloc.x}" y="${primitive.ofloc.y}" class="hdl21-instance-of">${of}</text>
-        </g>`;
-    }
-
-    // Write each instance to the SVG.
-    for (let inst of schematic.instances) {
-        svg += instanceSvg(inst);
-    }
-    svg += `\n\n`;
-
-    // Create the SVG `<g>` group for an `Instance`. 
-    const portSvg = inst => {
-        const portsymbol = PrimitiveMap.get(inst.kind);
-        if (!portsymbol) {
-            console.log(inst);
-            throw new Error(`No portsymbol for ${inst}`);
-        }
-        const name = inst.name || 'unnamed';
-        return `
-        <g class="hdl21-port" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">
-            ${portsymbol.svgStr}
-
-            <text x="${portsymbol.nameloc.x}" y="${portsymbol.nameloc.y}"  class="hdl21-port-name">${name}</text>
-        </g>`;
-    }
-
-    // Write each port to the SVG.
-    for (let inst of schematic.ports) {
-        svg += portSvg(inst);
-    }
-    svg += `\n\n`;
-
-    // Create the SVG `<g>` element for a `Wire`, including its path and wire-name. 
-    const wireSvg = wire => {
-        if (!wire.points) {
-            return;
-        }
-        const [first, ...rest] = wire.points;
-        let rv = `<g class="hdl21-wire"> \n    `;
-        rv += `<path class="hdl21-wire" d="M ${first.x} ${first.y}`;
-        for (let p of rest) {
-            rv += ` L ${p.x} ${p.y}`;
-        }
-        rv += `" /> \n`;
-        rv += `<text visibility="hidden" class="hdl21-wire-name">FIXME</text> \n`;
-        rv += `</g> \n`;
-        return rv;
-    }
-
-    // Write each wire to the SVG.
-    for (let wire of schematic.wires) {
-        svg += wireSvg(wire);
-    }
-
-    // FIXME! Add ports! Add dots!
-
-    // And finally add the closing tag. 
-    svg += '\n\n</svg>';
-    console.log("Serialized:");
-    console.log(svg);
-    return svg;
-}
-
-// The schematic SVG / CSS style classes. 
-const schematicStyle = `
-<style>
-
-/* Styling for Symbol and Wire Elements */
-.hdl21-symbols {
-  fill: none;
-  stroke: black;
-  stroke-opacity: 1;
-  stroke-miterlimit: 0;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 10px;
-  stroke-dashoffset: 0px;
-}
-
-.hdl21-instance-port {
-  fill: white;
-  stroke: black;
-  stroke-opacity: 1;
-  stroke-miterlimit: 0;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 4px;
-  stroke-dashoffset: 0px;
-}
-
-.hdl21-dot {
-  fill: black;
-  stroke: black;
-  stroke-opacity: 1;
-  stroke-miterlimit: 0;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 4px;
-  stroke-dashoffset: 0px;
-}
-
-.hdl21-wire {
-  fill: none;
-  stroke: blue;
-  stroke-opacity: 1;
-  stroke-miterlimit: 0;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 10px;
-  stroke-dashoffset: 0px;
-}
-
-/* Styling for Text Labels */
-.hdl21-labels,
-.hdl21-instance-name,
-.hdl21-instance-of,
-.hdl21-wire-name {
-  fill: black;
-  font-family: comic sans ms;
-  /* We know, it's just too funny */
-  font-size: 16px;
-}
-
-/* Dark Mode Color Overrides */
-@media (prefers-color-scheme:dark) {
-    svg {
-        background-color: #1e1e1e;
-    }
-    .hdl21-wire {
-        stroke: #87d3f8;
-    }
-    .hdl21-symbols {
-        stroke: darkgrey;
-    }
-    .hdl21-labels,
-    .hdl21-instance-name,
-    .hdl21-instance-of,
-    .hdl21-wire-name {
-        fill: grey;
-    }
-}
-</style>
-`;
