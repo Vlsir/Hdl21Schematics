@@ -5,7 +5,7 @@
 // Local Imports
 import * as sch from "./schematic";
 import { Point } from "./point";
-import { PrimitiveMap } from "./primitive";
+import { PrimitiveMap, InstancePort } from "./primitive";
 import { PortMap } from "./portsymbol";
 
 // # Schematic to SVG Encoder/ Exporter
@@ -86,13 +86,17 @@ export class Exporter {
     this.writeLine(
       `<g class="hdl21-instance" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">`
     );
-    
+
     // Write the symbol group
     this.indent += 1;
     this.writeLine(`<g class="${primitive.svgTag}">`);
     this.indent += 1;
     for (let line of primitive.svgLines) {
       this.writeLine(line);
+    }
+    // Write each of its Instance ports
+    for (let port of primitive.ports) {
+      this.writeInstancePort(port.loc);
     }
     this.indent -= 1;
     this.writeLine(`</g>`);
@@ -125,6 +129,8 @@ export class Exporter {
     for (let line of portsymbol.svgLines) {
       this.writeLine(line);
     }
+    // Write its Instance-port circle at its origin.
+    this.writeInstancePort(new Point(0, 0));
     this.indent -= 1;
     this.writeLine(`</g>`);
 
@@ -156,9 +162,17 @@ export class Exporter {
     this.indent -= 1;
     this.writeLine(`</g>`);
   }
+  // Write the SVG `circle` element for a `Dot`.
   writeDot(dot: Point) {
     this.writeLine(
       `<circle cx="${dot.x}" cy="${dot.y}" r="4" class="hdl21-dot" />`
+    );
+  }
+  // Write the SVG `circle` element for an Instance port.
+  // Note only the `loc`(ation) `Point` is provided as an argument.
+  writeInstancePort(loc: Point) {
+    this.writeLine(
+      `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="hdl21-instance-port" />`
     );
   }
 }

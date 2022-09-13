@@ -29,20 +29,12 @@ export enum PrimitiveKind {
   Diode = "Diode",
   Npn = "Npn",
   Pnp = "Pnp",
-  // FIXME: break out the Port types
-  Input = "Input",
-  Output = "Output",
-  Inout = "Inout",
 }
 
-// # Primitive Instance Port
-export class Port {
+// # Instance Port
+export interface InstancePort {
   name: string;
   loc: Point;
-  constructor(name: string, loc: Point) {
-    this.name = name; // string
-    this.loc = loc; // Point
-  }
 }
 
 // # Primitive Element
@@ -55,7 +47,7 @@ export interface Primitive {
   kind: PrimitiveKind;
   svgTag: string;
   svgLines: Array<string>;
-  ports: Array<Port>;
+  ports: Array<InstancePort>;
   nameloc: Point;
   ofloc: Point;
   defaultNamePrefix: string;
@@ -81,22 +73,22 @@ add([
     kind: PrimitiveKind.Nmos,
     svgTag: "hdl21::primitives::nmos",
     svgLines: [
-      `<path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />`,
-      `<path d="M 40 20 L 40 60" class="hdl21-symbols" />`,
-      `<path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />`,
-      `<path d="M 0 40 L -20 40" class="hdl21-symbols" />`,
-      `<path d="M 40 40 L 70 40" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="70" cy="40" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="80" r="4" class="hdl21-instance-port" />`,
+      // Main squiggly path
+      `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
+      // Vertical gate bar
+      `<path d="M -40 30 L -40 70" class="hdl21-symbols" />`,
+      // Gate bar's horizontal extension
+      `<path d="M -40 50 L -70 50" class="hdl21-symbols" />`,
+      // Bulk connection
+      `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
+      // The triangle
+      `<path x="-10" y="60" d="M 0 0 L 0 20 L 15 10 Z" class="hdl21-symbols" />`,
     ],
     ports: [
       { name: "d", loc: new Point(0, 0) },
-      { name: "g", loc: new Point(70, 40) },
-      { name: "s", loc: new Point(0, 80) },
-      { name: "b", loc: new Point(-20, 40) },
+      { name: "g", loc: new Point(-70, 50) },
+      { name: "s", loc: new Point(0, 100) },
+      { name: "b", loc: new Point(20, 50) },
     ],
     nameloc: new Point(10, 0),
     ofloc: new Point(10, 80),
@@ -107,23 +99,24 @@ add([
     kind: PrimitiveKind.Pmos,
     svgTag: "hdl21::primitives::pmos",
     svgLines: [
-      `<path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />`,
-      `<path d="M 40 20 L 40 60" class="hdl21-symbols" />`,
-      `<path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />`,
-      `<path d="M 0 40 L -20 40" class="hdl21-symbols" />`,
-      `<path d="M 70 40 L 60 40" class="hdl21-symbols" />`,
-
-      `<circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />`,
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="70" cy="40" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="80" r="4" class="hdl21-instance-port" />`,
+      // Main squiggly path
+      `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
+      // Vertical gate bar
+      `<path d="M -40 30 L -40 70" class="hdl21-symbols" />`,
+      // Gate bar's horizontal extension
+      `<path d="M -60 50 L -70 50" class="hdl21-symbols" />`,
+      // Bulk connection
+      `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
+      // The triangle
+      `<path x="-15" y="20" d="M 0 0 L 0 20 L -15 10 Z" class="hdl21-symbols" />`,
+      // The gate circle
+      `<circle cx="-50" cy="50" r="8" fill="white" class="hdl21-symbols" />`,
     ],
     ports: [
       { name: "d", loc: new Point(0, 0) },
-      { name: "g", loc: new Point(70, 40) },
-      { name: "s", loc: new Point(0, 80) },
-      { name: "b", loc: new Point(-20, 40) },
+      { name: "g", loc: new Point(-70, 50) },
+      { name: "s", loc: new Point(0, 100) },
+      { name: "b", loc: new Point(20, 50) },
     ],
     nameloc: new Point(10, 0),
     ofloc: new Point(10, 80),
@@ -391,7 +384,7 @@ add([
       `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
       `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
       `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
-      `<path x="-10" y="68" transform="rotate(30)" d="M 0 0 L 0 20 L 15 10 L 0 0  Z" class="hdl21-symbols" />`,
+      `<path x="-10" y="68" transform="rotate(30)" d="M 0 0 L 0 20 L 15 10 L 0 0 Z" class="hdl21-symbols" />`,
 
       `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
       `<circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />`,
@@ -414,7 +407,7 @@ add([
       `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
       `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
       `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
-      `<path x="-25" y="22" transform="rotate(150)" d="M 0 0 L 0 20 L 15 10 L 0 0  Z" class="hdl21-symbols" />`,
+      `<path x="-25" y="22" transform="rotate(150)" d="M 0 0 L 0 20 L 15 10 L 0 0 Z" class="hdl21-symbols" />`,
 
       `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
       `<circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />`,
@@ -430,49 +423,4 @@ add([
     defaultNamePrefix: "pnp",
     defaultOf: "pnp()",
   },
-
-  // FIXME! Remove the Port types, which are now part of `PortSymbol`.
-  {
-    kind: PrimitiveKind.Input,
-    svgTag: "hdl21::primitives::input",
-    svgLines: [
-      `<path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />`,
-      `<path d="M 30 10 L 50 10" class="hdl21-symbols" />`,
-      `<circle cx="50" cy="10" r="4" class="hdl21-instance-port" />`,
-    ],
-    ports: [{ name: "FIXME", loc: new Point(50, 10) }],
-    nameloc: new Point(10, -15),
-    ofloc: new Point(10, 35),
-    defaultNamePrefix: "i",
-    defaultOf: "input()",
-  },
-  {
-    kind: PrimitiveKind.Output,
-    svgTag: "hdl21::primitives::output",
-    svgLines: [
-      `<path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />`,
-      `<path d="M -20 10 L 0 10" class="hdl21-symbols" />`,
-      `<circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />`,
-    ],
-    ports: [{ name: "FIXME", loc: new Point(-20, 10) }],
-    nameloc: new Point(10, -15),
-    ofloc: new Point(10, 35),
-    defaultNamePrefix: "o",
-    defaultOf: "output()",
-  },
-  {
-    kind: PrimitiveKind.Inout,
-    svgTag: "hdl21::primitives::inout",
-    svgLines: [
-      `<path d="M 0 0 L -10 10 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />`,
-      `<path d="M -20 10 L -10 10" class="hdl21-symbols" />`,
-      `<circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />`,
-    ],
-    ports: [{ name: "FIXME", loc: new Point(-20, 10) }],
-    nameloc: new Point(10, -15),
-    ofloc: new Point(10, 35),
-    defaultNamePrefix: "io",
-    defaultOf: "inout()",
-  },
 ]);
-// FIXME: add all the other elements

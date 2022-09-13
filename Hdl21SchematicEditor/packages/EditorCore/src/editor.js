@@ -240,7 +240,11 @@ class Instance {
         }
 
         // Load the symbol as a Two.Group, wrapping the content in <svg> elements.
-        const symbolSvgStr = "<svg>" + primitive.svgLines.join() + "</svg>";
+        let symbolSvgStr = "<svg>" + primitive.svgLines.join();
+        for (let port of primitive.ports) {
+            symbolSvgStr += `<circle cx="${port.loc.x}" cy="${port.loc.y}" r="4" class="hdl21-instance-port" />`;
+        }
+        symbolSvgStr += "</svg>";
         const symbol = two.load(symbolSvgStr);
         traverseAndApply(symbol, symbolStyle);
         two.add(symbol);
