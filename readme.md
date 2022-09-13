@@ -40,8 +40,10 @@ The same inverter with [OpenMoji's mind-blown emoji](https://openmoji.org/librar
 
 * Schematics consist solely of instances of *primitive* devices, similar to those comprising the primitive libraries of SPICE, Hdl21, and VLSIR. 
   * Examples: transistors, resistors, capacitors, voltage sources, ports. 
-  * FIXME: list the compete set, it's not long 
   * They *do not* include higher-level devices. Not even relatively low-level devices such as logic gates. 
+* The complete set of primitives: 
+
+![](./symbols.sch.svg)
 
 The simple rule is:  
 **If you want to instantiate anything else, write HDL code.**
