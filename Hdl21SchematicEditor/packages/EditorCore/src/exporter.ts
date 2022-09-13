@@ -5,15 +5,21 @@
 // Local Imports
 import * as sch from "./schematic";
 import { Point } from "./point";
-import { PrimitiveMap, InstancePort } from "./primitive";
+import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";
 
 // # Schematic to SVG Encoder/ Exporter
 export class Exporter {
+  // Source Schematic
   readonly schematic: sch.Schematic;
+  // Output SVG text
   svg: string = "";
+  // Per-indentation tab string
   readonly tab = "  ";
-  indent: number = 1;
+  // Current indentation level
+  indent: number = 0;
+  // NOTE: some popular SVG readers demand the <?xml> header be *the first* characters in an SVG file.
+  // So it's important to not add any indentation before it.
   constructor(schematic: sch.Schematic) {
     this.schematic = schematic;
   }
@@ -36,6 +42,7 @@ export class Exporter {
     const schematic = this.schematic;
 
     // Write the SVG header
+    // Reminder: NOTHING can come before this, or popular SVG readers fail!
     this.writeLine(`<?xml version="1.0" encoding="utf-8"?>`);
     this.writeLine(
       `<svg width="${schematic.size.x}" height="${schematic.size.y}" xmlns="http://www.w3.org/2000/svg">`
@@ -230,6 +237,7 @@ const schematicStyle = `
 .hdl21-labels,
 .hdl21-instance-name,
 .hdl21-instance-of,
+.hdl21-port-name,
 .hdl21-wire-name {
   fill: black;
   font-family: comic sans ms;

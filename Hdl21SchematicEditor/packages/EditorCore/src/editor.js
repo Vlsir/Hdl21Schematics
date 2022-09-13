@@ -371,7 +371,9 @@ class SchPort {
         }
 
         // Load the symbol as a Two.Group, wrapping the content in <svg> elements.
-        const symbolSvgStr = "<svg>" + portsymbol.svgLines.join() + "</svg>";
+        let symbolSvgStr = "<svg>" + portsymbol.svgLines.join();
+        symbolSvgStr += `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`;
+        symbolSvgStr += "</svg>";
         const symbol = two.load(symbolSvgStr);
         traverseAndApply(symbol, symbolStyle);
         two.add(symbol);

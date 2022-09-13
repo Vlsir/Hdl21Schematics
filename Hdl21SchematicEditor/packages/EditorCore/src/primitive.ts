@@ -82,7 +82,7 @@ add([
       // Bulk connection
       `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
       // The triangle
-      `<path x="-10" y="60" d="M 0 0 L 0 20 L 15 10 Z" class="hdl21-symbols" />`,
+      `<path d="M -10 60 L -10 80 L 5 70 Z" class="hdl21-symbols" />`,
     ],
     ports: [
       { name: "d", loc: new Point(0, 0) },
@@ -108,7 +108,7 @@ add([
       // Bulk connection
       `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
       // The triangle
-      `<path x="-15" y="20" d="M 0 0 L 0 20 L -15 10 Z" class="hdl21-symbols" />`,
+      `<path d="M -15 20 L -15 40 L -30 30 Z" class="hdl21-symbols" />`,
       // The gate circle
       `<circle cx="-50" cy="50" r="8" fill="white" class="hdl21-symbols" />`,
     ],
@@ -127,10 +127,8 @@ add([
     kind: PrimitiveKind.Res,
     svgTag: "hdl21::primitives::res",
     svgLines: [
+      // Main squiggly path
       `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -145,12 +143,10 @@ add([
     kind: PrimitiveKind.Res3,
     svgTag: "hdl21::primitives::res3",
     svgLines: [
+      // Main squiggly path
       `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
+      // Bulk connection
       `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -170,9 +166,6 @@ add([
       `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
       `<path d="M -20 60 L 20 60" class="hdl21-symbols" />`,
       `<path d="M 0 60 L 0 100" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -192,10 +185,6 @@ add([
       `<path d="M -20 60 L 20 60" class="hdl21-symbols" />`,
       `<path d="M 0 60 L 0 100" class="hdl21-symbols" />`,
       `<path d="M -40 50 L -25 50" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-40" cy="50" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -211,12 +200,10 @@ add([
     kind: PrimitiveKind.Ind,
     svgTag: "hdl21::primitives::ind",
     svgLines: [
+      // FIXME: just a box, until sorting out the curvy stuff
       `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
       `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -231,13 +218,10 @@ add([
     kind: PrimitiveKind.Ind3,
     svgTag: "hdl21::primitives::ind3",
     svgLines: [
+      // FIXME: just a box, until sorting out the curvy stuff
       `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
       `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -260,9 +244,6 @@ add([
       `<path d="M 0 32 L 0 52" class="hdl21-symbols" />`,
       `<path d="M -10 42 L 10 42" class="hdl21-symbols" />`,
       `<path d="M -10 65 L 10 65" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -285,11 +266,6 @@ add([
       `<path d="M -10 65 L 10 65" class="hdl21-symbols" />`,
       `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
       `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-40" cy="25" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-40" cy="75" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -302,7 +278,6 @@ add([
     defaultNamePrefix: "v4",
     defaultOf: "v4()",
   },
-
   {
     kind: PrimitiveKind.Isource,
     svgTag: "hdl21::primitives::isource",
@@ -310,12 +285,8 @@ add([
       `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
       `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
-
       `<path d="M 0 35 L 0 65" class="hdl21-symbols" />`,
       `<path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -333,17 +304,10 @@ add([
       `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
       `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
-
       `<path d="M 0 35 L 0 65" class="hdl21-symbols" />`,
       `<path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />`,
-
       `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
       `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-40" cy="25" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-40" cy="75" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -364,9 +328,6 @@ add([
       `<path d="M -20 65 L 20 65" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 35" class="hdl21-symbols" />`,
       `<path d="M 0 65 L 0 100" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
     ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
@@ -384,11 +345,8 @@ add([
       `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
       `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
       `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
-      `<path x="-10" y="68" transform="rotate(30)" d="M 0 0 L 0 20 L 15 10 L 0 0 Z" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+      // FIXME: viewers don't seem to like this path/ rotate combo
+      `<path transform="rotate(30)" d="M -10 68 L -10 88 L 5 78 Z" class="hdl21-symbols" />`,
     ],
     ports: [
       { name: "c", loc: new Point(0, 0) },
@@ -407,11 +365,8 @@ add([
       `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
       `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
       `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
-      `<path x="-25" y="22" transform="rotate(150)" d="M 0 0 L 0 20 L 15 10 L 0 0 Z" class="hdl21-symbols" />`,
-
-      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />`,
-      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+      // FIXME: viewers don't seem to like this path/ rotate combo
+      `<path transform="rotate(150)" d="M -25 22 L -25 42 L -10 32 Z" class="hdl21-symbols" />`,
     ],
     ports: [
       { name: "c", loc: new Point(0, 0) },
