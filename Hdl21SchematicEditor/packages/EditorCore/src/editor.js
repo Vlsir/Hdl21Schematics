@@ -239,9 +239,8 @@ class Instance {
             this.drawing = null;
         }
 
-        // Load the symbol as a Two.Group. 
-        // Note we apply the styling and wrap the content in <svg> elements.
-        const symbolSvgStr = /*schematicStyle +*/ "<svg>" + primitive.svgStr + "</svg>";
+        // Load the symbol as a Two.Group, wrapping the content in <svg> elements.
+        const symbolSvgStr = "<svg>" + primitive.svgLines.join() + "</svg>";
         const symbol = two.load(symbolSvgStr);
         traverseAndApply(symbol, symbolStyle);
         two.add(symbol);
@@ -367,9 +366,8 @@ class SchPort {
             this.drawing = null;
         }
 
-        // Load the symbol as a Two.Group. 
-        // Note we apply the styling and wrap the content in <svg> elements.
-        const symbolSvgStr = /*schematicStyle +*/ "<svg>" + portsymbol.svgStr + "</svg>";
+        // Load the symbol as a Two.Group, wrapping the content in <svg> elements.
+        const symbolSvgStr = "<svg>" + portsymbol.svgLines.join() + "</svg>";
         const symbol = two.load(symbolSvgStr);
         traverseAndApply(symbol, symbolStyle);
         two.add(symbol);

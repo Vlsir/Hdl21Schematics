@@ -54,7 +54,7 @@ export class Port {
 export interface Primitive {
   kind: PrimitiveKind;
   svgTag: string;
-  svgStr: string;
+  svgLines: Array<string>;
   ports: Array<Port>;
   nameloc: Point;
   ofloc: Point;
@@ -80,19 +80,18 @@ add([
   {
     kind: PrimitiveKind.Nmos,
     svgTag: "hdl21::primitives::nmos",
-    svgStr: `
-    <g class="hdl21::primitives::nmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 40 40 L 70 40" class="hdl21-symbols" />
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />`,
+      `<path d="M 40 20 L 40 60" class="hdl21-symbols" />`,
+      `<path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />`,
+      `<path d="M 0 40 L -20 40" class="hdl21-symbols" />`,
+      `<path d="M 40 40 L 70 40" class="hdl21-symbols" />`,
 
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>`,
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="70" cy="40" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="80" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "d", loc: new Point(0, 0) },
       { name: "g", loc: new Point(70, 40) },
@@ -107,20 +106,19 @@ add([
   {
     kind: PrimitiveKind.Pmos,
     svgTag: "hdl21::primitives::pmos",
-    svgStr: `
-    <g class="hdl21::primitives::pmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 70 40 L 60 40" class="hdl21-symbols" />
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />`,
+      `<path d="M 40 20 L 40 60" class="hdl21-symbols" />`,
+      `<path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />`,
+      `<path d="M 0 40 L -20 40" class="hdl21-symbols" />`,
+      `<path d="M 70 40 L 60 40" class="hdl21-symbols" />`,
 
-        <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>`,
+      `<circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />`,
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="70" cy="40" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="80" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "d", loc: new Point(0, 0) },
       { name: "g", loc: new Point(70, 40) },
@@ -135,13 +133,12 @@ add([
   {
     kind: PrimitiveKind.Res,
     svgTag: "hdl21::primitives::res",
-    svgStr: `
-    <g class="hdl21::primitives::res">
-        <path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>`,
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -154,16 +151,14 @@ add([
   {
     kind: PrimitiveKind.Res3,
     svgTag: "hdl21::primitives::res3",
-    svgStr: `
-    <g class="hdl21::primitives::res3">
-        <path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />
-        <path d="M -5 50 L -20 50" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -177,17 +172,15 @@ add([
   {
     kind: PrimitiveKind.Cap,
     svgTag: "hdl21::primitives::cap",
-    svgStr: `
-    <g class="hdl21::primitives::cap">
-        <path d="M 0 0 L 0 40" class="hdl21-symbols" />
-        <path d="M -20 40 L 20 40" class="hdl21-symbols" />
-        <path d="M -20 60 L 20 60" class="hdl21-symbols" />
-        <path d="M 0 60 L 0 100" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
+      `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
+      `<path d="M -20 60 L 20 60" class="hdl21-symbols" />`,
+      `<path d="M 0 60 L 0 100" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -200,20 +193,17 @@ add([
   {
     kind: PrimitiveKind.Cap3,
     svgTag: "hdl21::primitives::cap3",
-    svgStr: `
-    <g class="hdl21::primitives::cap3">
+    svgLines: [
+      `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
+      `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
+      `<path d="M -20 60 L 20 60" class="hdl21-symbols" />`,
+      `<path d="M 0 60 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M -40 50 L -25 50" class="hdl21-symbols" />`,
 
-        <path d="M 0 0 L 0 40" class="hdl21-symbols" />
-        <path d="M -20 40 L 20 40" class="hdl21-symbols" />
-        <path d="M -20 60 L 20 60" class="hdl21-symbols" />
-        <path d="M 0 60 L 0 100" class="hdl21-symbols" />
-        <path d="M -40 50 L -25 50" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-        <circle cx="-40" cy="50" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-40" cy="50" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -227,16 +217,14 @@ add([
   {
     kind: PrimitiveKind.Ind,
     svgTag: "hdl21::primitives::ind",
-    svgStr: `
-    <g class="hdl21::primitives::ind">
-        <rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />
-        <path d="M 0 0 L 0 20" class="hdl21-symbols" />
-        <path d="M 0 80 L 0 100" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -249,17 +237,15 @@ add([
   {
     kind: PrimitiveKind.Ind3,
     svgTag: "hdl21::primitives::ind3",
-    svgStr: `
-    <g class="hdl21::primitives::ind3">
-        <rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />
-        <path d="M 0 0 L 0 20" class="hdl21-symbols" />
-        <path d="M 0 80 L 0 100" class="hdl21-symbols" />
-            
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -274,19 +260,17 @@ add([
   {
     kind: PrimitiveKind.Vsource,
     svgTag: "hdl21::primitives::vsource",
-    svgStr: `
-    <g class="hdl21::primitives::vsource">
-        <circle cx="0" cy="50" r="30" class="hdl21-symbols" />
-        <path d="M 0 0 L 0 20" class="hdl21-symbols" />
-        <path d="M 0 80 L 0 100" class="hdl21-symbols" />
-        <path d="M 0 32 L 0 52" class="hdl21-symbols" />
-        <path d="M -10 42 L 10 42" class="hdl21-symbols" />
-        <path d="M -10 65 L 10 65" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M 0 32 L 0 52" class="hdl21-symbols" />`,
+      `<path d="M -10 42 L 10 42" class="hdl21-symbols" />`,
+      `<path d="M -10 65 L 10 65" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -299,23 +283,21 @@ add([
   {
     kind: PrimitiveKind.Vsource4,
     svgTag: "hdl21::primitives::vsource4",
-    svgStr: `
-    <g class="hdl21::primitives::vsource4">
-        <circle cx="0" cy="50" r="30" class="hdl21-symbols" />
-        <path d="M 0 0 L 0 20" class="hdl21-symbols" />
-        <path d="M 0 80 L 0 100" class="hdl21-symbols" />
-        <path d="M 0 32 L 0 52" class="hdl21-symbols" />
-        <path d="M -10 42 L 10 42" class="hdl21-symbols" />
-        <path d="M -10 65 L 10 65" class="hdl21-symbols" />
-        <path d="M -40 25 L -20 25" class="hdl21-symbols" />
-        <path d="M -40 75 L -20 75" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-        <circle cx="-40" cy="25" r="4" class="hdl21-instance-port" />
-        <circle cx="-40" cy="75" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M 0 32 L 0 52" class="hdl21-symbols" />`,
+      `<path d="M -10 42 L 10 42" class="hdl21-symbols" />`,
+      `<path d="M -10 65 L 10 65" class="hdl21-symbols" />`,
+      `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
+      `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-40" cy="25" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-40" cy="75" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -331,19 +313,17 @@ add([
   {
     kind: PrimitiveKind.Isource,
     svgTag: "hdl21::primitives::isource",
-    svgStr: `
-    <g class="hdl21::primitives::isource">
-        <circle cx="0" cy="50" r="30" class="hdl21-symbols" />
-        <path d="M 0 0 L 0 20" class="hdl21-symbols" />
-        <path d="M 0 80 L 0 100" class="hdl21-symbols" />
-        
-        <path d="M 0 35 L 0 65" class="hdl21-symbols" />
-        <path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+
+      `<path d="M 0 35 L 0 65" class="hdl21-symbols" />`,
+      `<path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -356,24 +336,22 @@ add([
   {
     kind: PrimitiveKind.Isource4,
     svgTag: "hdl21::primitives::isource4",
-    svgStr: `
-    <g class="hdl21::primitives::isource4">
-        <circle cx="0" cy="50" r="30" class="hdl21-symbols" />
-        <path d="M 0 0 L 0 20" class="hdl21-symbols" />
-        <path d="M 0 80 L 0 100" class="hdl21-symbols" />
-        
-        <path d="M 0 35 L 0 65" class="hdl21-symbols" />
-        <path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />
+    svgLines: [
+      `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
 
-        <path d="M -40 25 L -20 25" class="hdl21-symbols" />
-        <path d="M -40 75 L -20 75" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-        <circle cx="-40" cy="25" r="4" class="hdl21-instance-port" />
-        <circle cx="-40" cy="75" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+      `<path d="M 0 35 L 0 65" class="hdl21-symbols" />`,
+      `<path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />`,
+
+      `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
+      `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-40" cy="25" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-40" cy="75" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -388,17 +366,15 @@ add([
   {
     kind: PrimitiveKind.Diode,
     svgTag: "hdl21::primitives::diode",
-    svgStr: `
-    <g class="hdl21::primitives::diode">
-        <path d="M 0 70 L -20 35 L 20 35 Z" class="hdl21-symbols" />
-        <path d="M -20 65 L 20 65" class="hdl21-symbols" />
-        <path d="M 0 0 L 0 35" class="hdl21-symbols" />
-        <path d="M 0 65 L 0 100" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<path d="M 0 70 L -20 35 L 20 35 Z" class="hdl21-symbols" />`,
+      `<path d="M -20 65 L 20 65" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 35" class="hdl21-symbols" />`,
+      `<path d="M 0 65 L 0 100" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "p", loc: new Point(0, 0) },
       { name: "n", loc: new Point(0, 100) },
@@ -411,18 +387,16 @@ add([
   {
     kind: PrimitiveKind.Npn,
     svgTag: "hdl21::primitives::npn",
-    svgStr: `
-    <g class="hdl21::primitives::npn">
-        <path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />
-        <path d="M -30 80 L -30 20" class="hdl21-symbols" />
-        <path d="M -30 50 L -50 50" class="hdl21-symbols" />
-        <path x="-10" y="68" transform="rotate(30)" d="M 0 0 L 0 20 L 15 10 L 0 0  Z" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>
-        `,
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
+      `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
+      `<path x="-10" y="68" transform="rotate(30)" d="M 0 0 L 0 20 L 15 10 L 0 0  Z" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "c", loc: new Point(0, 0) },
       { name: "b", loc: new Point(-50, 50) },
@@ -436,18 +410,16 @@ add([
   {
     kind: PrimitiveKind.Pnp,
     svgTag: "hdl21::primitives::pnp",
-    svgStr: `
-    <g class="hdl21::primitives::pnp">
-        <path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />
-        <path d="M -30 80 L -30 20" class="hdl21-symbols" />
-        <path d="M -30 50 L -50 50" class="hdl21-symbols" />
-        <path x="-25" y="22" transform="rotate(150)" d="M 0 0 L 0 20 L 15 10 L 0 0  Z" class="hdl21-symbols" />
-        
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
-    </g>
-    `,
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
+      `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
+      `<path x="-25" y="22" transform="rotate(150)" d="M 0 0 L 0 20 L 15 10 L 0 0  Z" class="hdl21-symbols" />`,
+
+      `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />`,
+      `<circle cx="0" cy="100" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [
       { name: "c", loc: new Point(0, 0) },
       { name: "b", loc: new Point(-50, 50) },
@@ -463,13 +435,11 @@ add([
   {
     kind: PrimitiveKind.Input,
     svgTag: "hdl21::primitives::input",
-    svgStr: `
-    <g class="hdl21::primitives::input">
-        <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
-        <path d="M 30 10 L 50 10" class="hdl21-symbols" />
-        <circle cx="50" cy="10" r="4" class="hdl21-instance-port" />
-    </g>
-    `,
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />`,
+      `<path d="M 30 10 L 50 10" class="hdl21-symbols" />`,
+      `<circle cx="50" cy="10" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [{ name: "FIXME", loc: new Point(50, 10) }],
     nameloc: new Point(10, -15),
     ofloc: new Point(10, 35),
@@ -479,13 +449,11 @@ add([
   {
     kind: PrimitiveKind.Output,
     svgTag: "hdl21::primitives::output",
-    svgStr: `
-    <g class="hdl21::primitives::output">
-        <path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
-        <path d="M -20 10 L 0 10" class="hdl21-symbols" />
-        <circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />
-    </g>
-    `,
+    svgLines: [
+      `<path d="M 0 0 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />`,
+      `<path d="M -20 10 L 0 10" class="hdl21-symbols" />`,
+      `<circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [{ name: "FIXME", loc: new Point(-20, 10) }],
     nameloc: new Point(10, -15),
     ofloc: new Point(10, 35),
@@ -495,13 +463,11 @@ add([
   {
     kind: PrimitiveKind.Inout,
     svgTag: "hdl21::primitives::inout",
-    svgStr: `
-    <g class="hdl21::primitives::inout">
-        <path d="M 0 0 L -10 10 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />
-        <path d="M -20 10 L -10 10" class="hdl21-symbols" />
-        <circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />
-    </g>
-    `,
+    svgLines: [
+      `<path d="M 0 0 L -10 10 L 0 20 L 20 20 L 30 10 L 20 0 Z" class="hdl21-symbols" />`,
+      `<path d="M -20 10 L -10 10" class="hdl21-symbols" />`,
+      `<circle cx="-20" cy="10" r="4" class="hdl21-instance-port" />`,
+    ],
     ports: [{ name: "FIXME", loc: new Point(-20, 10) }],
     nameloc: new Point(10, -15),
     ofloc: new Point(10, 35),

@@ -93,141 +93,131 @@
   <!-- Svg Schematic Content -->
 
   <g class="hdl21-instance" transform="matrix(1 0 0 1 100 110)">
-
     <g class="hdl21::primitives::pmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 70 40 L 60 40" class="hdl21-symbols" />
-
-        <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>    <text x="10" y="0"  class="hdl21-instance-name">p0</text>
+      <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+      <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+      <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
+      <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+      <path d="M 70 40 L 60 40" class="hdl21-symbols" />
+      <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+      <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+    </g>
+    <text x="10" y="0"  class="hdl21-instance-name">p0</text>
     <text x="10" y="80" class="hdl21-instance-of">pmos(args)</text>
   </g>
   <g class="hdl21-instance" transform="matrix(1 0 0 1 100 310)">
-
     <g class="hdl21::primitives::nmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 40 40 L 70 40" class="hdl21-symbols" />
-
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>    <text x="10" y="0"  class="hdl21-instance-name">n0</text>
+      <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+      <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+      <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
+      <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+      <path d="M 40 40 L 70 40" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+      <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+    </g>
+    <text x="10" y="0"  class="hdl21-instance-name">n0</text>
     <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
   </g>
   <g class="hdl21-instance" transform="matrix(1 0 0 1 400 310)">
-
     <g class="hdl21::primitives::nmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 40 40 L 70 40" class="hdl21-symbols" />
-
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>    <text x="10" y="0"  class="hdl21-instance-name">n1</text>
+      <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+      <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+      <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
+      <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+      <path d="M 40 40 L 70 40" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+      <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+    </g>
+    <text x="10" y="0"  class="hdl21-instance-name">n1</text>
     <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
   </g>
   <g class="hdl21-instance" transform="matrix(1 0 0 1 400 110)">
-
     <g class="hdl21::primitives::pmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 70 40 L 60 40" class="hdl21-symbols" />
-
-        <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>    <text x="10" y="0"  class="hdl21-instance-name">p1</text>
+      <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+      <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+      <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
+      <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+      <path d="M 70 40 L 60 40" class="hdl21-symbols" />
+      <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+      <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+    </g>
+    <text x="10" y="0"  class="hdl21-instance-name">p1</text>
     <text x="10" y="80" class="hdl21-instance-of">pmos(args)</text>
   </g>
   <g class="hdl21-instance" transform="matrix(1 0 0 1 700 110)">
-
     <g class="hdl21::primitives::pmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 70 40 L 60 40" class="hdl21-symbols" />
-
-        <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>    <text x="10" y="0"  class="hdl21-instance-name">p2</text>
+      <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+      <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+      <path d="M 30 20 L 15 10 L 15 30 Z" class="hdl21-symbols" />
+      <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+      <path d="M 70 40 L 60 40" class="hdl21-symbols" />
+      <circle cx="50" cy="40" r="8" fill="white" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+      <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+    </g>
+    <text x="10" y="0"  class="hdl21-instance-name">p2</text>
     <text x="10" y="80" class="hdl21-instance-of">pmos(args)</text>
   </g>
   <g class="hdl21-instance" transform="matrix(1 0 0 1 700 310)">
-
     <g class="hdl21::primitives::nmos">
-        <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
-        <path d="M 40 20 L 40 60" class="hdl21-symbols" />
-        <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
-        <path d="M 0 40 L -20 40" class="hdl21-symbols" />
-        <path d="M 40 40 L 70 40" class="hdl21-symbols" />
-
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
-        <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
-        <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
-    </g>    <text x="10" y="0"  class="hdl21-instance-name">n2</text>
+      <path d="M 0 0 L 0 20 L 28 20 L 28 60 L 0 60 L 0 80" class="hdl21-symbols" />
+      <path d="M 40 20 L 40 60" class="hdl21-symbols" />
+      <path d="M -5 60 L 10 50 L 10 70 Z" class="hdl21-symbols" />
+      <path d="M 0 40 L -20 40" class="hdl21-symbols" />
+      <path d="M 40 40 L 70 40" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+      <circle cx="-20" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="70" cy="40" r="4" class="hdl21-instance-port" />
+      <circle cx="0" cy="80" r="4" class="hdl21-instance-port" />
+    </g>
+    <text x="10" y="0"  class="hdl21-instance-name">n2</text>
     <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
   </g>
   
 
   <g class="hdl21-port" transform="matrix(1 0 0 1 800 260)">
-
     <g class="hdl21::primitives::input">
-        <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
-        <path d="M -20 0 L 0 0" class="hdl21-symbols" />
-        <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+      <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
+      <path d="M -20 0 L 0 0" class="hdl21-symbols" />
+      <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     </g>
-        <text x="-50" y="-25"  class="hdl21-port-name">inp</text>
+    <text x="-50" y="-25"  class="hdl21-port-name">inp</text>
   </g>
   <g class="hdl21-port" transform="matrix(1 0 0 1 100 250)">
-
     <g class="hdl21::primitives::output">
       <path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
       <path d="M 0 0 L 20 0" class="hdl21-symbols" />
       <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     </g>
-        <text x="20" y="-25"  class="hdl21-port-name">out</text>
+    <text x="20" y="-25"  class="hdl21-port-name">out</text>
   </g>
   <g class="hdl21-port" transform="matrix(1 0 0 1 800 60)">
-
     <g class="hdl21::primitives::inout">
       <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
       <path d="M 0 0 L 10 0" class="hdl21-symbols" />
       <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     </g>
-        <text x="15" y="-25"  class="hdl21-port-name">VDD</text>
+    <text x="15" y="-25"  class="hdl21-port-name">VDD</text>
   </g>
   <g class="hdl21-port" transform="matrix(1 0 0 1 800 440)">
-
     <g class="hdl21::primitives::inout">
       <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
       <path d="M 0 0 L 10 0" class="hdl21-symbols" />
       <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     </g>
-        <text x="15" y="-25"  class="hdl21-port-name">VSS</text>
+    <text x="15" y="-25"  class="hdl21-port-name">VSS</text>
   </g>
   
 

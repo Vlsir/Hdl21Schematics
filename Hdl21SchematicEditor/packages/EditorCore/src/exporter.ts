@@ -11,7 +11,7 @@ import { PortMap } from "./portsymbol";
 // # Schematic to SVG Encoder/ Exporter
 export class Exporter {
   readonly schematic: sch.Schematic;
-  svg: string = ""
+  svg: string = "";
   readonly tab = "  ";
   indent: number = 1;
   constructor(schematic: sch.Schematic) {
@@ -86,12 +86,17 @@ export class Exporter {
     this.writeLine(
       `<g class="hdl21-instance" transform="matrix(1 0 0 1 ${inst.loc.x} ${inst.loc.y})">`
     );
+    
+    // Write the symbol group
     this.indent += 1;
-    // FIXME: make this a list, so we write it at orientation.
-    // for (let line of primitive.svgLines) {
-    //     this.writeLine(line);
-    // }
-    this.write(primitive.svgStr);
+    this.writeLine(`<g class="${primitive.svgTag}">`);
+    this.indent += 1;
+    for (let line of primitive.svgLines) {
+      this.writeLine(line);
+    }
+    this.indent -= 1;
+    this.writeLine(`</g>`);
+
     this.writeLine(
       `<text x="${primitive.nameloc.x}" y="${primitive.nameloc.y}"  class="hdl21-instance-name">${name}</text>`
     );
@@ -101,7 +106,7 @@ export class Exporter {
     this.indent -= 1;
     this.writeLine(`</g>`);
   }
-  // Create the SVG `<g>` group for an `Port`.
+  // Create the SVG `<g>` group for a `Port`.
   writePort(port: sch.Port) {
     const portsymbol = PortMap.get(port.kind);
     if (!portsymbol) {
@@ -112,13 +117,16 @@ export class Exporter {
     this.writeLine(
       `<g class="hdl21-port" transform="matrix(1 0 0 1 ${port.loc.x} ${port.loc.y})">`
     );
-    this.indent += 1;
 
-    // FIXME! break into lines
-    // for (let line of portsymbol.svgLines) {
-    //     this.writeLine(line);
-    // }
-    this.write(portsymbol.svgStr);
+    // Write the symbol group
+    this.indent += 1;
+    this.writeLine(`<g class="${portsymbol.svgTag}">`);
+    this.indent += 1;
+    for (let line of portsymbol.svgLines) {
+      this.writeLine(line);
+    }
+    this.indent -= 1;
+    this.writeLine(`</g>`);
 
     this.writeLine(
       `<text x="${portsymbol.nameloc.x}" y="${portsymbol.nameloc.y}"  class="hdl21-port-name">${name}</text>`

@@ -279,7 +279,7 @@ An example `Primitive`, defined in JavaScript syntax:
 ```js 
 Primitive({
     kind: PrimitiveKind.Nmos,
-    svgStr: `
+    svgLines: `
     <g class="hdl21::primitives::nmos">
         <!-- ... -->
     </g>
