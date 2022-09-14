@@ -180,10 +180,12 @@ add([
     kind: PrimitiveKind.Cap3,
     svgTag: "hdl21::primitives::cap3",
     svgLines: [
+      // All the parts of the two-terminal cap
       `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
       `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
       `<path d="M -20 60 L 20 60" class="hdl21-symbols" />`,
       `<path d="M 0 60 L 0 100" class="hdl21-symbols" />`,
+      // Bulk connection
       `<path d="M -40 50 L -25 50" class="hdl21-symbols" />`,
     ],
     ports: [
@@ -258,12 +260,14 @@ add([
     kind: PrimitiveKind.Vsource4,
     svgTag: "hdl21::primitives::vsource4",
     svgLines: [
+      // All the parts of the two-terminal `vsource`
       `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
       `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
       `<path d="M 0 32 L 0 52" class="hdl21-symbols" />`,
       `<path d="M -10 42 L 10 42" class="hdl21-symbols" />`,
       `<path d="M -10 65 L 10 65" class="hdl21-symbols" />`,
+      // Control terminal connections
       `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
       `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
     ],
@@ -301,11 +305,13 @@ add([
     kind: PrimitiveKind.Isource4,
     svgTag: "hdl21::primitives::isource4",
     svgLines: [
+      // All the parts of the two-terminal `isource`
       `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
       `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
       `<path d="M 0 35 L 0 65" class="hdl21-symbols" />`,
       `<path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />`,
+      // Control terminal connections
       `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
       `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
     ],
@@ -324,8 +330,11 @@ add([
     kind: PrimitiveKind.Diode,
     svgTag: "hdl21::primitives::diode",
     svgLines: [
+      // The triangle
       `<path d="M 0 70 L -20 35 L 20 35 Z" class="hdl21-symbols" />`,
+      // Horizontal line
       `<path d="M -20 65 L 20 65" class="hdl21-symbols" />`,
+      // Two port connections
       `<path d="M 0 0 L 0 35" class="hdl21-symbols" />`,
       `<path d="M 0 65 L 0 100" class="hdl21-symbols" />`,
     ],
@@ -342,11 +351,14 @@ add([
     kind: PrimitiveKind.Npn,
     svgTag: "hdl21::primitives::npn",
     svgLines: [
+      // Main squiggly path
       `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
+      // Base vertical bar
       `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
+      // Base connection
       `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
-      // FIXME: viewers don't seem to like this path/ rotate combo
-      `<path transform="rotate(30)" d="M -10 68 L -10 88 L 5 78 Z" class="hdl21-symbols" />`,
+      // The triangle
+      `<path d="M -20 78 L -10 62 L 0 80 Z" class="hdl21-symbols" />`,
     ],
     ports: [
       { name: "c", loc: new Point(0, 0) },
@@ -362,11 +374,14 @@ add([
     kind: PrimitiveKind.Pnp,
     svgTag: "hdl21::primitives::pnp",
     svgLines: [
+      // Main squiggly path
       `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
+      // Base vertical bar
       `<path d="M -30 80 L -30 20" class="hdl21-symbols" />`,
+      // Base connection
       `<path d="M -30 50 L -50 50" class="hdl21-symbols" />`,
-      // FIXME: viewers don't seem to like this path/ rotate combo
-      `<path transform="rotate(150)" d="M -25 22 L -25 42 L -10 32 Z" class="hdl21-symbols" />`,
+      // The triangle
+      `<path d="M -20 22 L -10 38 L -30 40 Z" class="hdl21-symbols" />`,
     ],
     ports: [
       { name: "c", loc: new Point(0, 0) },

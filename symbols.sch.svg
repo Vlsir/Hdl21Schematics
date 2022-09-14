@@ -272,7 +272,7 @@
     <path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />
     <path d="M -30 80 L -30 20" class="hdl21-symbols" />
     <path d="M -30 50 L -50 50" class="hdl21-symbols" />
-    <path transform="rotate(30)" d="M -10 68 L -10 88 L 5 78 Z" class="hdl21-symbols" />
+    <path d="M -20 78 L -10 62 L 0 80 Z" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />
     <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
@@ -285,7 +285,7 @@
     <path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />
     <path d="M -30 80 L -30 20" class="hdl21-symbols" />
     <path d="M -30 50 L -50 50" class="hdl21-symbols" />
-    <path transform="rotate(150)" d="M -25 22 L -25 42 L -10 32 Z" class="hdl21-symbols" />
+    <path d="M -20 22 L -10 38 L -30 40 Z" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="-50" cy="50" r="4" class="hdl21-instance-port" />
     <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
