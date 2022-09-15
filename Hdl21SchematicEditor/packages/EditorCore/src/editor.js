@@ -4,8 +4,7 @@
  * Essentially the entirety of the schematic GUI, drawing logic, saving and loading logic. 
  */
 
-import Two from 'two.js';
-
+import Two from "two.js";
 // Local Imports 
 import { Point } from "./point";
 import { PrimitiveMap, PrimitiveKind } from "./primitive";
@@ -13,7 +12,11 @@ import { PortMap } from "./portsymbol";
 import { Importer } from "./importer";
 import { Exporter } from "./exporter";
 import * as schdata from "./schematic";
+import { theCanvas } from "./canvas";
 
+
+// Module-level state of the two.js canvas
+const two = theCanvas.two;
 
 // FIXME! fill these guys in
 class InstancePort { }
@@ -62,22 +65,18 @@ const labelStyle = textElem => { /* Two.Text => void */
     textElem.size = 16;
 }
 
-
-// Global stuff, at least for now 
-// The Two.js "draw-er", canvas, whatever they call it. 
-const two = new Two({
-    // Lotta futzing with these options has found these two to be indispensible. 
-    fullscreen: true,
-    autostart: true,
-    // Perhaps some day we can better understand what goes on with the others. 
-    // Particularly when implementing resizing.
-    // 
-    // fitted: true,
-    // width: window.innerWidth,
-    // height: window.innerHeight,
-    // width: 1600,
-    // height: 800,
-}).appendTo(document.body);
+// Apply the grid-line styling
+const gridLineStyle = (line, isMajor) => {
+    line.stroke = 'grey';
+    line.visible = true;
+    line.closed = false;
+    line.noFill();
+    if (isMajor) {
+        line.linewidth = 1;
+    } else {
+        line.linewidth = 0.5;
+    }
+};
 
 
 // Enumerated Kinds of Schematic Entities
@@ -136,11 +135,11 @@ class Label {
     draw = () => {
         if (this.drawing) { // Remove any existing drawing 
             this.parent.drawing.remove(this.drawing);
-            two.remove(this.drawing);
+            theCanvas.instanceLayer.remove(this.drawing);
             this.drawing = null;
         }
         // Create the drawn text element 
-        const textElem = two.makeText(this.text);
+        const textElem = new Two.Text(this.text);
         // Set its position
         textElem.translation.set(this.loc.x, this.loc.y);
         // Apply our label styling 
@@ -197,7 +196,6 @@ class Instance {
         // Number, unique ID. Not a constructor argument. 
         this.entityId = null;
         // Drawing data, set during calls to `draw()`.
-        // The two.js drawing, implemented as a Two.Group.
         this.drawing = null;
         // The bounding box for hit testing. 
         this.bbox = null;
@@ -235,7 +233,7 @@ class Instance {
             return;
         }
         if (this.drawing) { // Remove any existing drawing 
-            two.remove(this.drawing);
+            theCanvas.instanceLayer.remove(this.drawing);
             this.drawing = null;
         }
 
@@ -247,11 +245,11 @@ class Instance {
         symbolSvgStr += "</svg>";
         const symbol = two.load(symbolSvgStr);
         traverseAndApply(symbol, symbolStyle);
-        two.add(symbol);
 
         // Create the Instance's drawing-Group, including its symbol, names, and ports.
-        this.drawing = two.makeGroup();
+        this.drawing = new Two.Group();
         this.drawing.add(symbol);
+        theCanvas.instanceLayer.add(this.drawing);
 
         // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
         this.drawing.scale = 1;
@@ -287,10 +285,8 @@ class Instance {
     }
     // Boolean indication of whether `point` is inside the Instance's bounding box.
     hitTest = point => {
-        if (!this.bbox) {
-            return false;
-        }
-        const bbox = this.bbox;
+        const bbox = this.drawing.getBoundingClientRect();
+        console.log(bbox);
         return point.x > bbox.left && point.x < bbox.right
             && point.y > bbox.top && point.y < bbox.bottom;
 
@@ -298,7 +294,7 @@ class Instance {
     // Abort drawing an in-progress instance.
     abort = () => {
         if (this.drawing) { // Remove any existing drawing 
-            two.remove(this.drawing);
+            theCanvas.instanceLayer.remove(this.drawing);
             this.drawing = null;
         }
     }
@@ -328,7 +324,6 @@ class SchPort {
         // Number, unique ID. Not a constructor argument. 
         this.entityId = null;
         // Drawing data, set during calls to `draw()`.
-        // The two.js drawing, implemented as a Two.Group.
         this.drawing = null;
         // The bounding box for hit testing. 
         this.bbox = null;
@@ -366,7 +361,7 @@ class SchPort {
             return;
         }
         if (this.drawing) { // Remove any existing drawing 
-            two.remove(this.drawing);
+            theCanvas.instanceLayer.remove(this.drawing);
             this.drawing = null;
         }
 
@@ -376,11 +371,11 @@ class SchPort {
         symbolSvgStr += "</svg>";
         const symbol = two.load(symbolSvgStr);
         traverseAndApply(symbol, symbolStyle);
-        two.add(symbol);
 
         // Create the Instance's drawing-Group, including its symbol, names, and ports.
-        this.drawing = two.makeGroup();
+        this.drawing = new Two.Group();
         this.drawing.add(symbol);
+        theCanvas.instanceLayer.add(this.drawing);
 
         // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
         this.drawing.scale = 1;
@@ -423,7 +418,7 @@ class SchPort {
     // Abort drawing an in-progress instance.
     abort = () => {
         if (this.drawing) { // Remove any existing drawing 
-            two.remove(this.drawing);
+            theCanvas.instanceLayer.remove(this.drawing);
             this.drawing = null;
         }
     }
@@ -477,7 +472,7 @@ class Wire {
     // Create from a list of `Point`s. Primarily creates the drawn `Path`. 
     draw = () => {
         if (this.drawing) { // Remove any existing drawing
-            two.remove(this.drawing);
+            theCanvas.wireLayer.remove(this.drawing);
             this.drawing = null;
         }
         // Flatten coordinates into the form [x1, y1, x2, y2, ...]
@@ -487,6 +482,7 @@ class Wire {
         }
         // Create the drawing 
         this.drawing = two.makePath(...coords);
+        theCanvas.wireLayer.add(this.drawing);
         // Set the wire style 
         wireStyle(this.drawing);
 
@@ -494,7 +490,7 @@ class Wire {
     }
     // Abort drawing an in-progress wire.
     abort = () => {
-        two.remove(this.drawing);
+        theCanvas.wireLayer.remove(this.drawing);
     }
     // Update styling to indicate highlighted-ness
     highlight = () => {
@@ -648,7 +644,7 @@ class Schematic {
 
         // Remove the port's drawing
         if (port.drawing) {
-            two.remove(port.drawing);
+            theCanvas.instanceLayer.remove(port.drawing);
         }
     }
     // Add a wire to the schematic. Returns its ID if successful, or `null` if not. 
@@ -667,7 +663,7 @@ class Schematic {
 
         // Remove the wire's drawing
         if (wire.drawing) {
-            two.remove(wire.drawing);
+            theCanvas.wireLayer.remove(wire.drawing);
         }
     }
     // Add an instance to the schematic.
@@ -692,7 +688,7 @@ class Schematic {
 
         // Remove the instance's drawing
         if (instance.drawing) {
-            two.remove(instance.drawing);
+            theCanvas.instanceLayer.remove(instance.drawing);
         }
     }
     // Add an dot to the schematic.
@@ -713,7 +709,7 @@ class Schematic {
 
         // Remove the dot's drawing
         if (dot.drawing) {
-            two.remove(dot.drawing);
+            theCanvas.dotLayer.remove(dot.drawing);
         }
     }
     // Draw all elements in the schematic.
@@ -742,6 +738,7 @@ const UiModes = Object.freeze({
     MoveInstance: Symbol("MoveInstance"),
     EditLabel: Symbol("EditLabel"),
     DrawWire: Symbol("DrawWire"),
+    Pan: Symbol("Pan"),
 });
 
 // Enumerate Update Types 
@@ -781,6 +778,8 @@ class UiState {
         // Track the mouse position at all times. 
         // Initializes to the center of the `two` canvas.
         this.mouse_pos = new Point(two.width / 2, two.height / 2);
+        // Initialize the "starting" mouse position for pans 
+        this.start_mouse_pos = this.mouse_pos.copy();
     }
 }
 
@@ -835,6 +834,7 @@ class SchEditor {
         // Perform all of our one-time startup activity, binding events, etc.
 
         // window.addEventListener('resize', e => console.log(e));
+        window.addEventListener("wheel", this.handleWheel);
         window.addEventListener("keydown", this.handleKey);
         window.addEventListener('mousedown', this.handleMouseDown, true);
         window.addEventListener('mouseup', this.handleMouseUp, true);
@@ -889,7 +889,7 @@ class SchEditor {
         this.schematic = schematic;
 
         // Clear the drawing window, in case we have a previous drawing.
-        two.clear();
+        theCanvas.clear();
 
         // Set up the background grid
         this.setupGrid();
@@ -903,33 +903,31 @@ class SchEditor {
         const x = this.schematic.size.x;
         const y = this.schematic.size.y;
 
-        // Closure to add grid-line styling
-        const styleLine = (line, isMajor) => {
-            line.stroke = 'grey';
-            line.visible = true;
-            line.closed = false;
-            line.noFill();
-            if (isMajor) {
-                line.linewidth = 1;
-            } else {
-                line.linewidth = 0.5;
-            }
-        };
         for (let i = 0; i <= x; i += 10) {
-            const line = two.makeLine(i, 0, i, y);
-            styleLine(line, i % 100 == 0);
+            const line = new Two.Line(i, 0, i, y);
+            theCanvas.gridLayer.add(line);
+            gridLineStyle(line, i % 100 == 0);
         }
         for (let i = 0; i <= y; i += 10) {
-            const line = two.makeLine(0, i, x, i);
-            styleLine(line, i % 100 == 0);
+            const line = new Two.Line(0, i, x, i);
+            theCanvas.gridLayer.add(line);
+            gridLineStyle(line, i % 100 == 0);
         }
     }
     // Go to the "UI Idle" state, in which nothing is moving, being drawn, or really doing anything. 
     goUiIdle = () => {
         this.ui_state.mode = UiModes.Idle;
     }
+    // Handle zoom via the mouse scroll wheel. 
+    handleWheel = (e) => {
+        console.log(e);
+        // FIXME: not quite ready.
+        // const dy = (e.wheelDeltaY || - e.deltaY) / 1000;
+        // theCanvas.zui.zoomBy(dy, e.clientX, e.clientY);
+    }
     // Handle keystrokes. 
     handleKey = (e) => {
+        console.log(e.getModifierState("Shift"));
         // Always go back to idle mode on escape.
         if (e.key === Keys.Escape) {
             this.deselect();
@@ -1046,7 +1044,11 @@ class SchEditor {
             case UiModes.Idle: {
                 // In idle mode, if we clicked on something, react and update our UI state.
                 if (!whatd_we_hit) {
-                    return this.deselect(); // Hit nothing, do nothing. 
+                    // Hit "blank space". Start panning the UI. 
+                    this.deselect();
+                    this.ui_state.mode = UiModes.Pan;
+                    this.ui_state.start_mouse_pos = this.ui_state.mouse_pos;
+                    return;
                 }
                 // Select the clicked-on entity
 
@@ -1089,8 +1091,11 @@ class SchEditor {
         switch (this.ui_state.mode) {
             case UiModes.DrawWire: return this.addWireVertex();
             case UiModes.AddInstance: return this.commitInstance();
-            case UiModes.MoveInstance: return this.goUiIdle();
-            default: return;
+            // All other cases: go back to idle mode.
+            case UiModes.Pan:
+            case UiModes.MoveInstance:
+            default:
+                return this.goUiIdle();
         }
     }
     // // Handle mouse click events.
@@ -1110,10 +1115,20 @@ class SchEditor {
     // Handle mouse movement events.
     handleMouseMove = e => {
         // Update our tracking of the mouse position.
-        this.ui_state.mouse_pos = new Point(e.clientX, e.clientY);
+        const oldMouse = this.ui_state.mouse_pos.copy();
+        this.ui_state.mouse_pos = theCanvas.screenToCanvas(new Point(e.clientX, e.clientY));
 
         // And react to the current UI mode.
         switch (this.ui_state.mode) {
+            case UiModes.Pan: {
+                // FIXME: not quite ready for prime time.
+                // // Make a panning translation. 
+                // // Note these units are expressed in screen pixels, not SVG/ schematic units.
+                // const old = theCanvas.canvasToScreen(oldMouse);
+                // const new_ = theCanvas.canvasToScreen(this.ui_state.mouse_pos);
+                // theCanvas.zui.translateSurface(new_.x - old.x, new_.y - old.y);
+                return;
+            }
             case UiModes.DrawWire: this.updateDrawWire(); break;
             case UiModes.AddInstance: this.updateAddInstance(); break;
             case UiModes.MoveInstance: this.updateMoveInstance(); break;
