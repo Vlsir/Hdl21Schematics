@@ -122,7 +122,7 @@
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
   <text x="10" y="0"  class="hdl21-instance-name">n0</text>
-  <text x="10" y="80" class="hdl21-instance-of">Nmos(w=1)</text>
+  <text x="10" y="80" class="hdl21-instance-of">nmos(args)</text>
 </g>
 
 
@@ -142,7 +142,7 @@
   </g>
   <text x="20" y="-25"  class="hdl21-port-name">out</text>
 </g>
-<g class="hdl21-port" transform="matrix(1 0 0 1 400 50)">
+<g class="hdl21-port" transform="matrix(1 0 0 1 340 60)">
   <g class="hdl21::primitives::inout">
     <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 10 0" class="hdl21-symbols" />
@@ -160,10 +160,6 @@
 </g>
 
 
-<g class="hdl21-wire">
-  <path class="hdl21-wire" d="M 400 50 L 300 50 L 300 100 L 300 100" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
-</g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 300 100 L 320 100 L 320 150 L 320 150" />
   <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
@@ -190,6 +186,10 @@
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 300 400 L 320 400 L 320 350 L 320 350" />
+  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 340 60 L 300 60 L 300 100 L 300 100" />
   <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
 </g>
 

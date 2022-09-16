@@ -21,7 +21,7 @@ export enum Rotation {
 }
 
 // Get the next `Rotation` in the sequence
-function nextRotation(rotation: Rotation) {
+export function nextRotation(rotation: Rotation) {
   switch (rotation) {
     case Rotation.R0:
       return Rotation.R90;
