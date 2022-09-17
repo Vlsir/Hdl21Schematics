@@ -2,6 +2,7 @@ import Two from "two.js";
 
 // Local Imports 
 import { Point } from "./point";
+import { Direction } from "./direction";
 import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";
 import * as schdata from "./schematic";
@@ -308,12 +309,6 @@ export class SchPort {
         }
     }
 }
-
-// # Horizontal / Vertical Direction Enum 
-const Direction = Object.freeze({
-    Horiz: Symbol("Horiz"),
-    Vert: Symbol("Vert"),
-});
 
 // # Manhattan Wire Segment
 // Runs either horizontally or vertically in direction `dir`,

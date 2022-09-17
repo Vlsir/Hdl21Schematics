@@ -68,12 +68,12 @@ class Canvas {
     const canvas = this.zui.clientToSurface(screen.x, screen.y);
     return new Point(canvas.x, canvas.y);
   }
-  // Translate canvas coordinates into the user/ screen space. 
+  // Translate canvas coordinates into the user/ screen space.
   canvasToScreen(canvas: Point): Point {
     const screen = this.zui.surfaceToClient(new Vector(canvas.x, canvas.y));
     return new Point(screen.x, screen.y);
   }
 }
 
+// Create "THE" one and only canvas object.
 export const theCanvas = new Canvas();
-theCanvas.clear();

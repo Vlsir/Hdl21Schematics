@@ -8,6 +8,16 @@
  * * Create the main editor window in the first place 
  */
 
+// FIXME: share these!
+// Seems it will indeed require breaking out the platform/ message stuff into a package. 
+// import { MessageKind } from "EditorCore";
+const MessageKind = Object.freeze({
+  RendererUp: "renderer-up",
+  SaveFile: "save-file",
+  LoadFile: "load-file",
+  LogInMain: "log-in-main",
+  Change: "change",
+});
 
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs');
@@ -36,15 +46,6 @@ const createWindow = () => {
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
     },
-  });
-
-  // FIXME: share these!
-  const MessageKind = Object.freeze({
-    RendererUp: "renderer-up",
-    SaveFile: "save-file",
-    LoadFile: "load-file",
-    LogInMain: "log-in-main",
-    Change: "change",
   });
 
   // Send a message to the renderer, on our named channel.
