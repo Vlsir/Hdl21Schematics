@@ -86,6 +86,7 @@
   },
   "dependencies": {
     "EditorCore": "^1.0.0",
+    "PlatformInterface": "^1.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "file-loader": "^6.2.0"
   }

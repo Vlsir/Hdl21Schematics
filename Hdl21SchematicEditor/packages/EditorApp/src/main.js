@@ -8,22 +8,13 @@
  * * Create the main editor window in the first place 
  */
 
-// FIXME: share these!
-// Seems it will indeed require breaking out the platform/ message stuff into a package. 
-// import { MessageKind } from "EditorCore";
-const MessageKind = Object.freeze({
-  RendererUp: "renderer-up",
-  SaveFile: "save-file",
-  LoadFile: "load-file",
-  LogInMain: "log-in-main",
-  Change: "change",
-});
-
-const { app, BrowserWindow, ipcMain } = require('electron');
-const fs = require('fs');
-
+// Workspace Imports
+import { Platform, Message, MessageKind } from "PlatformInterface";
 // Local Imports
-const { Channels } = require('./channels');
+import { Channels } from './channels';
+
+import { app, BrowserWindow, ipcMain } from 'electron';
+import * as fs from 'fs';
 
 
 // Schematic content from THE_ONLY_FILENAME_FOR_NOW

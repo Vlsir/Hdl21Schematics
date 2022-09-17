@@ -6,10 +6,11 @@
   "main": "src/index",
   "license": "MIT",
   "dependencies": {
+    "PlatformInterface": "^1.0.0",
     "svg-parser": "^2.0.4",
     "two.js": "^0.8.10"
   },
-  "devDependencies": { 
+  "devDependencies": {
     "typescript": "^4.8.2"
   }
 }

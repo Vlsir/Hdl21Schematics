@@ -11,18 +11,18 @@
         "outDir": "out",
         "sourceMap": true,
         "strict": true,
-        "rootDir": "src",
+        // "rootDir": "../../",
         "composite": true,
     },
-    "exclude": [
-        "node_modules",
-        ".vscode-test",
-        "out",
-        "scratch"
+    "include": [
+        "src"
     ],
     "references": [
         {
             "path": "../EditorCore"
+        },
+        {
+            "path": "../PlatformInterface"
         }
     ]
 }

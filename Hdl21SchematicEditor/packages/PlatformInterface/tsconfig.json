@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
-    "allowJs": true,
+    "allowJs": false,
     "checkJs": false,
     "module": "commonjs",
     "target": "es2020",
     "lib": [
-      "es2020",
-      "dom"
+      "es2020"
     ],
     "outDir": "out",
     "sourceMap": true,
@@ -17,12 +16,4 @@
   "include": [
     "src"
   ],
-  // "references": [
-  //   {
-  //     "path": "../EditorCore"
-  //   },
-  //   {
-  //     "path": "../PlatformInterface"
-  //   }
-  // ]
 }

@@ -48,11 +48,12 @@
     "watch": "tsc -w -p ./"
   },
   "dependencies": {
-    "EditorCore": "^1.0.0"
+    "EditorCore": "^1.0.0",
+    "PlatformInterface": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^16.11.7",
     "@types/vscode": "^1.65.0",
+    "@types/node": "^16.11.7",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
     "@typescript-eslint/parser": "^5.30.0",
     "eslint": "^8.13.0",

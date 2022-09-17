@@ -1,0 +1,12 @@
+{
+  "name": "PlatformInterface",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Hdl21 Schematics Editor - Platform Interface",
+  "main": "src/index",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^4.8.2"
+  }
+}

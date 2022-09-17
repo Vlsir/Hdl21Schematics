@@ -6,8 +6,10 @@
 
 import { Line } from "two.js/src/shapes/line";
 
+// Workspace Imports
+import { Platform, Message, MessageKind } from "PlatformInterface";
+
 // Local Imports
-import { Platform, Message, MessageKind } from "./platform";
 import { Point } from "./point";
 import { Direction } from "./direction";
 import {
