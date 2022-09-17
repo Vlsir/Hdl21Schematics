@@ -129,6 +129,13 @@ export class OrientationMatrix {
   };
 }
 
+export class Wire {
+  points: Array<Point>;
+  constructor(points: Array<Point>) {
+    this.points = points;
+  }
+}
+
 export class Port {
   name: string;
   kind: PortKind;
@@ -144,12 +151,6 @@ export class Port {
     this.kind = kind; // PortKind
     this.loc = loc; // Point
     this.orientation = orientation; // Orientation
-  }
-}
-export class Wire {
-  points: Array<Point>;
-  constructor(points: Array<Point>) {
-    this.points = points;
   }
 }
 

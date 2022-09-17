@@ -8,15 +8,16 @@ import Two from "two.js";
 
 // Local Imports 
 import { Point } from "./point";
-import { PrimitiveMap, PrimitiveKind } from "./primitive";
+import { PrimitiveMap, PrimitiveKind, PrimitiveKeyboardShortcuts } from "./primitive";
 import { Importer } from "./importer";
 import { Exporter } from "./exporter";
 import { nextRotation } from "./schematic";
 import { EntityKind } from "./entity";
-import { Entity, Schematic, Instance, Wire } from "./drawing";
+import { Entity, Schematic, Instance, Wire, SchPort } from "./drawing";
 import { gridLineStyle } from "./style";
 import { UiState, UiModes } from "./uistate";
 import { theCanvas } from "./canvas";
+import { PortKind, PortMap, PortKeyboardShortcuts } from "./portsymbol";
 
 // Given a `Point`, return the nearest grid point.
 const nearestOnGrid = loc /* Point */ => /* Point */ {
@@ -47,14 +48,15 @@ const nearestManhattan = (loc, relativeTo) => {
 // (That we care about)
 const Keys = Object.freeze({
     i: "i", // Instance
+    p: "p", // Port
     w: "w", // Wire
     r: "r", // Rotate 
     h: "h", // Horizontal flip
     v: "v", // Vertical flip
     Comma: ",", // Save(?)
     Escape: "Escape", // Cancel
-    Backspace: "Backspace", // Delete
-    Delete: "Delete", // Delete
+    Backspace: "Backspace", // Remove
+    Delete: "Delete", // Remove
     Enter: "Enter", // Finish
     Space: " ", // Filter this out of names
 });
@@ -86,7 +88,7 @@ class SchEditor {
 
         // Perform all of our one-time startup activity, binding events, etc.
 
-        // window.addEventListener('resize', e => console.log(e));
+        // window.addEventListener('resize', FIXME!);
         window.addEventListener("wheel", this.handleWheel);
         window.addEventListener("keydown", this.handleKey);
         window.addEventListener('mousedown', this.handleMouseDown, true);
@@ -180,11 +182,19 @@ class SchEditor {
         // Always go back to idle mode on escape.
         if (e.key === Keys.Escape) {
             this.deselect();
+            this.abortPending();
             return this.goUiIdle();
         }
         // In the update Text Labels state, forward all other keystrokes to its handler. 
         if (this.uiState.mode === UiModes.EditLabel) {
             return this.updateEditLabel(e);
+        }
+        // In the pending-addition states, potentially change the kind of entity added
+        if (this.uiState.mode === UiModes.AddInstance) {
+            return this.changeInstanceKind(e);
+        }
+        if (this.uiState.mode === UiModes.AddPort) {
+            return this.changePortKind(e);
         }
         // All other UI states: check for "command" keystrokes.
         switch (e.key) {
@@ -195,6 +205,7 @@ class SchEditor {
             }
             // FIXME: if already in these states, we start a new entity without *really* finishing the pending one!
             case Keys.i: return this.startAddInstance();
+            case Keys.p: return this.startAddPort();
             case Keys.w: return this.startDrawWire();
             // Rotation & refelection
             case Keys.r: return this.rotateSelected();
@@ -224,6 +235,8 @@ class SchEditor {
             case EntityKind.Label:
             case EntityKind.InstancePort:
                 return;
+            default:
+                return self.failer(`deleteSelectedEntity: unknown entity kind: ${entity.kind}`);
         }
     }
     // Hit test all schematic entities. 
@@ -284,6 +297,12 @@ class SchEditor {
         }
         this.uiState.selected_entity = null;
     }
+    abortPending() {
+        if (this.uiState.pending_entity) {
+            this.uiState.pending_entity.abort();
+        }
+        this.uiState.pending_entity = null;
+    }
     handleMouseDown = e => {
         // Hit test, finding which element was clicked on.
         const whatd_we_hit = this.whatdWeHit(this.uiState.mouse_pos);
@@ -337,21 +356,22 @@ class SchEditor {
         }
     }
     handleMouseUp = e => {
-        // Hit test, finding which element was clicked on.
-        const whatd_we_hit = this.whatdWeHit(this.uiState.mouse_pos);
+        // // Hit test, finding which element was clicked on.
+        // const whatd_we_hit = this.whatdWeHit(this.uiState.mouse_pos);
 
         // And react to the current UI mode.
         switch (this.uiState.mode) {
             case UiModes.DrawWire: return this.addWireVertex();
             case UiModes.AddInstance: return this.commitInstance();
+            case UiModes.AddPort: return this.commitPort();
             case UiModes.MoveInstance:// Done moving, go back to idle mode.
                 return this.goUiIdle();
+            // Nothing to do in these modes.
             case UiModes.EditLabel:
-                return console.log("DAMMIT!!!!");
             case UiModes.Pan:
-                return console.log("HOW WE GET HERE");
+                return;
             default:
-                return console.log("WE REALLY NEED THAT EXHAUSTIVE ENUM!!!");
+                return this.failer(`handleMouseUp: unknown UI mode: ${this.uiState.mode}`);
         }
     }
     // // Handle mouse click events.
@@ -385,10 +405,15 @@ class SchEditor {
                 // theCanvas.zui.translateSurface(new_.x - old.x, new_.y - old.y);
                 return;
             }
-            case UiModes.DrawWire: this.updateDrawWire(); break;
-            case UiModes.AddInstance: this.updateAddInstance(); break;
-            case UiModes.MoveInstance: this.updateMoveInstance(); break;
-            default: break;
+            case UiModes.DrawWire: return this.updateDrawWire();
+            case UiModes.AddInstance: return this.updateAddInstance();
+            case UiModes.AddPort: return this.updateAddPort();
+            case UiModes.MoveInstance: return this.updateMoveInstance();
+            // Nothing to do in these modes.
+            case UiModes.Idle:
+                return;
+            default:
+                return this.failer(`handleMouseMove: unknown UI mode: ${this.uiState.mode}`);
         }
     }
     // Enter the `DrawWire` mode, and create the tentative Wire. 
@@ -438,7 +463,7 @@ class SchEditor {
 
         // Update the wire and redraw it.
         wire.points = points;
-        wire.draw();;
+        wire.draw();
     }
     // Commit the currently-drawn wire to the schematic.
     // Removes it from `selected_entity` and adds it to the schematic.
@@ -463,7 +488,7 @@ class SchEditor {
         // Use the last one added as a template.
         const { lastInstanceData } = this.uiState;
         const { kind } = lastInstanceData;
-        const prim = PrimitiveMap.get(kind) || PrimitiveKind.Nmos;
+        const prim = PrimitiveMap.get(kind) || PrimitiveMap.get(PrimitiveKind.Nmos);
 
         // FIXME: switch these based on `kind`
         const name = `${prim.defaultNamePrefix}${this.schematic.num_instances}`;
@@ -486,13 +511,25 @@ class SchEditor {
 
         // Update our UI state.
         this.uiState.mode = UiModes.AddInstance;
-        this.select(new Entity({ kind: EntityKind.Instance, obj: instance }));
+        const entity = new Entity({ kind: EntityKind.Instance, obj: instance });
+        this.select(entity);
+        this.uiState.pending_entity = entity;
 
         // And draw the instance.
         instance.draw();
     }
-    changeInstanceKind = () => {
-        console.log("FIXME! changeInstanceKind");
+    changeInstanceKind = (e) => {
+        const prim = PrimitiveKeyboardShortcuts.get(e.key);
+        if (!prim) { return; }
+
+        // We hit a primitive shortcut key and have a valid new type
+        const instance = this.selected_object();
+        instance.data.kind = prim.kind;
+
+        instance.data.name = prim.defaultNamePrefix;
+        instance.data.of = prim.defaultOf;
+        this.uiState.lastInstanceData = instance.data;
+        instance.draw();
     }
     // Update the rendering of an in-progress instance.
     updateAddInstance = () => {
@@ -519,6 +556,82 @@ class SchEditor {
     commitInstance = () => {
         const instance = this.selected_object();
         this.schematic.addInstance(instance);
+        this.uiState.pending_entity = null;
+        this.deselect();
+        this.goUiIdle();
+
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
+    }
+    // Create a new Port
+    createPort = () => {
+        // Create the provisional `Port`.
+        // Use the last one added as a template.
+        const { lastPortData } = this.uiState;
+        const { kind } = lastPortData;
+        const portsym = PortMap.get(kind) || PortMap.get(PortKind.Input);
+
+        const newPortData = {
+            name: portsym.defaultName,
+            kind: kind,
+            loc: this.uiState.mouse_pos,
+            orientation: lastPortData.orientation.copy(),
+        };
+        this.uiState.lastPortData = newPortData;
+        const newPort = new SchPort(newPortData);
+        return newPort;
+    }
+    // Start adding a new Port
+    startAddPort = () => {
+        // Create the provisional `Port`. Note it is *not* added to the schematic yet.
+        const port = this.createPort();
+
+        // Update our UI state.
+        this.uiState.mode = UiModes.AddPort;
+        const entity = new Entity({ kind: EntityKind.SchPort, obj: port });
+        this.select(entity);
+        this.uiState.pending_entity = entity;
+
+        // And draw the port.
+        port.draw();
+    }
+    changePortKind = (e) => {
+        const portsym = PortKeyboardShortcuts.get(e.key);
+        if (!portsym) { return; }
+
+        // We hit a portsymitive shortcut key and have a valid new type
+        const port = this.selected_object();
+        port.data.kind = portsym.kind;
+        port.data.name = portsym.defaultName;
+        this.uiState.lastPortData = port.data;
+        port.draw();
+    }
+    // Update the rendering of an in-progress port.
+    updateAddPort = () => {
+        const port = this.selected_object();
+        // Snap to our grid
+        const snapped = nearestOnGrid(this.uiState.mouse_pos);
+        // Set the location of both the port and its drawing 
+        port.data.loc = snapped;
+        port.draw();
+    }
+    // Update the rendering of an in-progress port move.
+    updateMovePort = () => {
+        const port = this.selected_object();
+        // Snap to our grid
+        const snapped = nearestOnGrid(this.uiState.mouse_pos);
+        // Set the location of both the port and its drawing 
+        port.data.loc = snapped;
+        port.draw();
+
+        // Notify the platform that the schematic has changed.
+        this.sendChangeMessage();
+    }
+    // Add the currently-pending port to the schematic.
+    commitPort = () => {
+        const port = this.selected_object();
+        this.schematic.addPort(port);
+        this.uiState.pending_entity = null;
         this.deselect();
         this.goUiIdle();
 

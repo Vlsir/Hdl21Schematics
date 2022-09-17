@@ -31,18 +31,25 @@ export interface PortSymbol {
   svgTag: string; // SVG tag
   svgLines: Array<string>; // SVG symbol text
   nameloc: Point; // Location of name label
+  keyboardShortcut: string; // Keyboard key for insertion in the editor
+  defaultName: string; // Initial, default name when created
 }
 
 // Map from enumerated keys to `PortSymbol` objects.
 export const PortMap: Map<PortKind, PortSymbol> = new Map();
+
 // Map from SVG class tags to `PortSymbol` objects.
 export const PortTags: Map<string, PortSymbol> = new Map();
+
+// Map from (keyboard) key to `PortSymbol` objects.
+export const PortKeyboardShortcuts: Map<string, PortSymbol> = new Map();
 
 // Add `PortSymbol`s to the module-scope mappings.
 function add(portsyms: Array<PortSymbol>) {
   for (let portsym of portsyms) {
     PortMap.set(portsym.kind, portsym);
     PortTags.set(portsym.svgTag, portsym);
+    PortKeyboardShortcuts.set(portsym.keyboardShortcut, portsym);
   }
 }
 
@@ -56,6 +63,8 @@ add([
       `<path d="M -20 0 L 0 0" class="hdl21-symbols" />`,
     ],
     nameloc: new Point(-50, -25),
+    keyboardShortcut: "i",
+    defaultName: "inp",
   },
   {
     kind: PortKind.Output,
@@ -65,6 +74,8 @@ add([
       `<path d="M 0 0 L 20 0" class="hdl21-symbols" />`,
     ],
     nameloc: new Point(20, -25),
+    keyboardShortcut: "o",
+    defaultName: "out",
   },
   {
     kind: PortKind.Inout,
@@ -74,5 +85,7 @@ add([
       `<path d="M 0 0 L 10 0" class="hdl21-symbols" />`,
     ],
     nameloc: new Point(15, -25),
+    keyboardShortcut: "z",
+    defaultName: "io",
   },
 ]);

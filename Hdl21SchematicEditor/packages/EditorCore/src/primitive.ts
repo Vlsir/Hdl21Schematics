@@ -52,18 +52,24 @@ export interface Primitive {
   ofloc: Point;
   defaultNamePrefix: string;
   defaultOf: string;
+  keyboardShortcut: string; // Keyboard key for insertion in the editor
 }
 
 // Map from enumerated keys to `Primitive` objects.
 export const PrimitiveMap: Map<PrimitiveKind, Primitive> = new Map();
+
 // Map from SVG class tags to `Primitive` objects.
 export const PrimitiveTags: Map<string, Primitive> = new Map();
+
+// Map from (keyboard) key to `Primitive` objects.
+export const PrimitiveKeyboardShortcuts: Map<string, Primitive> = new Map();
 
 // Add `Primitive`s to the module-scope mappings.
 function add(prims: Array<Primitive>) {
   for (let prim of prims) {
     PrimitiveMap.set(prim.kind, prim);
     PrimitiveTags.set(prim.svgTag, prim);
+    PrimitiveKeyboardShortcuts.set(prim.keyboardShortcut, prim);
   }
 }
 
@@ -94,6 +100,7 @@ add([
     ofloc: new Point(10, 80),
     defaultNamePrefix: "n",
     defaultOf: "nmos()",
+    keyboardShortcut: "n",
   },
   {
     kind: PrimitiveKind.Pmos,
@@ -122,6 +129,7 @@ add([
     ofloc: new Point(10, 80),
     defaultNamePrefix: "p",
     defaultOf: "pmos()",
+    keyboardShortcut: "p",
   },
   {
     kind: PrimitiveKind.Res,
@@ -138,6 +146,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "r",
     defaultOf: "r()",
+    keyboardShortcut: "r",
   },
   {
     kind: PrimitiveKind.Res3,
@@ -157,6 +166,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "res3",
     defaultOf: "res3()",
+    keyboardShortcut: "R",
   },
   {
     kind: PrimitiveKind.Cap,
@@ -175,6 +185,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "c",
     defaultOf: "c()",
+    keyboardShortcut: "c",
   },
   {
     kind: PrimitiveKind.Cap3,
@@ -197,6 +208,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "cap3",
     defaultOf: "cap3()",
+    keyboardShortcut: "C",
   },
   {
     kind: PrimitiveKind.Ind,
@@ -215,6 +227,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "l",
     defaultOf: "l()",
+    keyboardShortcut: "l",
   },
   {
     kind: PrimitiveKind.Ind3,
@@ -234,6 +247,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "ind3",
     defaultOf: "ind3()",
+    keyboardShortcut: "L",
   },
 
   {
@@ -255,6 +269,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "v",
     defaultOf: "v()",
+    keyboardShortcut: "v",
   },
   {
     kind: PrimitiveKind.Vsource4,
@@ -281,6 +296,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "v4",
     defaultOf: "v4()",
+    keyboardShortcut: "V",
   },
   {
     kind: PrimitiveKind.Isource,
@@ -300,6 +316,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "i",
     defaultOf: "i()",
+    keyboardShortcut: "i",
   },
   {
     kind: PrimitiveKind.Isource4,
@@ -325,6 +342,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "i4",
     defaultOf: "i4()",
+    keyboardShortcut: "I",
   },
   {
     kind: PrimitiveKind.Diode,
@@ -346,6 +364,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "d",
     defaultOf: "d()",
+    keyboardShortcut: "d",
   },
   {
     kind: PrimitiveKind.Npn,
@@ -369,6 +388,7 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "npn",
     defaultOf: "npn()",
+    keyboardShortcut: "q",
   },
   {
     kind: PrimitiveKind.Pnp,
@@ -392,5 +412,6 @@ add([
     ofloc: new Point(10, 90),
     defaultNamePrefix: "pnp",
     defaultOf: "pnp()",
+    keyboardShortcut: "Q",
   },
 ]);

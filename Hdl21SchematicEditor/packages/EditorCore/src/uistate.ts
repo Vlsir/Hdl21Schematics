@@ -1,7 +1,12 @@
-import { Orientation, Instance as InstanceData } from "./schematic";
+import {
+  Orientation,
+  Instance as InstanceData,
+  Port as PortData,
+} from "./schematic";
 import { Point } from "./point";
 import { PrimitiveKind } from "./primitive";
 import { theCanvas } from "./canvas";
+import { PortKind } from "./portsymbol";
 
 // Enumerate Update Types
 // Stored in the playback queue, e.g. for undo/redo.
@@ -19,6 +24,7 @@ export enum UpdateTypes {
 export enum UiModes {
   Idle = "Idle",
   AddInstance = "AddInstance",
+  AddPort = "AddPort",
   MoveInstance = "MoveInstance",
   EditLabel = "EditLabel",
   DrawWire = "DrawWire",
@@ -44,9 +50,19 @@ export class UiState {
     loc: new Point(0, 0),
     orientation: Orientation.default(),
   };
+  // The last port added
+  lastPortData: PortData = {
+    name: "",
+    kind: PortKind.Input,
+    loc: new Point(0, 0),
+    orientation: Orientation.default(),
+  };
 
   // The currently selected entity (instance, wire, port, etc.)
   selected_entity: any = null; // FIXME: type
+  // The currently pending entity, if there is one
+  pending_entity: any = null; // FIXME: type
+
   // Track the mouse position at all times.
   // Initializes to the center of the canvas.
   mouse_pos: Point = new Point(
