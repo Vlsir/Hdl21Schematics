@@ -3,7 +3,7 @@ import {
   Instance as InstanceData,
   Port as PortData,
 } from "./schematic";
-import { Point } from "./point";
+import { Point, point } from "./point";
 import { PrimitiveKind } from "./primitive";
 import { theCanvas } from "./canvas";
 import { PortKind } from "./portsymbol";
@@ -37,14 +37,14 @@ export class UiState {
     name: "",
     of: "",
     kind: PrimitiveKind.Nmos,
-    loc: new Point(0, 0),
+    loc: point(0, 0),
     orientation: Orientation.default(),
   };
   // The last port added
   lastPortData: PortData = {
     name: "",
     kind: PortKind.Input,
-    loc: new Point(0, 0),
+    loc: point(0, 0),
     orientation: Orientation.default(),
   };
 
@@ -57,10 +57,7 @@ export class UiState {
 
   // Track the mouse position at all times.
   // Initializes to the center of the canvas.
-  mouse_pos: Point = new Point(
-    theCanvas.two.width / 2,
-    theCanvas.two.height / 2
-  );
+  mouse_pos: Point = point(theCanvas.two.width / 2, theCanvas.two.height / 2);
   // Initialize the "starting" mouse position for pans
-  start_mouse_pos: Point = this.mouse_pos.copy();
+  start_mouse_pos: Point = structuredClone(this.mouse_pos);
 }

@@ -1,7 +1,7 @@
 import Two from "two.js";
 
 // Local Imports 
-import { Point } from "./point";
+import { Point, point } from "./point";
 import { Direction } from "./direction";
 import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";
@@ -406,7 +406,7 @@ export class Wire {
 }
 export class Schematic {
     constructor(size) {
-        this.size = size || new Point(1600, 800);
+        this.size = size || point(1600, 800);
 
         // Internal data stores
         this.wires = new Map();      // Map<Number, Wire>
@@ -453,7 +453,7 @@ export class Schematic {
             schData.ports.push(port.data);
         }
         for (let [id, wire] of this.wires) {
-            schData.wires.push(new schdata.Wire(wire.points));
+            schData.wires.push({ points: wire.points });
         }
         for (let [id, dot] of this.dots) {
             schData.dots.push(dot.loc);

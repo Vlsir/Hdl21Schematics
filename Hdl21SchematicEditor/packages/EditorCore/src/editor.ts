@@ -12,7 +12,7 @@ import { Platform, Message, MessageKind } from "PlatformInterface";
 // Local Imports
 import { exhaust } from "./errors";
 import { Change, ChangeKind } from "./changes";
-import { Point } from "./point";
+import { Point, point } from "./point";
 import { Direction } from "./direction";
 import {
   PrimitiveMap,
@@ -32,7 +32,7 @@ import { PortKind, PortMap, PortKeyboardShortcuts } from "./portsymbol";
 // Given a `Point`, return the nearest grid point.
 function nearestOnGrid(loc: Point): Point {
   const grid_size = 10;
-  return new Point(
+  return point(
     Math.round(loc.x / grid_size) * grid_size,
     Math.round(loc.y / grid_size) * grid_size
   );
@@ -46,10 +46,10 @@ function nearestManhattan(loc: Point, relativeTo: Point): Point {
   var landing1;
   if (Math.abs(dx) > Math.abs(dy)) {
     // Horizontal segment
-    landing1 = new Point(loc.x, relativeTo.y);
+    landing1 = point(loc.x, relativeTo.y);
   } else {
     // Vertical segment
-    landing1 = new Point(relativeTo.x, loc.y);
+    landing1 = point(relativeTo.x, loc.y);
   }
   return nearestOnGrid(landing1);
 }
@@ -507,9 +507,9 @@ class SchEditor {
   // Handle mouse movement events.
   handleMouseMove = (e: MouseEvent) => {
     // Update our tracking of the mouse position.
-    // const oldMouse = this.uiState.mouse_pos.copy();
+    // const oldMouse = structuredClone(this.uiState.mouse_pos);
     this.uiState.mouse_pos = theCanvas.screenToCanvas(
-      new Point(e.clientX, e.clientY)
+      point(e.clientX, e.clientY)
     );
 
     // And react to the current UI mode.

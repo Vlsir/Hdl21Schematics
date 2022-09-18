@@ -7,9 +7,7 @@
 // Local Imports
 import { Point } from "./point";
 import { PortKind } from "./portsymbol";
-
-// FIXME! use an actual enum from `primitive`
-type PrimitiveKind = any;
+import { PrimitiveKind } from "./primitive";
 
 // Enumerated Rotations
 // in increments of 90 degrees
@@ -131,52 +129,25 @@ export class OrientationMatrix {
   };
 }
 
-export class Wire {
+export interface Wire {
   points: Array<Point>;
-  constructor(points: Array<Point>) {
-    this.points = points;
-  }
 }
 
-export class Port {
+export interface Port {
   name: string;
   kind: PortKind;
   loc: Point;
   orientation: Orientation;
-  constructor(
-    name: string,
-    kind: PortKind,
-    loc: Point,
-    orientation: Orientation
-  ) {
-    this.name = name; // string
-    this.kind = kind; // PortKind
-    this.loc = loc; // Point
-    this.orientation = orientation; // Orientation
-  }
 }
 
-export class Instance {
+export interface Instance {
   name: string;
   of: string;
   kind: PrimitiveKind;
   loc: Point;
   orientation: Orientation;
-  constructor(
-    name: string,
-    of: string,
-    kind: PrimitiveKind,
-    loc: Point,
-    orientation: Orientation
-  ) {
-    // Instance Data
-    this.name = name; // string
-    this.of = of; // string
-    this.kind = kind; // PrimitiveKind
-    this.loc = loc; // Point
-    this.orientation = orientation; // Orientation
-  }
 }
+
 export class Schematic {
   constructor(name: string, size: Point) {
     this.name = name;

@@ -7,8 +7,8 @@
 import { parse as svgparse } from 'svg-parser';
 
 // Local Imports
-import { Point } from "./point";
-import * as sch from "./schematic";
+import { point } from "./point";
+import { Schematic, Orientation, OrientationMatrix } from "./schematic";
 import { PrimitiveKind, PrimitiveTags } from "./primitive";
 import { PortTags } from "./portsymbol";
 
@@ -17,7 +17,7 @@ import { PortTags } from "./portsymbol";
 // 
 export class Importer {
     constructor() {
-        this.schematic = new sch.Schematic();
+        this.schematic = new Schematic();
         this.otherSvgElements = [];
     }
     // Import a schematic SVG string to a `Schematic`. 
@@ -34,7 +34,7 @@ export class Importer {
 
         const width = svg.properties.width || 1600;
         const height = svg.properties.height || 800;
-        this.schematic.size = new Point(width, height);
+        this.schematic.size = point(width, height);
 
         // Walk its SVG children, adding HDL elements. 
         for (const child of svg.children) {
@@ -73,12 +73,12 @@ export class Importer {
     importInstance = svgGroup => {
         const transform = svgGroup.properties.transform;
         if (!transform) {
-            throw new Error(`Instance ${svgGroup.properties.id} has no transform`);
+            throw this.fail(`Instance ${svgGroup.properties.id} has no transform`);
         }
         const [loc, orientation] = this.importTransform(transform);
 
         if (svgGroup.children.length !== 3) {
-            throw new Error(`Instance ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
+            throw this.fail(`Instance ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
         }
 
         // Get the three children: the symbol, instance name, and instance-of string.
@@ -88,32 +88,31 @@ export class Importer {
         const svgTag = symbolGroup.properties.class;
         const prim = PrimitiveTags.get(svgTag);
         if (!prim) {
-            console.log(svgTag);
-            throw new Error(`Unknown symbol type: ${svgTag}`);
+            throw this.fail(`Unknown symbol type: ${svgTag}`);
         }
         const { kind } = prim;
 
         // Get the instance name.
         if (nameElem.tagName !== "text") {
-            throw new Error(`Instance ${svgGroup.properties.id} has no name`);
+            throw this.fail(`Instance ${svgGroup.properties.id} has no name`);
         }
         const name = nameElem.children[0].value;
 
         // Get the instance-of string.
         if (ofElem.tagName !== "text") {
-            throw new Error(`Instance ${svgGroup.properties.id} has no name`);
+            throw this.fail(`Instance ${svgGroup.properties.id} has no name`);
         }
         const of = ofElem.children[0].value;
 
         // FIXME: a temporary "schema migration" happening here! 
         // Convert Instances of the Port-types to `Port` objects instead. 
         if (kind === PrimitiveKind.Input || kind === PrimitiveKind.Output || kind === PrimitiveKind.Inout) {
-            const port = new sch.Port(name, kind, loc, orientation);
+            const port = { name, kind, loc, orientation };
             this.schematic.ports.push(port);
         } else {
             // Create and add the instance 
             // const instance = new sch.Instance({ name: name, of: of, kind: kind, loc: loc, orientation: orientation });
-            const instance = new sch.Instance(name, of, kind, loc, orientation);
+            const instance = { name, of, kind, loc, orientation };
             this.schematic.instances.push(instance);
         }
     };
@@ -122,12 +121,12 @@ export class Importer {
 
         const transform = svgGroup.properties.transform;
         if (!transform) {
-            throw new Error(`Instance ${svgGroup.properties.id} has no transform`);
+            throw this.fail(`Instance ${svgGroup.properties.id} has no transform`);
         }
         const [loc, orientation] = this.importTransform(transform);
 
         if (svgGroup.children.length !== 2) {
-            throw new Error(`Port group ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
+            throw this.fail(`Port group ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
         }
 
         // Get the two children: the symbol and port name
@@ -137,19 +136,18 @@ export class Importer {
         const svgTag = symbolGroup.properties.class;
         const portsymbol = PortTags.get(svgTag);
         if (!portsymbol) {
-            console.log(svgTag);
-            throw new Error(`Unknown symbol type: ${svgTag}`);
+            throw this.fail(`Unknown symbol type: ${svgTag}`);
         }
         const { kind } = portsymbol;
 
         // Get the port name.
         if (nameElem.tagName !== "text") {
-            throw new Error(`Port ${svgGroup.properties.id} has no name`);
+            throw this.fail(`Port ${svgGroup.properties.id} has no name`);
         }
         const name = nameElem.children[0].value;
 
         // Create the Port and add it to the schematic.
-        const port = new sch.Port(name, kind, loc, orientation);
+        const port = { name, kind, loc, orientation };
         this.schematic.ports.push(port);
     };
     // Import an SVG `transform` to a location `Point` and an `Orientation`. 
@@ -157,29 +155,29 @@ export class Importer {
         // Start splitting up the `transform` string.
         const splitParens = transform.split(/\(|\)/);
         if (splitParens.length !== 3 || splitParens[0] !== 'matrix') {
-            throw new Error(`Invalid transform: ${transform}`);
+            throw this.fail(`Invalid transform: ${transform}`);
         }
 
         // Split the numeric section, hopefully into six values 
         const numbers = splitParens[1].split(/\,|\s/).map(s => parseInt(s));
         if (numbers.length !== 6) {
-            throw new Error(`Invalid transform: ${transform}`);
+            throw this.fail(`Invalid transform: ${transform}`);
         }
 
         // Get the (x, y) position 
         const x = numbers[4];
         const y = numbers[5];
-        const loc = new Point(x, y);
+        const loc = point(x, y);
 
         // And sort out orientation from the first four numbers
         const m = numbers.slice(0, 4);
-        const matrix = new sch.OrientationMatrix(m[0], m[1], m[2], m[3]);
-        return [loc, sch.Orientation.fromMatrix(matrix)];
+        const matrix = new OrientationMatrix(m[0], m[1], m[2], m[3]);
+        return [loc, Orientation.fromMatrix(matrix)];
     };
     // Import a wire group
     importWire = svgGroup => {
         if (svgGroup.children.length !== 2) {
-            throw new Error(`Wire ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
+            throw this.fail(`Wire ${svgGroup.properties.id} has ${svgGroup.children.length} children`);
         }
 
         // Get the two children: the path and the wire name
@@ -189,31 +187,32 @@ export class Importer {
         const pathData = pathElem.properties.d;
         const pathSplit = pathData.split(/\s/);
         if (pathSplit[0] !== "M") {
-            throw new Error(`Wire ${svgGroup.properties.id} has invalid path data`);
+            throw this.fail(`Wire ${svgGroup.properties.id} has invalid path data`);
         }
         let points = [];
         for (let i = 1; i < pathSplit.length; i += 3) {
             const x = parseInt(pathSplit[i]);
             const y = parseInt(pathSplit[i + 1]);
-            points.push(new Point(x, y));
+            points.push(point(x, y));
         }
 
         // Get the wire name.
         if (nameElem.tagName !== "text") {
-            throw new Error(`Instance ${svgGroup.properties.id} has no name`);
+            throw this.fail(`Instance ${svgGroup.properties.id} has no name`);
         }
         const name = nameElem.children[0].value;
         // FIXME: actually store it! 
 
         // Create and add the wire
-        const wire = new sch.Wire(points);
+        const wire = { points };
         this.schematic.wires.push(wire);
     };
     // Add an element to the "other", non-schematic elements list.
     addOtherSvgElement = svgElement => {
-        console.log(`other elem:`);
-        console.log(svgElement);
         this.otherSvgElements.push(svgElement);
     };
+    fail = msg => {
+        return new Error(msg);
+    }
 }
 

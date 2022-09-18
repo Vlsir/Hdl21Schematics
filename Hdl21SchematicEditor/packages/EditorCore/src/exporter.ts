@@ -4,7 +4,7 @@
 
 // Local Imports
 import * as sch from "./schematic";
-import { Point } from "./point";
+import { Point, point } from "./point";
 import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";
 
@@ -137,7 +137,7 @@ export class Exporter {
       this.writeLine(line);
     }
     // Write its Instance-port circle at its origin.
-    this.writeInstancePort(new Point(0, 0));
+    this.writeInstancePort(point(0, 0));
     this.indent -= 1;
     this.writeLine(`</g>`);
 

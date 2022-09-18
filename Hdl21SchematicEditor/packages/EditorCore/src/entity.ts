@@ -1,4 +1,4 @@
-import { Point } from "./point";
+import { Point, point } from "./point";
 
 // Enumerated Kinds of Schematic Entities
 export enum EntityKind {

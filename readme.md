@@ -287,10 +287,10 @@ Primitive({
     </g>
     `,
     ports: [
-        new Port({ name: "d", loc: new Point(0, 0) }),
-        new Port({ name: "g", loc: new Point(70, 40) }),
-        new Port({ name: "s", loc: new Point(0, 80) }),
-        new Port({ name: "b", loc: new Point(-20, 40) }),
+        new Port({ name: "d", loc: point(0, 0) }),
+        new Port({ name: "g", loc: point(70, 40) }),
+        new Port({ name: "s", loc: point(0, 80) }),
+        new Port({ name: "b", loc: point(-20, 40) }),
     ],
 })
 ```

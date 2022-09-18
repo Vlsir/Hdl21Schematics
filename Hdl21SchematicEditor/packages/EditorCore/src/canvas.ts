@@ -4,7 +4,7 @@ import { ZUI } from "two.js/extras/jsm/zui";
 import { Vector } from "two.js/src/vector";
 
 // Local Imports
-import { Point } from "./point";
+import { Point, point } from "./point";
 
 class Canvas {
   // The Two.js "draw-er", canvas, whatever they call it.
@@ -66,12 +66,12 @@ class Canvas {
   // Translate user-screen coordinates into our (maybe zoomed, maybe moved) canvas coordinates.
   screenToCanvas(screen: Point): Point {
     const canvas = this.zui.clientToSurface(screen.x, screen.y);
-    return new Point(canvas.x, canvas.y);
+    return point(canvas.x, canvas.y);
   }
   // Translate canvas coordinates into the user/ screen space.
   canvasToScreen(canvas: Point): Point {
     const screen = this.zui.surfaceToClient(new Vector(canvas.x, canvas.y));
-    return new Point(screen.x, screen.y);
+    return point(screen.x, screen.y);
   }
 }
 

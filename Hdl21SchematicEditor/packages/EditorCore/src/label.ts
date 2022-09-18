@@ -3,7 +3,7 @@ import { Text } from "two.js/src/text";
 
 // Local Imports
 import { Entity, EntityKind } from "./entity";
-import { Point } from "./point";
+import { Point, point } from "./point";
 import { labelStyle } from "./style";
 
 export enum LabelKind {

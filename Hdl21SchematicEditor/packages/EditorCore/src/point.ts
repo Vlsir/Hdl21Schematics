@@ -1,13 +1,14 @@
 // # Point
 // Two-dimensional point in schematic-UI space.
-export class Point {
+export interface Point {
   x: number;
   y: number;
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
-  copy() {
-    return new Point(this.x, this.y);
-  }
+}
+
+// The `Point` "constructor".
+// It proves pretty helpful to make `Point` a TypeScript interface,
+// and a JavaScript plain-old-object, but also to have a constructor-like function.
+//
+export function point(x: number, y: number): Point {
+  return { x, y };
 }
