@@ -7,17 +7,7 @@ import { Point } from "./point";
 import { PrimitiveKind } from "./primitive";
 import { theCanvas } from "./canvas";
 import { PortKind } from "./portsymbol";
-
-// Enumerate Update Types
-// Stored in the playback queue, e.g. for undo/redo.
-export enum UpdateTypes {
-  AddInstance = "AddInstance",
-  MoveInstance = "MoveInstance",
-  RemoveInstance = "RemoveInstance",
-  RemoveGroup = "RemoveGroup",
-  AddWire = "AddWire",
-  RemoveWire = "RemoveWire",
-}
+import { Change, ChangeLog } from "./changes";
 
 /// # Enumerated UI Modes
 ///
@@ -39,7 +29,7 @@ export class UiState {
   // Global UI mode
   mode: UiModes = UiModes.Idle;
   // Change-log, for undo-redo
-  changes: Array<UpdateTypes> = [];
+  changeLog: ChangeLog = new ChangeLog();
 
   // The last instance added. Serves as the default when adding new ones.
   // This initial value is never drawn; it just serves as the initial default instance.
@@ -62,6 +52,8 @@ export class UiState {
   selected_entity: any = null; // FIXME: type
   // The currently pending entity, if there is one
   pending_entity: any = null; // FIXME: type
+  // The currently pending change, if there is one
+  pendingChange: Change | null = null;
 
   // Track the mouse position at all times.
   // Initializes to the center of the canvas.

@@ -46,7 +46,9 @@ export class Orientation {
     this.rotation = rotation;
   }
   // Create a copy of this orientation.
-  copy = () => new Orientation(this.reflected, this.rotation);
+  copy() {
+    return new Orientation(this.reflected, this.rotation);
+  }
   // The default orientation: no reflection, no rotation.
   static default() /* => Orientation */ {
     return new Orientation(false, Rotation.R0);

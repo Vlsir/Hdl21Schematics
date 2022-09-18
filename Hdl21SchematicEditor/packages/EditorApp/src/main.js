@@ -8,13 +8,14 @@
  * * Create the main editor window in the first place 
  */
 
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
+import * as fs from 'fs';
+
 // Workspace Imports
 import { Platform, Message, MessageKind } from "PlatformInterface";
 // Local Imports
 import { Channels } from './channels';
 
-import { app, BrowserWindow, ipcMain } from 'electron';
-import * as fs from 'fs';
 
 
 // Schematic content from THE_ONLY_FILENAME_FOR_NOW

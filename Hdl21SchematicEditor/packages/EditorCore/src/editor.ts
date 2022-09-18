@@ -10,6 +10,8 @@ import { Line } from "two.js/src/shapes/line";
 import { Platform, Message, MessageKind } from "PlatformInterface";
 
 // Local Imports
+import { exhaust } from "./errors";
+import { Change, ChangeKind } from "./changes";
 import { Point } from "./point";
 import { Direction } from "./direction";
 import {
@@ -54,20 +56,21 @@ function nearestManhattan(loc: Point, relativeTo: Point): Point {
 
 // # Keyboard Inputs
 // (That we care about)
-const Keys = Object.freeze({
-  i: "i", // Instance
-  p: "p", // Port
-  w: "w", // Wire
-  r: "r", // Rotate
-  h: "h", // Horizontal flip
-  v: "v", // Vertical flip
-  Comma: ",", // Save(?)
-  Escape: "Escape", // Cancel
-  Backspace: "Backspace", // Remove
-  Delete: "Delete", // Remove
-  Enter: "Enter", // Finish
-  Space: " ", // Filter this out of names
-});
+export enum Keys {
+  i = "i", // Instance
+  p = "p", // Port
+  w = "w", // Wire
+  r = "r", // Rotate
+  h = "h", // Horizontal flip
+  v = "v", // Vertical flip
+  z = "z", // Undo / redo
+  Comma = ",", // Save(?)
+  Escape = "Escape", // Cancel
+  Backspace = "Backspace", // Remove
+  Delete = "Delete", // Remove
+  Enter = "Enter", // Finish
+  Space = " ", // Filter this out of names
+}
 
 // # The Schematic Editor UI
 //
@@ -92,11 +95,9 @@ class SchEditor {
   failer: (msg: string) => void = console.log; // Function called on errors
 
   constructor(platform: Platform) {
-    // Initialize the editor state
     this.platform = platform;
 
     // Perform all of our one-time startup activity, binding events, etc.
-
     // window.addEventListener('resize', FIXME!);
     window.addEventListener("wheel", this.handleWheel);
     window.addEventListener("keydown", this.handleKey);
@@ -198,6 +199,17 @@ class SchEditor {
       this.abortPending();
       return this.goUiIdle();
     }
+    // FIXME: these OS-specific keys should probably come from the platform instead.
+    if (e.metaKey && e.shiftKey && e.key === Keys.z) {
+      return this.redo();
+    }
+    if (e.metaKey && e.key === Keys.z) {
+      return this.undo();
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey) {
+      // Skip everything else when a modifier key is pressed.
+      return;
+    }
     // In the update Text Labels state, forward all other keystrokes to its handler.
     if (this.uiState.mode === UiModes.EditLabel) {
       return this.updateEditLabel(e);
@@ -234,9 +246,55 @@ class SchEditor {
       case Keys.Comma:
         return this.sendSaveFile();
       default:
+        // Note this *is not* an exhaustive check, on purpose.
+        // There's lots of keys we don't care about!
+        // Some day the logging should go away too.
         console.log(`Key we dont use: '${e.key}'`);
     }
   };
+  // Log a `Change` to the change history and to the platform.
+  logChange(change: Change): void {
+    this.uiState.changeLog.add(change);
+    this.platform.sendMessage({ kind: MessageKind.Change });
+  }
+  // Apply a `Change`, generally as part of an undo or redo operation.
+  applyChange(change: Change): void {
+    switch (change.kind) {
+      case ChangeKind.Add:
+        this.schematic.addEntity(change.entity);
+        return change.entity.draw();
+
+      case ChangeKind.Remove:
+        return this.schematic.removeEntity(change.entity);
+
+      case ChangeKind.Move:
+        const { entity, to } = change;
+        entity.obj.data.loc = to.loc;
+        entity.obj.data.orientation = to.orientation;
+        return entity.draw();
+
+      case ChangeKind.EditText:
+        change.label.update(change.to);
+        return change.label.draw();
+
+      default:
+        throw exhaust(change); // Exhaustiveness check
+    }
+  }
+  // Undo the last change, if there is one.
+  undo(): void {
+    const inverseChange = this.uiState.changeLog.undo();
+    if (inverseChange) {
+      this.applyChange(inverseChange);
+    }
+  }
+  // Redo the last undone change, if there is one.
+  redo(): void {
+    const redoChange = this.uiState.changeLog.redo();
+    if (redoChange) {
+      this.applyChange(redoChange);
+    }
+  }
   // Delete the selected entity, if we have one, and it is deletable.
   deleteSelectedEntity = () => {
     if (!this.uiState.selected_entity) {
@@ -252,6 +310,10 @@ class SchEditor {
         // Delete the selected entity
         this.deselect();
         this.schematic.removeEntity(entity);
+        this.logChange({
+          kind: ChangeKind.Remove,
+          entity,
+        });
         return this.goUiIdle();
       }
       // Non-delete-able "child" entities
@@ -259,6 +321,7 @@ class SchEditor {
       case EntityKind.InstancePort:
         return;
       default:
+        // FIXME: throw exhaust(entity.kind); // Exhaustiveness check
         return this.failer(
           `deleteSelectedEntity: unknown entity kind: ${entity.kind}`
         );
@@ -341,7 +404,7 @@ class SchEditor {
       case UiModes.Idle: {
         // In idle mode, if we clicked on something, react and update our UI state.
         if (!whatd_we_hit) {
-          // Hit "blank space". Start panning the UI.
+          // Hit "blank space".
           this.deselect();
           return this.goUiIdle();
           // this.uiState.mode = UiModes.Pan;
@@ -352,10 +415,20 @@ class SchEditor {
 
         // And react based on its type.
         switch (whatd_we_hit.kind) {
+          // "Movable" entities. Start moving them.
           case EntityKind.SchPort:
           case EntityKind.Instance: {
-            // Start moving the instance.
             this.uiState.mode = UiModes.MoveInstance;
+            const place = {
+              loc: whatd_we_hit.obj.data.loc,
+              orientation: whatd_we_hit.obj.data.orientation,
+            };
+            this.uiState.pendingChange = {
+              kind: ChangeKind.Move,
+              entity: whatd_we_hit,
+              from: structuredClone(place),
+              to: structuredClone(place),
+            };
             return this.select(whatd_we_hit);
           }
           case EntityKind.Label: {
@@ -383,7 +456,7 @@ class SchEditor {
         break;
       }
       case UiModes.AddInstance:
-        return this.commitInstance();
+        return this.commitAddInstance();
       // case UiModes.DrawWire: return this.addWireVertex(); // Do this on mouse-up
       default:
         break;
@@ -398,14 +471,15 @@ class SchEditor {
       case UiModes.DrawWire:
         return this.addWireVertex();
       case UiModes.AddInstance:
-        return this.commitInstance();
+        return this.commitAddInstance();
       case UiModes.AddPort:
-        return this.commitPort();
-      case UiModes.MoveInstance: // Done moving, go back to idle mode.
-        return this.goUiIdle();
+        return this.commitAddPort();
+      case UiModes.MoveInstance: // "Commit" the move to the change log.
+        return this.commitMove();
       // Nothing to do in these modes.
       case UiModes.EditLabel:
       case UiModes.Pan:
+      case UiModes.Idle:
         return;
       default:
         return this.failer(
@@ -433,7 +507,7 @@ class SchEditor {
   // Handle mouse movement events.
   handleMouseMove = (e: MouseEvent) => {
     // Update our tracking of the mouse position.
-    const oldMouse = this.uiState.mouse_pos.copy();
+    // const oldMouse = this.uiState.mouse_pos.copy();
     this.uiState.mouse_pos = theCanvas.screenToCanvas(
       new Point(e.clientX, e.clientY)
     );
@@ -456,21 +530,20 @@ class SchEditor {
       case UiModes.AddPort:
         return this.updateAddPort();
       case UiModes.MoveInstance:
-        return this.updateMoveInstance();
+        return this.updateMove();
       // Nothing to do in these modes.
       case UiModes.Idle:
+      case UiModes.EditLabel:
         return;
       default:
-        return this.failer(
-          `handleMouseMove: unknown UI mode: ${this.uiState.mode}`
-        );
+        throw exhaust(this.uiState.mode); // Exhaustiveness check
     }
   };
   // Enter the `DrawWire` mode, and create the tentative Wire.
   startDrawWire = () => {
     this.uiState.mode = UiModes.DrawWire;
     const start = nearestOnGrid(this.uiState.mouse_pos);
-    const wire = new Wire([start, start.copy()]);
+    const wire = new Wire([start, structuredClone(start)]);
     wire.draw();
     this.select(new Entity({ kind: EntityKind.Wire, obj: wire }));
   };
@@ -509,7 +582,7 @@ class SchEditor {
     // Chop out the last point, replacing it with *two* of the landing point.
     points = points.slice(0, -1);
     points.push(landing);
-    points.push(landing.copy());
+    points.push(structuredClone(landing));
 
     // Update the wire and redraw it.
     wire.points = points;
@@ -522,12 +595,13 @@ class SchEditor {
     const wire = this.selected_object();
     this.schematic.addWire(wire);
 
+    // Notify the changeLog and platform of the change.
+    const entity = this.uiState.selected_entity;
+    this.logChange({ kind: ChangeKind.Add, entity });
+
     // And go back to the UI Idle, nothing selected state.
     this.deselect();
     this.goUiIdle();
-
-    // Notify the platform that the schematic has changed.
-    this.sendChangeMessage();
 
     // FIXME: this will probably want some more computing at commit-time,
     // figuring out hit-test areas, etc.
@@ -551,7 +625,7 @@ class SchEditor {
       of: of,
       kind: kind,
       loc: this.uiState.mouse_pos,
-      orientation: lastInstanceData.orientation.copy(),
+      orientation: structuredClone(lastInstanceData.orientation),
     };
     this.uiState.lastInstanceData = newInstanceData;
     const newInstance = new Instance(newInstanceData);
@@ -599,7 +673,13 @@ class SchEditor {
     instance.draw();
   };
   // Update the rendering of an in-progress instance move.
-  updateMoveInstance = () => {
+  updateMove = () => {
+    if (
+      !this.uiState.pendingChange ||
+      this.uiState.pendingChange.kind != ChangeKind.Move
+    ) {
+      return this.failer("updateMove: no Pending Move Change");
+    }
     const instance = this.selected_object();
     // Snap to our grid
     const snapped = nearestOnGrid(this.uiState.mouse_pos);
@@ -607,19 +687,33 @@ class SchEditor {
     instance.data.loc = snapped;
     instance.draw();
 
-    // Notify the platform that the schematic has changed.
-    this.sendChangeMessage();
+    // Update the coordinate in our pending change-log entry.
+    this.uiState.pendingChange.to.loc = structuredClone(snapped);
   };
   // Add the currently-pending instance to the schematic.
-  commitInstance = () => {
+  commitAddInstance = () => {
     const instance = this.selected_object();
     this.schematic.addInstance(instance);
+
+    // Notify the changeLog and platform of the change.
+    const entity = this.uiState.selected_entity;
+    this.logChange({ kind: ChangeKind.Add, entity });
+
     this.uiState.pending_entity = null;
     this.deselect();
     this.goUiIdle();
-
-    // Notify the platform that the schematic has changed.
-    this.sendChangeMessage();
+  };
+  // "Commit" a move by placing it in the change log.
+  // Actual moves and re-draws are performed "live" as the mouse moves.
+  commitMove = () => {
+    // Notify the changeLog and platform of the change.
+    if (!this.uiState.pendingChange) {
+      return this.failer("commitMove: no pending change");
+    }
+    this.logChange(this.uiState.pendingChange);
+    this.uiState.pendingChange = null;
+    this.uiState.pending_entity = null;
+    this.goUiIdle();
   };
   // Create a new Port
   createPort(): SchPort | void {
@@ -636,7 +730,7 @@ class SchEditor {
       name: portsym.defaultName,
       kind: kind,
       loc: this.uiState.mouse_pos,
-      orientation: lastPortData.orientation.copy(),
+      orientation: structuredClone(lastPortData.orientation),
     };
     this.uiState.lastPortData = newPortData;
     const newPort = new SchPort(newPortData);
@@ -694,15 +788,17 @@ class SchEditor {
     this.sendChangeMessage();
   };
   // Add the currently-pending port to the schematic.
-  commitPort = () => {
+  commitAddPort = () => {
     const port = this.selected_object();
     this.schematic.addPort(port);
+
+    // Notify the changeLog and platform of the change.
+    const entity = this.uiState.selected_entity;
+    this.uiState.changeLog.add({ kind: ChangeKind.Add, entity });
+
     this.uiState.pending_entity = null;
     this.deselect();
     this.goUiIdle();
-
-    // Notify the platform that the schematic has changed.
-    this.sendChangeMessage();
   };
   // Add or remove a character from a `Label`.
   // Text editing is thus far pretty primitive.
@@ -734,6 +830,9 @@ class SchEditor {
     // Add the character to the label.
     return label.update(text + e.key);
   };
+  commitEditLabel = () => {
+    this.failer("FIXME! commitEditLabel: not implemented");
+  };
   // Flip the selected instance, if one is selected.
   flipSelected = (dir: Direction) => {
     if (!this.uiState.selected_entity) {
@@ -746,6 +845,11 @@ class SchEditor {
 
     // We have a flippable selected entity. Flip it.
     const obj = this.selected_object();
+    // Before modifiying the entity, clone its location data for change logging.
+    const placeFrom = structuredClone({
+      loc: obj.data.loc,
+      orientation: obj.data.orientation,
+    });
 
     // Always flip vertically. Horizontal flips are comprised of a vertical flip and two rotations.
     obj.data.orientation.reflected = !obj.data.orientation.reflected;
@@ -756,8 +860,19 @@ class SchEditor {
     }
     obj.draw();
 
-    // Notify the platform that the schematic has changed.
-    this.sendChangeMessage();
+    // And clone the resulting location data for change logging.
+    const placeTo = structuredClone({
+      loc: obj.data.loc,
+      orientation: obj.data.orientation,
+    });
+
+    // Notify the changeLog and platform of the change.
+    this.logChange({
+      kind: ChangeKind.Move,
+      entity: this.uiState.selected_entity,
+      from: placeFrom,
+      to: placeTo,
+    });
   };
   // Rotate the selected entity by 90 degrees, if one is selected.
   rotateSelected = () => {
@@ -771,18 +886,34 @@ class SchEditor {
 
     // We have a selected Instance. Rotate it.
     const obj = this.selected_object();
+    // Before modifiying the entity, clone its location data for change logging.
+    const placeFrom = structuredClone({
+      loc: obj.data.loc,
+      orientation: obj.data.orientation,
+    });
+
     obj.data.orientation.rotation = nextRotation(obj.data.orientation.rotation);
     obj.draw();
 
-    // Notify the platform that the schematic has changed.
-    this.sendChangeMessage();
+    // And clone the resulting location data for change logging.
+    const placeTo = structuredClone({
+      loc: obj.data.loc,
+      orientation: obj.data.orientation,
+    });
+
+    // Notify the changeLog and platform of the change.
+    this.logChange({
+      kind: ChangeKind.Move,
+      entity: this.uiState.selected_entity,
+      from: placeFrom,
+      to: placeTo,
+    });
   };
 }
 
 // The singleton `SchEditor`, and our entrypoint to start it up.
 let theEditor: SchEditor | null = null;
 export function start(platform: Platform): void {
-  /* Platform => void */
   if (theEditor) {
     return;
   }
