@@ -1,28 +1,26 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": false,
-    "module": "commonjs",
-    "target": "es2020",
+    "outDir": "out",
+    "rootDir": "src",
     "lib": [
       "es2020",
       "dom"
     ],
-    "outDir": "out",
-    "sourceMap": true,
-    "strict": true,
-    // "rootDir": "../../",
-    "composite": true,
   },
-  "include": [
-    "src"
+  "exclude": [
+    "out",
+    "node_modules",
   ],
-  // "references": [
-  //   {
-  //     "path": "../EditorCore"
-  //   },
-  //   {
-  //     "path": "../PlatformInterface"
-  //   }
-  // ]
+  "include": [
+    "src",
+  ],
+  "references": [
+    {
+      "path": "../EditorCore"
+    },
+    {
+      "path": "../PlatformInterface"
+    }
+  ]
 }

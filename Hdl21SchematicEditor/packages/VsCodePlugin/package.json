@@ -43,9 +43,9 @@
   },
   "scripts": {
     "vscode:prepublish": "yarn compile",
-    "compile": "tsc -p ./ && webpack --config webpack.config.js",
-    "lint": "eslint . --ext .ts,.tsx",
-    "watch": "tsc -w -p ./"
+    "compile": "tsc --build && webpack --config webpack.webview.js",
+    "watch": "tsc --build && webpack --watch --hot --config webpack.webview.js",
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
     "EditorCore": "^1.0.0",

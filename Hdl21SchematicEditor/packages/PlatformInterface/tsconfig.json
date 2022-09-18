@@ -1,19 +1,14 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowJs": false,
-    "checkJs": false,
-    "module": "commonjs",
-    "target": "es2020",
-    "lib": [
-      "es2020"
-    ],
     "outDir": "out",
-    "sourceMap": true,
-    "strict": true,
-    // "rootDir": "../../",
-    "composite": true,
+    "rootDir": "src",
   },
+  "exclude": [
+    "out",
+    "node_modules",
+  ],
   "include": [
-    "src"
+    "src",
   ],
 }
