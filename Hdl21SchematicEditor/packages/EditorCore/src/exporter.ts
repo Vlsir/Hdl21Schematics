@@ -3,7 +3,7 @@
  */
 
 // Local Imports
-import * as sch from "./schematic";
+import * as sch from "./schematicdata";
 import { Point, point } from "./point";
 import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";

@@ -2,7 +2,7 @@ import {
   Orientation,
   Instance as InstanceData,
   Port as PortData,
-} from "./schematic";
+} from "./schematicdata";
 import { Point, point } from "./point";
 import { PrimitiveKind } from "./primitive";
 import { theCanvas } from "./canvas";

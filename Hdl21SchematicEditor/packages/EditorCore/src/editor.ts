@@ -21,9 +21,15 @@ import {
 } from "./primitive";
 import { Importer } from "./importer";
 import { Exporter } from "./exporter";
-import { nextRotation } from "./schematic";
-import { EntityKind } from "./entity";
-import { Entity, Schematic, Instance, Wire, SchPort } from "./drawing";
+import { nextRotation } from "./schematicdata";
+import {
+  Entity,
+  EntityKind,
+  Schematic,
+  Instance,
+  Wire,
+  SchPort,
+} from "./drawing";
 import { gridLineStyle } from "./style";
 import { UiState, UiModes } from "./uistate";
 import { theCanvas } from "./canvas";
@@ -335,7 +341,7 @@ class SchEditor {
     for (let [key, instance] of this.schematic.instances) {
       for (let label of instance.labels()) {
         if (label.hitTest(point)) {
-          return new Entity({ kind: EntityKind.Label, obj: label });
+          return new Entity(EntityKind.Label, label);
         }
       }
     }
@@ -343,26 +349,26 @@ class SchEditor {
     for (let [key, port] of this.schematic.ports) {
       for (let label of port.labels()) {
         if (label.hitTest(point)) {
-          return new Entity({ kind: EntityKind.Label, obj: label });
+          return new Entity(EntityKind.Label, label);
         }
       }
     }
     // Check all Instance symbols / bodies
     for (let [key, instance] of this.schematic.instances) {
       if (instance.hitTest(point)) {
-        return new Entity({ kind: EntityKind.Instance, obj: instance });
+        return new Entity(EntityKind.Instance, instance);
       }
     }
     // Check all Port symbols / bodies
     for (let [key, port] of this.schematic.ports) {
       if (port.hitTest(point)) {
-        return new Entity({ kind: EntityKind.SchPort, obj: port });
+        return new Entity(EntityKind.SchPort, port);
       }
     }
     // Check all Wires
     for (let [key, wire] of this.schematic.wires) {
       if (wire.hitTest(point)) {
-        return new Entity({ kind: EntityKind.Wire, obj: wire });
+        return new Entity(EntityKind.Wire, wire);
       }
     }
     // Didn't hit anything, return null.
@@ -545,7 +551,7 @@ class SchEditor {
     const start = nearestOnGrid(this.uiState.mouse_pos);
     const wire = new Wire([start, structuredClone(start)]);
     wire.draw();
-    this.select(new Entity({ kind: EntityKind.Wire, obj: wire }));
+    this.select(new Entity(EntityKind.Wire, wire));
   };
   // Update the rendering of an in-progress wire.
   updateDrawWire = () => {
@@ -641,7 +647,7 @@ class SchEditor {
 
     // Update our UI state.
     this.uiState.mode = UiModes.AddInstance;
-    const entity = new Entity({ kind: EntityKind.Instance, obj: instance });
+    const entity = new Entity(EntityKind.Instance, instance);
     this.select(entity);
     this.uiState.pending_entity = entity;
 
@@ -746,7 +752,7 @@ class SchEditor {
 
     // Update our UI state.
     this.uiState.mode = UiModes.AddPort;
-    const entity = new Entity({ kind: EntityKind.SchPort, obj: port });
+    const entity = new Entity(EntityKind.SchPort, port);
     this.select(entity);
     this.uiState.pending_entity = entity;
 

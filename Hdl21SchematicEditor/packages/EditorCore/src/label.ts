@@ -2,7 +2,7 @@ import Two from "two.js";
 import { Text } from "two.js/src/text";
 
 // Local Imports
-import { Entity, EntityKind } from "./entity";
+import { EntityInterface, EntityKind } from "./entity";
 import { Point, point } from "./point";
 import { labelStyle } from "./style";
 
@@ -24,7 +24,7 @@ export interface LabelDrawing {
 
 // # Text Label
 //
-export class Label implements Entity {
+export class Label implements EntityInterface {
   entityKind: EntityKind = EntityKind.Label;
 
   data: LabelData;

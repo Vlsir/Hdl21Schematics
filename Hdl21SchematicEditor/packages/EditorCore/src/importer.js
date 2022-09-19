@@ -8,7 +8,7 @@ import { parse as svgparse } from 'svg-parser';
 
 // Local Imports
 import { point } from "./point";
-import { Schematic, Orientation, OrientationMatrix } from "./schematic";
+import { Schematic, Orientation, OrientationMatrix } from "./schematicdata";
 import { PrimitiveKind, PrimitiveTags } from "./primitive";
 import { PortTags } from "./portsymbol";
 

@@ -1,162 +1,260 @@
-/*
- * # The Abstract Schematic Model
- *
- * Content of `Schematic`s, independent of SVG formatting.
- */
-
 // Local Imports
-import { Point } from "./point";
-import { PortKind } from "./portsymbol";
-import { PrimitiveKind } from "./primitive";
+import { Point, point } from "./point";
+import * as schdata from "./schematicdata";
+import { Entity, EntityKind } from "./entity";
+import { Wire } from "./wire";
+import { Instance, SchPort, InstancePort } from "./instance";
 
-// Enumerated Rotations
-// in increments of 90 degrees
-export enum Rotation {
-  R0 = "R0",
-  R90 = "R90",
-  R180 = "R180",
-  R270 = "R270",
-}
-
-// Get the next `Rotation` in the sequence
-export function nextRotation(rotation: Rotation) {
-  switch (rotation) {
-    case Rotation.R0:
-      return Rotation.R90;
-    case Rotation.R90:
-      return Rotation.R180;
-    case Rotation.R180:
-      return Rotation.R270;
-    case Rotation.R270:
-      return Rotation.R0;
-    // FIXME: add the "invalid value produces error" never-type thing.
-  }
-}
-
-// Instance Orientation
-// including reflection & rotation
-//
-export class Orientation {
-  reflected: boolean;
-  rotation: Rotation;
-  constructor(reflected: boolean, rotation: Rotation) {
-    this.reflected = reflected;
-    this.rotation = rotation;
-  }
-  // Create a copy of this orientation.
-  copy() {
-    return new Orientation(this.reflected, this.rotation);
-  }
-  // The default orientation: no reflection, no rotation.
-  static default() /* => Orientation */ {
-    return new Orientation(false, Rotation.R0);
-  }
-  // Create an `Orientation` from an `OrientationMatrix`.
-  // A very small subset of possible matrices are valid;
-  // any other value provided throws an error.
-  static fromMatrix(matrix: OrientationMatrix) /* => Orientation */ {
-    var reflected; // Boolean - flipped across the x axis
-    var rotation; // Rotation in increments of 90 degrees, valued 0-3
-
-    // There are a total of eight valid values of the Instance transform.
-    // Check each, and if we have anything else, fail.
-    // SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to
-    // | a c |
-    // | b d |
-    if (matrix.eq(new OrientationMatrix(1, 0, 0, 1))) {
-      reflected = false;
-      rotation = Rotation.R0;
-    } else if (matrix.eq(new OrientationMatrix(0, 1, -1, 0))) {
-      reflected = false;
-      rotation = Rotation.R90;
-    } else if (matrix.eq(new OrientationMatrix(-1, 0, 0, -1))) {
-      reflected = false;
-      rotation = Rotation.R180;
-    } else if (matrix.eq(new OrientationMatrix(0, -1, 1, 0))) {
-      reflected = false;
-      rotation = Rotation.R270;
-    } else if (matrix.eq(new OrientationMatrix(1, 0, 0, -1))) {
-      reflected = true;
-      rotation = Rotation.R0;
-    } else if (matrix.eq(new OrientationMatrix(0, 1, 1, 0))) {
-      reflected = true;
-      rotation = Rotation.R90;
-    } else if (matrix.eq(new OrientationMatrix(-1, 0, 0, 1))) {
-      reflected = true;
-      rotation = Rotation.R180;
-    } else if (matrix.eq(new OrientationMatrix(0, -1, -1, 0))) {
-      reflected = true;
-      rotation = Rotation.R270;
-    } else {
-      throw new Error(`Invalid transform: ${matrix}`);
-    }
-
-    // Success - create and return the Orientation.
-    return new Orientation(reflected, rotation);
-  }
-}
-
-//
-// # Orientation Matrix
-//
-// 2x2 matrix representation of an `Orientation`
-// Largely corresponds to the values placed in SVG `matrix` attributes.
-// SVG matrices are ordered "column major", i.e. `matrix (a, b, c, d, x, y)` corresponds to
-// | a c |
-// | b d |
-// The fields of `OrientationMatrix` are named similarly.
-//
-export class OrientationMatrix {
-  a: number;
-  b: number;
-  c: number;
-  d: number;
-
-  constructor(a: number, b: number, c: number, d: number) {
-    this.a = a;
-    this.b = b;
-    this.c = c;
-    this.d = d;
-  }
-  // Orientation Matrix Equality
-  eq = (other: OrientationMatrix) => /* bool */ {
-    return (
-      this.a === other.a &&
-      this.b === other.b &&
-      this.c === other.c &&
-      this.d === other.d
-    );
-  };
-}
-
-export interface Wire {
-  points: Array<Point>;
-}
-
-export interface Port {
-  name: string;
-  kind: PortKind;
+export class Dot {
   loc: Point;
-  orientation: Orientation;
-}
+  entityId: number | null = null;
+  drawing: any = null; // FIXME!
 
-export interface Instance {
-  name: string;
-  of: string;
-  kind: PrimitiveKind;
-  loc: Point;
-  orientation: Orientation;
+  constructor(loc: Point) {
+    this.loc = loc;
+  }
+  draw = () => {};
 }
 
 export class Schematic {
-  constructor(name: string, size: Point) {
-    this.name = name;
+  size: Point;
+
+  // Internal data stores
+  wires = new Map(); // Map<Number, Wire>
+  instances = new Map(); // Map<Number, Instance>
+  ports = new Map(); // Map<Number, SchPort>
+  dots = new Map(); // Map<Number, Dot>
+  entities = new Map(); // Map<Number, Entity>
+
+  // Running count of added instances, for naming.
+  num_instances = 0;
+  num_ports = 0;
+  // Running count of added schematic entities. Serves as their "primary key" in each Map.
+  num_entities = 0;
+
+  constructor(size: Point = point(1600, 800)) {
     this.size = size;
   }
-  name: string;
-  size: Point;
-  instances: Array<Instance> = [];
-  ports: Array<Port> = [];
-  wires: Array<Wire> = [];
-  dots: Array<Point> = [];
+  // Create a (drawn) `Schematic` from the abstract data model
+  static fromData(schData: schdata.Schematic): Schematic {
+    const sch = new Schematic(schData.size);
+
+    // Add all instances
+    for (let instData of schData.instances) {
+      sch.addInstance(new Instance(instData));
+    }
+    // Add all ports
+    for (let portData of schData.ports) {
+      sch.addPort(new SchPort(portData));
+    }
+    // Add all wires. Note we strip the sole `points` field out of these.
+    for (let wireData of schData.wires) {
+      sch.addWire(new Wire(wireData.points));
+    }
+    // Add all dots
+    for (let dotLoc of schData.dots) {
+      sch.addDot(new Dot(dotLoc));
+    }
+    return sch;
+  }
+  // Export to the abstract data model
+  toData = () => {
+    /* Schematic => schdata.Schematic */
+    const schData = new schdata.Schematic("", this.size);
+    for (let [id, inst] of this.instances) {
+      schData.instances.push(inst.data);
+    }
+    for (let [id, port] of this.ports) {
+      schData.ports.push(port.data);
+    }
+    for (let [id, wire] of this.wires) {
+      schData.wires.push({ points: wire.points });
+    }
+    for (let [id, dot] of this.dots) {
+      schData.dots.push(dot.loc);
+    }
+    return schData;
+  };
+  // Add an element to the `entities` mapping. Returns its ID if successful.
+  _insertEntity = (entity: Entity) => {
+    // Set the entity's ID, if it doesn't have one already.
+    // We get re-inserted entities from the undo stack, so we need to check for this.
+    if (!entity.obj.entityId) {
+      entity.obj.entityId = this.num_entities;
+      // Increment the number of entities even if we fail, hopefully breaking out of failure cases.
+      this.num_entities += 1;
+    }
+    const { entityId } = entity.obj;
+    console.log(entity);
+    console.log(this.entities);
+
+    if (this.entities.has(entityId)) {
+      console.log(`Entity ${entityId} already exists. Cannot add ${entity}.`);
+      return null;
+    }
+    // Success, add it to the map and return the ID.
+    this.entities.set(entityId, entity);
+    return entityId;
+  };
+  // Add an entity to the schematic. Largely dispatches according to the entity's kind.
+  addEntity = (entity: Entity) => {
+    /* Entity => void */
+    // const entityId = this._insertEntity(entity);
+    // if (entityId === null) { return; }
+
+    switch (entity.kind) {
+      // Delete-able entities
+      case EntityKind.SchPort:
+        return this.addPort(entity.obj);
+      case EntityKind.Dot:
+        return this.addDot(entity.obj);
+      case EntityKind.Wire:
+        return this.addWire(entity.obj);
+      case EntityKind.Instance:
+        return this.addInstance(entity.obj);
+      // Non-delete-able "child" entities
+      case EntityKind.Label:
+      case EntityKind.InstancePort: {
+        console.log("Not a deletable entity");
+        console.log(entity);
+        return;
+      }
+    }
+  };
+  // Remove an entity from the schematic. Largely dispatches according to the entity's kind.
+  removeEntity = (entity: Entity) => {
+    /* Entity => void */
+    switch (entity.kind) {
+      // Delete-able entities
+      case EntityKind.SchPort:
+        return this.removePort(entity.obj);
+      case EntityKind.Dot:
+        return this.removeDot(entity.obj);
+      case EntityKind.Wire:
+        return this.removeWire(entity.obj);
+      case EntityKind.Instance:
+        return this.removeInstance(entity.obj);
+      // Non-delete-able "child" entities
+      case EntityKind.Label:
+      case EntityKind.InstancePort: {
+        console.log("Not a deletable entity");
+        console.log(entity);
+        return;
+      }
+    }
+  };
+  // Add a port to the schematic.
+  addPort = (port: SchPort) => {
+    /* Port => Number | null */
+    // Attempt to add it to our `entities` mapping.
+    const entityId = this._insertEntity(new Entity(EntityKind.SchPort, port));
+    // Increment our port count, whether we succeeded or not.
+    this.num_ports += 1;
+    if (entityId !== null) {
+      this.ports.set(entityId, port);
+    }
+    // FIXME: need to also add Entities per Port and Label
+  };
+  removePort = (port: SchPort) => {
+    if (!this.ports.has(port.entityId)) {
+      console.log("Port not found in schematic");
+      return;
+    }
+    this.ports.delete(port.entityId);
+    this.entities.delete(port.entityId);
+    // FIXME: delete its port and label entities too
+
+    // Remove the port's drawing
+    if (port.drawing) {
+      port.drawing?.remove();
+    }
+  };
+  // Add a wire to the schematic. Returns its ID if successful, or `null` if not.
+  addWire = (wire: Wire) => {
+    /* Wire => Number | null */
+    // Attempt to add it to our `entities` mapping.
+    const entityId = this._insertEntity(new Entity(EntityKind.Wire, wire));
+    // And if successful, add it to our `wires` mapping.
+    if (entityId !== null) {
+      this.wires.set(entityId, wire);
+    }
+  };
+  // Remove a wire from the schematic.
+  removeWire = (wire: Wire) => {
+    this.wires.delete(wire.entityId);
+    this.entities.delete(wire.entityId);
+
+    // Remove the wire's drawing
+    if (wire.drawing) {
+      wire.drawing?.remove();
+    }
+  };
+  // Add an instance to the schematic.
+  addInstance = (instance: Instance) => {
+    /* Instance => Number | null */
+    // Attempt to add it to our `entities` mapping.
+    const entityId = this._insertEntity(
+      new Entity(EntityKind.Instance, instance)
+    );
+    // Increment our instance count, whether we succeeded or not.
+    this.num_instances += 1;
+    if (entityId !== null) {
+      this.instances.set(entityId, instance);
+    }
+    // FIXME: need to also add Entities per Port and Label
+  };
+  removeInstance = (instance: Instance) => {
+    console.log(`Removing instance`);
+    console.log(instance);
+    if (!this.instances.has(instance.entityId)) {
+      console.log("Instance not found in schematic");
+      return;
+    }
+    this.instances.delete(instance.entityId);
+    this.entities.delete(instance.entityId);
+    // FIXME: delete its port and label entities too
+    console.log(this.entities);
+
+    // Remove the instance's drawing
+    if (instance.drawing) {
+      instance.drawing?.remove();
+    }
+  };
+  // Add an dot to the schematic.
+  addDot = (dot: Dot) => {
+    /* Dot => Number | null */
+    // Attempt to add it to our `entities` mapping.
+    const entityId = this._insertEntity(new Entity(EntityKind.Dot, dot));
+    if (entityId !== null) {
+      this.dots.set(entityId, dot);
+    }
+  };
+  removeDot = (dot: Dot) => {
+    if (!this.dots.has(dot.entityId)) {
+      console.log("Dot not found in schematic");
+      return;
+    }
+    this.dots.delete(dot.entityId);
+    this.entities.delete(dot.entityId);
+
+    // Remove the dot's drawing
+    if (dot.drawing) {
+      dot.drawing?.remove();
+    }
+  };
+  // Draw all elements in the schematic.
+  draw = () => {
+    for (let [key, instance] of this.instances) {
+      instance.draw();
+    }
+    for (let [key, port] of this.ports) {
+      port.draw();
+    }
+    for (let [key, wire] of this.wires) {
+      wire.draw();
+    }
+    for (let [key, dot] of this.dots) {
+      dot.draw();
+    }
+  };
 }
