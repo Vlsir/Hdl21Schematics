@@ -30,7 +30,6 @@ export class Importer {
     importSvgDoc = svgDoc => {
         // FIXME: handle case where there's stuff other than <svg> in the document.
         const svg = svgDoc.children[0];
-        console.log(svg);
 
         const width = svg.properties.width || 1600;
         const height = svg.properties.height || 800;

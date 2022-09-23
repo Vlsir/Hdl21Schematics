@@ -21,9 +21,7 @@ import { Channels } from './channels';
 // Schematic content from THE_ONLY_FILENAME_FOR_NOW
 const THE_ONLY_FILENAME_FOR_NOW = "schematic.sch.svg";
 const loadFile = () => {
-  const content = fs.readFileSync(THE_ONLY_FILENAME_FOR_NOW, 'utf8');
-  // console.log(content);
-  return content;
+  return fs.readFileSync(THE_ONLY_FILENAME_FOR_NOW, 'utf8');
 };
 const saveFile = contents => {
   fs.writeFile(THE_ONLY_FILENAME_FOR_NOW, contents, err => console.log(err));

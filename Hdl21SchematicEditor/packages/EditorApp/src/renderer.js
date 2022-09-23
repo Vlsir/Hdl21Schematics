@@ -4,6 +4,7 @@
  * Executes the graphical rendering for the editor app.
  */
 
+import "./index.css";
 import { start } from "EditorCore";
 
 const { electronIPC } = window;

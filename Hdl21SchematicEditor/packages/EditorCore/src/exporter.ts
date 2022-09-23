@@ -84,7 +84,6 @@ export class Exporter {
   writeInstance(inst: sch.Instance) {
     const primitive = PrimitiveMap.get(inst.kind);
     if (!primitive) {
-      console.log(inst);
       throw new Error(`No primitive for ${inst}`);
     }
     const name = inst.name || "unnamed";
@@ -121,7 +120,6 @@ export class Exporter {
   writePort(port: sch.Port) {
     const portsymbol = PortMap.get(port.kind);
     if (!portsymbol) {
-      console.log(port);
       throw new Error(`No portsymbol for ${port}`);
     }
     const name = port.name || "unnamed";

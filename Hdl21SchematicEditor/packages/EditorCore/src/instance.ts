@@ -2,7 +2,7 @@ import Two from "two.js";
 import { Group } from "two.js/src/group";
 
 // Local Imports
-import { Point, point } from "./point";
+import { Point } from "./point";
 import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";
 import * as schdata from "./schematicdata";
@@ -89,8 +89,6 @@ export class Instance implements EntityInterface {
     if (this.drawing) {
       // Remove any existing drawing
       this.drawing.remove();
-      //   theCanvas.instanceLayer.remove(this.drawing);
-      this.drawing = null;
     }
 
     // Load the symbol as a Two.Group, wrapping the content in <svg> elements.
@@ -99,7 +97,7 @@ export class Instance implements EntityInterface {
       symbolSvgStr += `<circle cx="${port.loc.x}" cy="${port.loc.y}" r="4" class="hdl21-instance-port" />`;
     }
     symbolSvgStr += "</svg>";
-    const symbol = two.load(symbolSvgStr, () => console.log("???"));
+    const symbol = two.load(symbolSvgStr, doNothing);
     traverseAndApply(symbol, symbolStyle);
 
     // Create the Instance's drawing-Group, including its symbol, names, and ports.
@@ -140,7 +138,6 @@ export class Instance implements EntityInterface {
       loc: primitive.nameloc,
       parent: this,
     });
-    // this.nameLabel.draw();
 
     // Create and add the instance-of Label
     this.ofLabel = Label.create({
@@ -149,7 +146,6 @@ export class Instance implements EntityInterface {
       loc: primitive.ofloc,
       parent: this,
     });
-    // this.ofLabel.draw();
 
     if (this.highlighted) {
       this.highlight();
@@ -170,7 +166,6 @@ export class Instance implements EntityInterface {
     if (this.drawing) {
       // Remove any existing drawing
       this.drawing.remove();
-      //   theCanvas.instanceLayer.remove(this.drawing);
       this.drawing = null;
     }
   };
@@ -254,7 +249,7 @@ export class SchPort implements EntityInterface {
     let symbolSvgStr = "<svg>" + portsymbol.svgLines.join();
     symbolSvgStr += `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`;
     symbolSvgStr += "</svg>";
-    const symbol = two.load(symbolSvgStr, () => console.log("???"));
+    const symbol = two.load(symbolSvgStr, doNothing);
     traverseAndApply(symbol, symbolStyle);
 
     // Create the Instance's drawing-Group, including its symbol, names, and ports.
@@ -318,7 +313,6 @@ export class SchPort implements EntityInterface {
     if (this.drawing) {
       // Remove any existing drawing
       this.drawing.remove();
-      //   theCanvas.instanceLayer.remove(this.drawing);
       this.drawing = null;
     }
   };
@@ -331,3 +325,7 @@ export class SchPort implements EntityInterface {
     }
   };
 }
+
+// A do-nothing callback function,
+// used in a few places that insist on calling back.
+function doNothing() {}

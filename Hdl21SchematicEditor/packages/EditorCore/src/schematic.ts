@@ -4,6 +4,7 @@ import * as schdata from "./schematicdata";
 import { Entity, EntityKind } from "./entity";
 import { Wire } from "./wire";
 import { Instance, SchPort, InstancePort } from "./instance";
+import { exhaust } from "./errors";
 
 export class Dot {
   loc: Point;
@@ -85,8 +86,6 @@ export class Schematic {
       this.num_entities += 1;
     }
     const { entityId } = entity.obj;
-    console.log(entity);
-    console.log(this.entities);
 
     if (this.entities.has(entityId)) {
       console.log(`Entity ${entityId} already exists. Cannot add ${entity}.`);
@@ -112,13 +111,12 @@ export class Schematic {
         return this.addWire(entity.obj);
       case EntityKind.Instance:
         return this.addInstance(entity.obj);
-      // Non-delete-able "child" entities
+      // Non directly add-able "child" entities
       case EntityKind.Label:
-      case EntityKind.InstancePort: {
-        console.log("Not a deletable entity");
-        console.log(entity);
+      case EntityKind.InstancePort:
         return;
-      }
+      default:
+        throw exhaust(entity.kind); // Exhaustiveness check
     }
   };
   // Remove an entity from the schematic. Largely dispatches according to the entity's kind.
@@ -136,11 +134,10 @@ export class Schematic {
         return this.removeInstance(entity.obj);
       // Non-delete-able "child" entities
       case EntityKind.Label:
-      case EntityKind.InstancePort: {
-        console.log("Not a deletable entity");
-        console.log(entity);
+      case EntityKind.InstancePort:
         return;
-      }
+      default:
+        throw exhaust(entity.kind); // Exhaustiveness check
     }
   };
   // Add a port to the schematic.
@@ -212,8 +209,6 @@ export class Schematic {
     }
     this.instances.delete(instance.entityId);
     this.entities.delete(instance.entityId);
-    // FIXME: delete its port and label entities too
-    console.log(this.entities);
 
     // Remove the instance's drawing
     if (instance.drawing) {

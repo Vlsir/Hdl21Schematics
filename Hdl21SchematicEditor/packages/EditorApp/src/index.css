@@ -1,8 +1,12 @@
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* Disable HTML-based selection 
+  This primarily prevents groups of text labels from being natively selected by the browser. 
+  Sensitivity of */
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+
+  /* font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   margin: auto;
-  padding: 2rem;
-}
-div#hdl21-symbol-library {
-  display: none;
+  padding: 2rem; */
 }
