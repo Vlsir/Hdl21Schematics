@@ -2,41 +2,20 @@ import { Path } from "two.js/src/path";
 
 // Local Imports
 import { Point } from "./point";
-import { Direction } from "./direction";
 import { wireStyle } from "./style";
 import { theCanvas } from "./canvas";
 import { EntityInterface, EntityKind } from "./entity";
+import { ManhattanSegment, hitTestSegment, calcSegments } from "./manhattan";
 
 // Module-level state of the two.js canvas
 const two = theCanvas.two;
 
-// # Manhattan Wire Segment
-// Runs either horizontally or vertically in direction `dir`,
-// at a constant coordinate `at` and between `start` and `end`.
-export interface ManhattanWireSegment {
-  direction: Direction;
-  at: number;
-  start: number;
-  end: number;
-}
-// Boolean indication of whether `pt` intersects this segment."""
-function hitTestSegment(seg: ManhattanWireSegment, pt: Point): boolean {
-  const HIT_TEST_WIDTH = 10; // Equaly to the drawn width.
-
-  if (seg.direction === Direction.Horiz) {
-    return (
-      Math.abs(pt.y - seg.at) < HIT_TEST_WIDTH / 2 &&
-      pt.x >= seg.start &&
-      pt.x <= seg.end
-    );
-  }
-  // Vertical segment
-  return (
-    Math.abs(pt.x - seg.at) < HIT_TEST_WIDTH / 2 &&
-    pt.y >= seg.start &&
-    pt.y <= seg.end
-  );
-}
+// Wrapper for hit-testing the pointer against drawn wire segements,
+// with tolerance equal to their drawn width.
+const hitTestDrawnSegment = (seg: ManhattanSegment, pt: Point): boolean => {
+  const HIT_TEST_WIDTH = 5; // Equal to half the drawn width.
+  return hitTestSegment(seg, pt, HIT_TEST_WIDTH);
+};
 
 export class Wire implements EntityInterface {
   entityKind: EntityKind = EntityKind.Wire;
@@ -44,14 +23,14 @@ export class Wire implements EntityInterface {
   points: Array<Point>;
   drawing: Path | null = null;
   highlighted: boolean = false;
-  segments: Array<ManhattanWireSegment> | null = null;
-  // Number, unique ID. Not a constructor argument.
-  entityId: number | null = null;
+  segments: Array<ManhattanSegment> | null = null;
+  entityId: number | null = null; // Number, unique ID. Not a constructor argument.
+
   constructor(points: Array<Point>) {
     this.points = points;
   }
   // Create from a list of `Point`s. Primarily creates the drawn `Path`.
-  draw = () => {
+  draw() {
     if (this.drawing) {
       // Remove any existing drawing
       this.drawing.remove();
@@ -71,68 +50,38 @@ export class Wire implements EntityInterface {
     if (this.highlighted) {
       this.highlight();
     }
-  };
+  }
   // Abort drawing an in-progress wire.
-  abort = () => {
+  abort() {
     this.drawing?.remove();
-    // theCanvas.wireLayer.remove(this.drawing);
-  };
+  }
   // Update styling to indicate highlighted-ness
-  highlight = () => {
+  highlight() {
     if (!this.drawing) {
       return; // FIXME!
     }
     this.drawing.stroke = "red";
     this.highlighted = true;
-  };
+  }
   // Update styling to indicate the lack of highlighted-ness
-  unhighlight = () => {
+  unhighlight() {
     if (!this.drawing) {
       return; // FIXME!
     }
     this.drawing.stroke = "blue";
     this.highlighted = false;
-  };
-  // Boolean indication of whether `point` is inside the instance.
-  hitTest = (point: Point) => {
+  }
+  // Boolean indication of whether `point` lands on the wire. i.e. on any of its segments.
+  hitTest(point: Point): boolean {
+    this.updateSegments();
     if (!this.segments) {
-      this.calcSegments();
+      return false;
     }
+    return this.segments.some((segment) => hitTestDrawnSegment(segment, point));
+  }
+  updateSegments() {
     if (!this.segments) {
-      return false; // Compiler doesn't know that `calcSegments` sets `this.segments`.
+      this.segments = calcSegments(this.points);
     }
-    return this.segments.some((segment) => hitTestSegment(segment, point));
-  };
-  // Extract Manhattan segments from the wire's points.
-  calcSegments = () => {
-    this.segments = [];
-    let [pt, ...rest] = this.points;
-    for (let nxt of rest) {
-      var seg;
-      if (pt.x == nxt.x) {
-        const start = Math.min(pt.y, nxt.y);
-        const end = Math.max(pt.y, nxt.y);
-        seg = {
-          direction: Direction.Vert,
-          at: pt.x,
-          start: start,
-          end: end,
-        };
-      } else if (pt.y == nxt.y) {
-        const start = Math.min(pt.x, nxt.x);
-        const end = Math.max(pt.x, nxt.x);
-        seg = {
-          direction: Direction.Horiz,
-          at: pt.y,
-          start: start,
-          end: end,
-        };
-      } else {
-        console.log("Wire segment is neither horizontal nor vertical");
-        return;
-      }
-      this.segments.push(seg);
-      pt = nxt;
-    }
-  };
+  }
 }

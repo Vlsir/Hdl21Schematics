@@ -6,7 +6,7 @@ import { Point } from "./point";
 import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";
 import * as schdata from "./schematicdata";
-import { Rotation } from "./schematicdata";
+import { Rotation } from "./orientation";
 import { symbolStyle } from "./style";
 import { Label, LabelKind } from "./label";
 import { Entity, EntityKind, EntityInterface } from "./entity";

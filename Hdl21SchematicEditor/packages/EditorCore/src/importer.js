@@ -8,7 +8,8 @@ import { parse as svgparse } from 'svg-parser';
 
 // Local Imports
 import { point } from "./point";
-import { Schematic, Orientation, OrientationMatrix } from "./schematicdata";
+import { Schematic } from "./schematicdata";
+import { matrix, orientation } from "./orientation";
 import { PrimitiveKind, PrimitiveTags } from "./primitive";
 import { PortTags } from "./portsymbol";
 
@@ -170,8 +171,8 @@ export class Importer {
 
         // And sort out orientation from the first four numbers
         const m = numbers.slice(0, 4);
-        const matrix = new OrientationMatrix(m[0], m[1], m[2], m[3]);
-        return [loc, Orientation.fromMatrix(matrix)];
+        const mat = matrix.new(m[0], m[1], m[2], m[3]);
+        return [loc, orientation.fromMatrix(mat)];
     };
     // Import a wire group
     importWire = svgGroup => {

@@ -21,7 +21,7 @@ import {
 } from "./primitive";
 import { Importer } from "./importer";
 import { Exporter } from "./exporter";
-import { nextRotation } from "./schematicdata";
+import { nextRotation } from "./orientation";
 import {
   Entity,
   EntityKind,

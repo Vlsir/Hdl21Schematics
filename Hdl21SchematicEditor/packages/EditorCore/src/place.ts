@@ -1,5 +1,5 @@
 import { Point } from "./point";
-import { Orientation } from "./schematicdata";
+import { Orientation } from "./orientation";
 
 export interface Place {
   loc: Point;

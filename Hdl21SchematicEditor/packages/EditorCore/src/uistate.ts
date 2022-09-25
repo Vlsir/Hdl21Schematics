@@ -1,8 +1,5 @@
-import {
-  Orientation,
-  Instance as InstanceData,
-  Port as PortData,
-} from "./schematicdata";
+import { orientation } from "./orientation";
+import { Instance as InstanceData, Port as PortData } from "./schematicdata";
 import { Point, point } from "./point";
 import { PrimitiveKind } from "./primitive";
 import { theCanvas } from "./canvas";
@@ -38,14 +35,14 @@ export class UiState {
     of: "",
     kind: PrimitiveKind.Nmos,
     loc: point(0, 0),
-    orientation: Orientation.default(),
+    orientation: orientation.default(),
   };
   // The last port added
   lastPortData: PortData = {
     name: "",
     kind: PortKind.Input,
     loc: point(0, 0),
-    orientation: Orientation.default(),
+    orientation: orientation.default(),
   };
 
   // The currently selected entity (instance, wire, port, etc.)

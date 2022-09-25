@@ -41,7 +41,7 @@ export function labelStyle(textElem: Text) {
 
 // Apply the grid-line styling
 export function gridLineStyle(line: Line, isMajor: boolean) {
-  line.stroke = "grey";
+  line.stroke = "gray";
   line.visible = true;
   line.closed = false;
   line.noFill();
