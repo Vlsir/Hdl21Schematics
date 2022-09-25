@@ -5,62 +5,67 @@ Translate circuits/ modules to executable Python code.
 """
 
 from copy import copy
+from pathlib import Path
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import Type, Optional
 
+# "Friendly" imports
 import hdl21 as h
 
 # Local imports
-from .module import Module, PortDir
+from .circuit import Circuit, PortDir
+from .svg import svg_to_circuit
 
-# FIXME: eventually these schematics will have their own custom preludes.
-# For now, they all get this one.
-THE_PRELUDE = """
 
+# The default code-prelude. Imports hdl21 and its primitive library.
+DEFAULT_PRELUDE = """
+# Default Schematic Code-Prelude
 import hdl21 as h 
 from hdl21.primitives import *
 """
 
 # The default `Params` type: no parameters
 DEFAULT_PARAM_TYPE = """
-# Default (no) Params
+# Default Params
 Params = h.HasNoParams
 """
-
-
-# FIXMEs:
-# * Custom preludes
 
 
 @dataclass
 class GeneratorSpec:
     """Interim "spec" for the Hdl21 Generator ultimately produced."""
 
-    name: str
-    paramtype: Optional[Type]
+    name: str  # Generator Name
+    prelude: str  # Code-prelude string, which may be the default
+    paramtype: Optional[Type]  # Parameter type. None if none defined.
 
 
 class CodeWriter:
-    """Module to Python Code Conversion State"""
+    """Circuit to Python Code Conversion State"""
 
-    def __init__(self, module: Module):
-        self.module = module
-        self.code = ""
-        self.indent = 0
-        self.tab = "    "
+    def __init__(self, circuit: Circuit):
+        self.circuit: Circuit = circuit  # The input Circuit
+        self.code: str = ""  # The result code string
+        self.indent: int = 0  # Current indentation level, in "tabs"
+        self.tab: str = "    "  # Per-tab indentation string
 
     def specs(self) -> GeneratorSpec:
         """Get the attributes we care about from the schematic prelude, by ... aahhhh ... `exec()`ing it."""
 
         # It's really this simple: execute the prelude, and examine a few fields that it can define.
+        prelude = self.circuit.prelude.strip() or copy(DEFAULT_PRELUDE)
         scope = dict()
-        exec(THE_PRELUDE, scope)
+        exec(prelude, scope)
 
         # Get the `name` attribute, if defined
         name = scope.get("name", None)
         if name is not None and not isinstance(name, str):
             self.fail(f"Invalid `name` attribute in prelude: {name}, must be a string")
-        name = name or self.module.name
+        name = name or self.circuit.name
+        if not name:
+            msg = f"Invalid `name` attribute in prelude: {name}, must be a non-empty string"
+            self.fail(msg)
 
         # Get the `Params` attribute, if defined
         paramtype = scope.get("Params", None)
@@ -68,16 +73,16 @@ class CodeWriter:
             msg = f"Invalid `Params` attribute in prelude: {paramtype}, must be a ParamClass"
             self.fail(msg)
 
-        return GeneratorSpec(name, paramtype)
+        return GeneratorSpec(name, prelude, paramtype)
 
     def to_code(self):
-        """Convert the Module to Python code"""
-
-        # Write the prelude
-        self.code += copy(THE_PRELUDE) + "\n\n"
+        """Convert the Circuit to Python code"""
 
         # Get the Generator specs from the prelude
         spec = self.specs()
+
+        # Write the prelude
+        self.code += copy(spec.prelude) + "\n\n"
 
         # If no `Params` type is defined, alias it to `HasNoParams`
         if spec.paramtype is None:
@@ -88,19 +93,16 @@ class CodeWriter:
         self.writeln(f"def {spec.name}(params: Params) -> h.Module:")
         self.indent += 1
 
-        # Create the Module
+        # Create the Circuit
         self.writeln(f"m = h.Module()")
         self.writeln("")
 
         # Declare Ports
-        ports = [
-            s for s in self.module.signals.values() if s.portdir != PortDir.INTERNAL
-        ]
+        ports = [s for s in self.circuit.signals if s.portdir != PortDir.INTERNAL]
         port_constructors = {
             PortDir.INPUT: "h.Input",
             PortDir.OUTPUT: "h.Output",
             PortDir.INOUT: "h.Inout",
-            PortDir.PORT: "h.Port",
         }
         for port in ports:
             constructor = port_constructors.get(port.portdir, None)
@@ -113,7 +115,7 @@ class CodeWriter:
 
         # Declare internal Signals
         internal_signals = [
-            s for s in self.module.signals.values() if s.portdir == PortDir.INTERNAL
+            s for s in self.circuit.signals if s.portdir == PortDir.INTERNAL
         ]
         for signal in internal_signals:
             self.writeln(f"m.{signal.name} = h.Signal()")
@@ -121,13 +123,13 @@ class CodeWriter:
         self.writeln("")
 
         # Write Instances
-        for instance in self.module.instances.values():
+        for instance in self.circuit.instances:
             conns = ", ".join(
-                [f"{portname}=m.{sig.name}" for portname, sig in instance.conns.items()]
+                [f"{conn.portname}=m.{conn.signame}" for conn in instance.conns]
             )
             self.writeln(f"m.{instance.name} = {instance.of}({conns})")
 
-        # And return the resultant Module
+        # And return the resultant Circuit
         self.writeln("")
         self.writeln(f"return m")
 
@@ -142,12 +144,29 @@ class CodeWriter:
         raise ValueError(msg)
 
 
-def to_code(module: Module) -> str:
-    return CodeWriter(module).to_code()
+def circuit_to_code(circuit: Circuit) -> str:
+    """Convert a `Circuit` to Python code"""
+    return CodeWriter(circuit).to_code()
 
 
-def to_generator(module: Module):
-    code = to_code(module)
+def svg_to_namespace(path: Path) -> SimpleNamespace:
+    """
+    # SVG to Hdl21 Namespace
+
+    The end-to-end import function, from an on-disk SVG `Path` to a Python `SimpleNamespace` including an HDL21 Generator.
+    Given a valid SVG schematic, will import a `SimpleNamespace` containing:
+
+    * The HDL21 Generator representing the schematic content
+    * Its parameter type `Params`
+    * All other attributes defined in the schematic's prelude
+    """
+
+    # Load the circuit from SVG
+    circuit = svg_to_circuit(path)
+    # Convert it to Python code
+    code = circuit_to_code(circuit)
+
+    # Execute the code, and return the resulting namespace
     scope = dict()
     exec(code, scope)
-    return scope
+    return SimpleNamespace(**scope)

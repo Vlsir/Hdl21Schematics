@@ -1,54 +1,58 @@
+from types import SimpleNamespace
+
 import hdl21 as h
 from hdl21schematicimporter import (
     __version__,
-    import_svg,
-    to_module,
-    to_code,
-    to_generator,
+    svg_to_circuit,
+    circuit_to_code,
+    svg_to_namespace,
 )
+from hdl21schematicimporter.circuit import Circuit
 
 
 def test_version():
     assert __version__ == "0.1.0"
 
 
-def test_import_svg():
-    schematic = import_svg("schematic.sch.svg")
-    # print(schematic)
+def test_svg_to_circuit():
+    circuit = svg_to_circuit("schematic.sch.svg")
+    assert isinstance(circuit, Circuit)
+    # print(circuit)
 
 
-def test_to_module():
-    schematic = import_svg("schematic.sch.svg")
-    module = to_module(schematic)
-    # print(module)
-
-
-def test_to_code():
-    schematic = import_svg("schematic.sch.svg")
-    module = to_module(schematic)
-    code = to_code(module)
+def test_circuit_to_code():
+    circuit = svg_to_circuit("schematic.sch.svg")
+    code = circuit_to_code(circuit)
+    assert isinstance(code, str)
+    assert "@h.generator" in code
     # print(code)
 
 
-def test_to_generator():
-    schematic = import_svg("schematic.sch.svg")
-    module = to_module(schematic)
-    gen = to_generator(module)
-    # print(gen)
+def test_svg_to_namespace():
+    ns = svg_to_namespace("schematic.sch.svg")
+    assert isinstance(ns, SimpleNamespace)
+    assert isinstance(ns.schematic, h.Generator)
+    assert ns.Params is h.HasNoParams
 
 
 def test_pyimporter():
+    """Test the import-override mechanics of the pyimporter module."""
+
+    # Import the SVG schematic as a Python module/ namespace
     from . import schematic
 
+    assert isinstance(schematic, SimpleNamespace)
     assert isinstance(schematic.schematic, h.Generator)
     assert isinstance(schematic.schematic(), h.GeneratorCall)
     assert h.isparamclass(schematic.Params)
 
+    # "Import from" the Generator itself
     from .schematic import schematic
 
     assert isinstance(schematic, h.Generator)
     assert isinstance(schematic(), h.GeneratorCall)
 
+    # "Import from" the parameter type
     from .schematic import Params
 
     assert h.isparamclass(Params)

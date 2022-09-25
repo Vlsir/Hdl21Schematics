@@ -7,20 +7,9 @@ Loads an SVG schematic as a Python module including an HDL21 Generator.
 import sys
 import importlib
 from pathlib import Path
-from types import SimpleNamespace
 
 # Local imports
-from .svg import import_svg
-from .module import to_module
-from .code import to_generator
-
-
-def namespace(path: Path) -> SimpleNamespace:
-
-    schematic = import_svg(path)
-    module = to_module(schematic)
-    d = to_generator(module)
-    return SimpleNamespace(**d)
+from .code import svg_to_namespace
 
 
 class SchSvgImporter(importlib.abc.MetaPathFinder):
@@ -34,11 +23,8 @@ class SchSvgImporter(importlib.abc.MetaPathFinder):
     from . import schematic
     ```
 
-    will import a `SimpleNamespace` containing:
-
-    * The HDL21 Generator `schematic`, representing the schematic content
-    * Its parameter type `Params`
-    * All other attributes defined in the schematic's prelude
+    Imports a `SimpleNamespace` representing the SVG schematic,
+    including all attributes collected by `svg_to_namespace`.
 
     There is one `SchSvgImporter` instance per Python process.
     It is added to the `sys` module's `meta_path` at import time.
@@ -67,10 +53,14 @@ class SchSvgImporter(importlib.abc.MetaPathFinder):
         return None
 
     def create_module(self, _spec: importlib.machinery.ModuleSpec):
-        return namespace(self.schpath)
+        """Create the module object from an SVG schematic, in the form of a `SimpleNamespace`.
+        This is the central API method of `MetaPathFinder` used by our Importer."""
+        return svg_to_namespace(self.schpath)
 
-    def exec_module(self, module):
+    def exec_module(self, _module):
+        # FIXME: this is another API method of `MetaPathFinder`; write up why we don't use it.
         pass
 
 
+# Register the importer with the Python import system
 sys.meta_path.append(SchSvgImporter())

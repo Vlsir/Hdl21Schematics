@@ -4,6 +4,7 @@
 
 // Local Imports
 import * as sch from "./schematicdata";
+import { Circuit } from "./circuit";
 import { Orientation, matrix } from "./orientation";
 import { to_circuit } from "./circuit";
 import { Point, point } from "./point";
@@ -44,23 +45,21 @@ export class Exporter {
   exportSchematicSvg() {
     const schematic = this.schematic;
 
-    // FIXME! make circuit exporting part of this
-    console.log(schematic);
-    try {
-      const circuit = to_circuit(schematic);
-      console.log(circuit);
-      console.log(JSON.stringify(circuit));
-    } catch (e) {
-      console.log("to_circuit failed");
-      console.log(e);
-    }
-
     // Write the SVG header
     // Reminder: NOTHING can come before this, or popular SVG readers fail!
     this.writeLine(`<?xml version="1.0" encoding="utf-8"?>`);
     this.writeLine(
       `<svg width="${schematic.size.x}" height="${schematic.size.y}" xmlns="http://www.w3.org/2000/svg">`
     );
+
+    // FIXME: move to Result types here especially
+    try {
+      const circuit = to_circuit(schematic);
+      this.writeCircuitDef(circuit);
+    } catch (e) {
+      console.log("to_circuit failed");
+      console.log(e);
+    }
 
     // Add schematic styling and background grid.
     this.write(schematicBackground);
@@ -85,6 +84,31 @@ export class Exporter {
 
     // And finally add the closing tag.
     this.writeLine("</svg>");
+  }
+  // Write the JSON-encoded content of the extracted `Circuit`.
+  //
+  // The structure of this definition element is:
+  // ```
+  // <defs id="hdl21-schematic-circuit-defs">
+  //   <text id="hdl21-schematic-circuit">
+  //     {"name": ..., } // JSON-encoded Circuit content
+  //   </text>
+  // </defs>
+  // ```
+  // I.e.
+  // * The Json-encoded content is in a `<text>` element with ID `hdl21-schematic-circuit`.
+  // * That text element is embedded in a `<defs>` element with ID `hdl21-schematic-circuit-defs`.
+  //
+  writeCircuitDef(circuit: Circuit) {
+    this.writeLine(`<defs id="hdl21-schematic-circuit-defs">`);
+    this.indent += 1;
+    this.writeLine(`<text id="hdl21-schematic-circuit">`);
+    this.indent += 1;
+    this.writeLine(JSON.stringify(circuit));
+    this.indent -= 1;
+    this.writeLine(`</text>`);
+    this.indent -= 1;
+    this.writeLine(`</defs>`);
   }
   // Create the SVG `<g>` group for an `Instance`.
   writeInstance(inst: sch.Instance) {
@@ -286,7 +310,7 @@ const schematicStyle = `
 `;
 
 const schematicBackground = `
-<defs>
+<defs id="hdl21-background-defs">
     <!-- Grid Background -->
     <pattern id="hdl21-grid-minor" width="10" height="10" patternUnits="userSpaceOnUse">
         <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
