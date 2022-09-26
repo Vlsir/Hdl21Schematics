@@ -8,6 +8,7 @@
   "dependencies": {
     "PlatformInterface": "^1.0.0",
     "svg-parser": "^2.0.4",
+    "ts-results": "^3.3.0",
     "two.js": "^0.8.10"
   },
   "devDependencies": {

@@ -35,10 +35,19 @@ export type SaveFile = {
 export type NewSchematic = {
   kind: MessageKind.NewSchematic;
 };
+export type LogInMain = {
+  kind: MessageKind.LogInMain;
+};
 export type LoadFile = {
   kind: MessageKind.LoadFile;
   body: string;
 };
 
 // The primary `Message` union type.
-export type Message = Change | RendererUp | SaveFile | LoadFile | NewSchematic;
+export type Message =
+  | Change
+  | RendererUp
+  | SaveFile
+  | LoadFile
+  | NewSchematic
+  | LogInMain;

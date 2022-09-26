@@ -134,23 +134,31 @@ class SchEditor {
   };
   // Handle incoming Messages from the platform.
   handleMessage = (msg: Message) => {
-    switch (msg.kind) {
+    const { kind } = msg;
+    switch (kind) {
       case MessageKind.NewSchematic:
         return this.newSchematic();
       case MessageKind.LoadFile: {
         // Load schematic content from the file.
-        const schData = Importer.import(msg.body);
-        const schematic = Schematic.fromData(schData);
-        // FIXME: error handling here
-        return this.loadSchematic(schematic);
+        // FIXME: error handling via Result
+        try {
+          const schData = Importer.import(msg.body);
+          const schematic = Schematic.fromData(schData);
+          return this.loadSchematic(schematic);
+        } catch (e) {
+          return this.failer(`Error loading schematic: ${e}`);
+        }
       }
       // Messages designed to sent *from* us, to the platform.
+      // Log it as out of place, and carry on.
+      case MessageKind.RendererUp:
+      case MessageKind.SaveFile:
+      case MessageKind.LogInMain:
       case MessageKind.Change: {
         return this.failer(`Invalid message from platform to editor: ${msg}`);
       }
-      default: {
-        return this.failer(`Unknown message type: ${msg}`);
-      }
+      default:
+        throw exhaust(kind);
     }
   };
   // Load a new and empty schematic into the editor.

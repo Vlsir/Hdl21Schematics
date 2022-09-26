@@ -4,9 +4,8 @@
 
 // Local Imports
 import * as sch from "./schematicdata";
-import { Circuit } from "./circuit";
 import { Orientation, matrix } from "./orientation";
-import { to_circuit } from "./circuit";
+import { toCircuitJson } from "./circuit_extractor";
 import { Point, point } from "./point";
 import { PrimitiveMap } from "./primitive";
 import { PortMap } from "./portsymbol";
@@ -53,12 +52,13 @@ export class Exporter {
     );
 
     // FIXME: move to Result types here especially
-    try {
-      const circuit = to_circuit(schematic);
-      this.writeCircuitDef(circuit);
-    } catch (e) {
-      console.log("to_circuit failed");
-      console.log(e);
+    const circuitJson = toCircuitJson(schematic);
+    if (circuitJson.ok) {
+      this.writeCircuitDef(circuitJson.val);
+    } else {
+      // Circuit extraction failed. Log it and carry on.
+      // FIXME: some day this should be a UI message or something.
+      console.log(circuitJson.val);
     }
 
     // Add schematic styling and background grid.
@@ -99,12 +99,12 @@ export class Exporter {
   // * The Json-encoded content is in a `<text>` element with ID `hdl21-schematic-circuit`.
   // * That text element is embedded in a `<defs>` element with ID `hdl21-schematic-circuit-defs`.
   //
-  writeCircuitDef(circuit: Circuit) {
+  writeCircuitDef(circuitJson: string) {
     this.writeLine(`<defs id="hdl21-schematic-circuit-defs">`);
     this.indent += 1;
     this.writeLine(`<text id="hdl21-schematic-circuit">`);
     this.indent += 1;
-    this.writeLine(JSON.stringify(circuit));
+    this.writeLine(circuitJson);
     this.indent -= 1;
     this.writeLine(`</text>`);
     this.indent -= 1;
