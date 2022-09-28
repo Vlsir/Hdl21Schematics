@@ -415,3 +415,18 @@ add([
     keyboardShortcut: "Q",
   },
 ]);
+
+// Get a `Primitive` definition by its `PrimitiveKind`.
+// This exclamation-mark non-null assertion is valid so long as
+// we ensure that every valid `PrimitiveKind` is in the map.
+export function get(kind: PrimitiveKind): Primitive {
+  return PrimitiveMap.get(kind)!;
+}
+
+export const primitiveLib = {
+  kinds: PrimitiveMap,
+  tags: PrimitiveTags,
+  keyboardShortcuts: PrimitiveKeyboardShortcuts,
+  get,
+  default: () => get(PrimitiveKind.Nmos),
+};

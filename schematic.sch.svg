@@ -6,7 +6,7 @@
   </text>
 </defs>
 
-<defs id="hdl21-background-defs">
+<defs id="hdl21-schematic-background-defs">
     <!-- Grid Background -->
     <pattern id="hdl21-grid-minor" width="10" height="10" patternUnits="userSpaceOnUse">
         <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
@@ -16,9 +16,9 @@
         <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
     </pattern>
 </defs>
-<rect id="hdl21-background" width="100%" height="100%" fill="url(#hdl21-grid-major)" stroke="gray" stroke-width="1"/>
+<rect id="hdl21-schematic-background" width="100%" height="100%" fill="url(#hdl21-grid-major)" stroke="gray" stroke-width="1"/>
 
-<style>
+<style id="hdl21-schematic-style">
 
 /* Styling for Symbol and Wire Elements */
 .hdl21-symbols {
@@ -72,8 +72,7 @@
 .hdl21-port-name,
 .hdl21-wire-name {
   fill: black;
-  font-family: comic sans ms;
-  /* We know, it's just too funny */
+  font-family: comic sans ms; /* We know, it's just too funny */
   font-size: 16px;
 }
 

@@ -1,9 +1,9 @@
 import { orientation } from "./orientation";
 import { Instance as InstanceData, Port as PortData } from "./schematicdata";
 import { Point, point } from "./point";
-import { PrimitiveKind } from "./primitive";
+import { PrimitiveKind, primitiveLib } from "./primitive";
 import { theCanvas } from "./canvas";
-import { PortKind } from "./portsymbol";
+import { PortKind, portLib } from "./portsymbol";
 import { Change, ChangeLog } from "./changes";
 
 /// # Enumerated UI Modes
@@ -34,6 +34,7 @@ export class UiState {
     name: "",
     of: "",
     kind: PrimitiveKind.Nmos,
+    primitive: primitiveLib.default(),
     loc: point(0, 0),
     orientation: orientation.default(),
   };
@@ -41,6 +42,7 @@ export class UiState {
   lastPortData: PortData = {
     name: "",
     kind: PortKind.Input,
+    portsymbol: portLib.default(),
     loc: point(0, 0),
     orientation: orientation.default(),
   };

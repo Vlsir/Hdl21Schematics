@@ -6,8 +6,8 @@
 
 // Local Imports
 import { Point } from "./point";
-import { PortKind } from "./portsymbol";
-import { PrimitiveKind } from "./primitive";
+import { PortKind, PortSymbol } from "./portsymbol";
+import { PrimitiveKind, Primitive } from "./primitive";
 import { Orientation } from "./orientation";
 
 export interface Wire {
@@ -17,6 +17,7 @@ export interface Wire {
 export interface Port {
   name: string;
   kind: PortKind;
+  portsymbol: PortSymbol; // FIXME: exclude if ever serialized
   loc: Point;
   orientation: Orientation;
 }
@@ -25,6 +26,7 @@ export interface Instance {
   name: string;
   of: string;
   kind: PrimitiveKind;
+  primitive: Primitive; // FIXME: exclude if ever serialized
   loc: Point;
   orientation: Orientation;
 }

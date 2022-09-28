@@ -89,3 +89,19 @@ add([
     defaultName: "io",
   },
 ]);
+
+// Get a `PortSymbol` definition by its `PortKind`.
+// This exclamation-mark non-null assertion is valid so long as
+// we ensure that every valid `kind` is in the map.
+export function get(kind: PortKind): PortSymbol {
+  return PortMap.get(kind)!;
+}
+
+// Export the module-scope mappings as a single object.
+export const portLib = {
+  kinds: PortMap,
+  tags: PortTags,
+  keyboardShortcuts: PortKeyboardShortcuts,
+  get,
+  default: () => get(PortKind.Input),
+};

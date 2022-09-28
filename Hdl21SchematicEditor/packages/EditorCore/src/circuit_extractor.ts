@@ -11,8 +11,7 @@ import { Circuit, Instance, Signal, Connection, PortDir } from "./circuit";
 import { Point, point } from "./point";
 import { Schematic, Wire } from "./schematicdata";
 import { OrientationMatrix, matrix } from "./orientation";
-import { PortKind, PortMap } from "./portsymbol";
-import { PrimitiveMap } from "./primitive";
+import { PortKind } from "./portsymbol";
 import { exhaust } from "./errors";
 import { calcSegments, ManhattanSegment, hitTestSegment } from "./manhattan";
 
@@ -174,12 +173,7 @@ export class SchematicToCircuitConverter {
     /* Collect port-annotation objects and update their connected Signals. */
 
     for (let port_instance of this.sch.ports) {
-      const portsym = PortMap.get(port_instance.kind);
-      if (!portsym) {
-        return this.fail(`Unknown portsym ${port_instance.kind}`);
-      }
-
-      // Transform the portsym-referenced port location to the instance's location
+      // Transform the portsymbol-referenced port location to the instance's location
       const mat = matrix.fromOrientation(port_instance.orientation);
       const instance_port_loc = transform(
         point(0, 0), // Each PortSymbol's "instance port location" is implicitly its origin.
@@ -196,7 +190,7 @@ export class SchematicToCircuitConverter {
       }
       const signal = intersectingConvSignal.signal;
       // Set the intersecting Signal's port direction
-      signal.portdir = portdir(portsym.kind);
+      signal.portdir = portdir(port_instance.kind);
 
       // Rename the intersecting signal to the port's name
       // Also replace its key in the `this.circuit.signals` dict
@@ -209,10 +203,7 @@ export class SchematicToCircuitConverter {
   collect_instances = (): Result<null, string> => {
     // Add each instance
     for (let sch_instance of this.sch.instances) {
-      const primitive = PrimitiveMap.get(sch_instance.kind);
-      if (!primitive) {
-        return this.fail(`Unknown primitive ${sch_instance.kind}`);
-      }
+      const { primitive } = sch_instance;
       let conns: Array<Connection> = [];
       for (let prim_port of primitive.ports) {
         // Transform the primitive-referenced port location to the instance's location

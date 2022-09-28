@@ -6,12 +6,10 @@ import { Vector } from "two.js/src/vector";
 import { Bbox, bbox } from "./bbox";
 import { Place } from "./place";
 import { Point, point } from "./point";
-import { Primitive, PrimitiveMap } from "./primitive";
-import { PortMap, PortSymbol } from "./portsymbol";
 import * as schdata from "./schematicdata";
 import { Rotation } from "./orientation";
-import { symbolStyle } from "./style";
-import { Label, LabelKind } from "./label";
+import { symbolStyle, instacePortStyle } from "./style";
+import { Label, LabelKind, LabelParent } from "./label";
 import { Entity, EntityKind, EntityInterface } from "./entity";
 import { theCanvas } from "./canvas";
 import { exhaust } from "./errors";
@@ -62,8 +60,7 @@ function svgInstancePortDrawing(loc: Point): Group {
     `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="hdl21-instance-port" />` +
     "</svg>";
   const group = theCanvas.two.load(svgStr, doNothing);
-  // FIXME: style these different(ly)
-  traverseAndApply(group, symbolStyle);
+  traverseAndApply(group, instacePortStyle);
   return group;
 }
 
@@ -197,8 +194,7 @@ abstract class InstancePortBase {
 export class Instance extends InstancePortBase implements EntityInterface {
   constructor(
     public data: schdata.Instance, // Instance data
-    public drawing: Drawing, // Drawing data
-    public primitive: Primitive
+    public drawing: Drawing // Drawing data
   ) {
     super(drawing);
   }
@@ -206,17 +202,13 @@ export class Instance extends InstancePortBase implements EntityInterface {
   readonly entityKind: EntityKind = EntityKind.Instance;
 
   static create(data: schdata.Instance): Instance {
-    const primitive = PrimitiveMap.get(data.kind);
-    if (!primitive) {
-      console.log(`No primitive for kind ${data.kind}`);
-      throw new Error("No primitive for kind " + data.kind); // FIXME: do this sooner, e.g. on parsing
-    }
+    const { primitive } = data;
     const drawing = drawSymbolAndPorts(
       primitive.svgLines,
       primitive.ports.map((p) => p.loc),
       { loc: data.loc, orientation: data.orientation }
     );
-    const instance = new Instance(data, drawing, primitive);
+    const instance = new Instance(data, drawing);
     instance.updateBbox();
     instance.createLabels();
     return instance;
@@ -231,7 +223,7 @@ export class Instance extends InstancePortBase implements EntityInterface {
     this.drawing.root.remove();
 
     // Draw our primary symbol and ports content
-    const { primitive } = this;
+    const { primitive } = this.data;
     this.drawing = drawSymbolAndPorts(
       primitive.svgLines,
       primitive.ports.map((p) => p.loc),
@@ -247,7 +239,7 @@ export class Instance extends InstancePortBase implements EntityInterface {
   };
 
   override createLabels = () => {
-    const { primitive } = this;
+    const { primitive } = this.data;
     // Create and add the instance-name Label
     const nameLabel = Label.create({
       text: this.data.name,
@@ -268,14 +260,6 @@ export class Instance extends InstancePortBase implements EntityInterface {
     this.drawing.labelGroup.add(ofLabel.drawing);
     this.drawing.labelMap.set(LabelKind.Of, ofLabel);
   };
-  // // Boolean indication of whether `point` is inside the Instance's bounding box.
-  // hitTest(point: Point) {
-  //   return bbox.hitTest(this.bbox, point);
-  // }
-  // // Abort drawing an in-progress instance.
-  // abort = () => {
-  //   this.drawing.root.remove();
-  // };
   // Update the string-value from a `Label`.
   updateLabelText = (label: Label) => {
     const { kind } = label;
@@ -297,35 +281,30 @@ export class Instance extends InstancePortBase implements EntityInterface {
 // An instance-like object with a drawing and location,
 // which annotates a net as being externally accessible.
 //
-export class SchPort extends InstancePortBase implements EntityInterface {
-  constructor(
-    public data: schdata.Port,
-    public drawing: Drawing,
-    public portsymbol: PortSymbol
-  ) {
+export class SchPort
+  extends InstancePortBase
+  implements EntityInterface, LabelParent
+{
+  constructor(public data: schdata.Port, public drawing: Drawing) {
     super(drawing);
   }
 
   readonly entityKind: EntityKind = EntityKind.SchPort;
 
   static create(data: schdata.Port): SchPort {
-    const portsymbol = PortMap.get(data.kind);
-    if (!portsymbol) {
-      console.log(`No portsymbol for kind ${data.kind}`);
-      throw new Error("No portsymbol for kind " + data.kind); // FIXME: do this sooner, e.g. on parsing
-    }
+    const { portsymbol } = data;
     const drawing = drawSymbolAndPorts(
       portsymbol.svgLines,
       [point(0, 0)], // Include the implicit port at the origin
       { loc: data.loc, orientation: data.orientation }
     );
-    const port = new SchPort(data, drawing, portsymbol);
+    const port = new SchPort(data, drawing);
     port.updateBbox();
     port.createLabels();
     return port;
   }
   override createLabels = () => {
-    const { portsymbol } = this;
+    const { portsymbol } = this.data;
 
     // Create and add the name Label
     const nameLabel = Label.create({
@@ -348,7 +327,7 @@ export class SchPort extends InstancePortBase implements EntityInterface {
     this.drawing.root.remove();
 
     // Draw our primary symbol and ports content
-    const { portsymbol } = this;
+    const { portsymbol } = this.data;
     this.drawing = drawSymbolAndPorts(
       portsymbol.svgLines,
       [point(0, 0)], // Include the implicit port at the origin

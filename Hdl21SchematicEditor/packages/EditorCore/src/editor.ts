@@ -4,8 +4,6 @@
  * Essentially the entirety of the schematic GUI, drawing logic, saving and loading logic.
  */
 
-import { Line } from "two.js/src/shapes/line";
-
 // Workspace Imports
 import { Platform, Message, MessageKind } from "PlatformInterface";
 
@@ -14,13 +12,9 @@ import { exhaust } from "./errors";
 import { Change, ChangeKind } from "./changes";
 import { Point, point } from "./point";
 import { Direction } from "./direction";
-import {
-  PrimitiveMap,
-  PrimitiveKind,
-  PrimitiveKeyboardShortcuts,
-} from "./primitive";
-import { Importer } from "./importer";
-import { Exporter } from "./exporter";
+import { primitiveLib } from "./primitive";
+import { portLib } from "./portsymbol";
+import { Importer, Exporter } from "./svg";
 import { nextRotation } from "./orientation";
 import {
   Entity,
@@ -30,17 +24,15 @@ import {
   Wire,
   SchPort,
 } from "./drawing";
-import { gridLineStyle } from "./style";
 import { UiState, UiModes } from "./uistate";
 import { theCanvas } from "./canvas";
-import { PortKind, PortMap, PortKeyboardShortcuts } from "./portsymbol";
+import { setupGrid, GRID_SIZE } from "./grid";
 
 // Given a `Point`, return the nearest grid point.
 function nearestOnGrid(loc: Point): Point {
-  const grid_size = 10;
   return point(
-    Math.round(loc.x / grid_size) * grid_size,
-    Math.round(loc.y / grid_size) * grid_size
+    Math.round(loc.x / GRID_SIZE) * GRID_SIZE,
+    Math.round(loc.y / GRID_SIZE) * GRID_SIZE
   );
 }
 
@@ -49,15 +41,13 @@ function nearestManhattan(loc: Point, relativeTo: Point): Point {
   const dx = relativeTo.x - loc.x;
   const dy = relativeTo.y - loc.y;
 
-  var landing1;
   if (Math.abs(dx) > Math.abs(dy)) {
     // Horizontal segment
-    landing1 = point(loc.x, relativeTo.y);
+    return point(loc.x, relativeTo.y);
   } else {
     // Vertical segment
-    landing1 = point(relativeTo.x, loc.y);
+    return point(relativeTo.x, loc.y);
   }
-  return nearestOnGrid(landing1);
 }
 
 // # Keyboard Inputs
@@ -173,27 +163,10 @@ class SchEditor {
     theCanvas.clear();
 
     // Set up the background grid
-    this.setupGrid();
+    setupGrid(this.schematic.size);
 
     // And draw the loaded schematic
     this.schematic.draw();
-  };
-  // Set up the background grid
-  setupGrid = () => {
-    // Get the outline size from the Schematic
-    const x = this.schematic.size.x;
-    const y = this.schematic.size.y;
-
-    for (let i = 0; i <= x; i += 10) {
-      const line = new Line(i, 0, i, y);
-      theCanvas.gridLayer.add(line);
-      gridLineStyle(line, i % 100 == 0);
-    }
-    for (let i = 0; i <= y; i += 10) {
-      const line = new Line(0, i, x, i);
-      theCanvas.gridLayer.add(line);
-      gridLineStyle(line, i % 100 == 0);
-    }
   };
   // Go to the "UI Idle" state, in which nothing is moving, being drawn, or really doing anything.
   goUiIdle = () => {
@@ -621,59 +594,49 @@ class SchEditor {
     // figuring out hit-test areas, etc.
   };
   // Create a new Instance
-  createInstance(): Instance | void {
-    // Create the provisional `Instance`.
-    // Use the last one added as a template.
+  createInstance(): Instance {
+    // Create the provisional `Instance`, using the last one added as a template.
     const { lastInstanceData } = this.uiState;
-    const { kind } = lastInstanceData;
-    const prim = PrimitiveMap.get(kind) || PrimitiveMap.get(PrimitiveKind.Nmos);
-    if (!prim) {
-      return this.failer(`createInstance: unknown primitive kind: ${kind}`);
-    }
+    const { primitive, kind } = lastInstanceData;
 
-    // FIXME: switch these based on `kind`
-    const name = `${prim.defaultNamePrefix}${this.schematic.num_instances}`;
-    const of = prim.defaultOf;
     const newInstanceData = {
-      name: name,
-      of: of,
-      kind: kind,
-      loc: this.uiState.mouse_pos,
+      name: `${primitive.defaultNamePrefix}${this.schematic.num_instances}`,
+      of: `${primitive.defaultOf}`,
+      kind,
+      primitive,
+      loc: nearestOnGrid(this.uiState.mouse_pos),
       orientation: structuredClone(lastInstanceData.orientation),
     };
     this.uiState.lastInstanceData = newInstanceData;
-    const newInstance = Instance.create(newInstanceData);
-    return newInstance;
+    return Instance.create(newInstanceData);
   }
   // Start adding a new Instance
   startAddInstance = () => {
     // Create the provisional `Instance`. Note it is *not* added to the schematic yet.
     const instance = this.createInstance();
-    if (!instance) {
-      return;
-    }
+    const entity = new Entity(EntityKind.Instance, instance);
 
     // Update our UI state.
     this.uiState.mode = UiModes.AddInstance;
-    const entity = new Entity(EntityKind.Instance, instance);
-    this.select(entity);
     this.uiState.pending_entity = entity;
+    this.select(entity);
 
     // And draw the instance.
     instance.draw();
   };
   changeInstanceKind = (e: KeyboardEvent) => {
-    const prim = PrimitiveKeyboardShortcuts.get(e.key);
-    if (!prim) {
+    const primitive = primitiveLib.keyboardShortcuts.get(e.key);
+    if (!primitive) {
       return;
     }
 
-    // We hit a primitive shortcut key and have a valid new type
+    // We hit a shortcut key and have a valid new type
     const instance = this.selected_object();
-    instance.data.kind = prim.kind;
+    instance.data.kind = primitive.kind;
+    instance.data.primitive = primitive;
 
-    instance.data.name = prim.defaultNamePrefix;
-    instance.data.of = prim.defaultOf;
+    instance.data.name = primitive.defaultNamePrefix;
+    instance.data.of = primitive.defaultOf;
     this.uiState.lastInstanceData = instance.data;
     instance.draw();
   };
@@ -730,20 +693,15 @@ class SchEditor {
     this.goUiIdle();
   };
   // Create a new Port
-  createPort(): SchPort | void {
-    // Create the provisional `Port`.
-    // Use the last one added as a template.
+  createPort(): SchPort {
+    // Create the provisional `Port`, using the last one added as a template.
     const { lastPortData } = this.uiState;
-    const { kind } = lastPortData;
-    const portsym = PortMap.get(kind);
-    if (!portsym) {
-      return this.failer(`createPort: unknown port kind: ${kind}`);
-    }
-
+    const { kind, portsymbol } = lastPortData;
     const newPortData = {
-      name: portsym.defaultName,
-      kind: kind,
-      loc: this.uiState.mouse_pos,
+      name: `${portsymbol.defaultName}`,
+      kind,
+      portsymbol,
+      loc: nearestOnGrid(this.uiState.mouse_pos),
       orientation: structuredClone(lastPortData.orientation),
     };
     this.uiState.lastPortData = newPortData;
@@ -754,29 +712,27 @@ class SchEditor {
   startAddPort = () => {
     // Create the provisional `Port`. Note it is *not* added to the schematic yet.
     const port = this.createPort();
-    if (!port) {
-      return;
-    }
+    const entity = new Entity(EntityKind.SchPort, port);
 
     // Update our UI state.
     this.uiState.mode = UiModes.AddPort;
-    const entity = new Entity(EntityKind.SchPort, port);
-    this.select(entity);
     this.uiState.pending_entity = entity;
+    this.select(entity);
 
     // And draw the port.
     port.draw();
   };
   changePortKind = (e: KeyboardEvent) => {
-    const portsym = PortKeyboardShortcuts.get(e.key);
-    if (!portsym) {
+    const portsymbol = portLib.keyboardShortcuts.get(e.key);
+    if (!portsymbol) {
       return;
     }
 
-    // We hit a portsymitive shortcut key and have a valid new type
+    // We hit a shortcut key and have a valid new type
     const port = this.selected_object();
-    port.data.kind = portsym.kind;
-    port.data.name = portsym.defaultName;
+    port.data.kind = portsymbol.kind;
+    port.data.portsymbol = portsymbol;
+    port.data.name = portsymbol.defaultName;
     this.uiState.lastPortData = port.data;
     port.draw();
   };

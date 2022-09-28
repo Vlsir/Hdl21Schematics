@@ -13,6 +13,7 @@ from typing import Optional
 
 # Local imports
 from .circuit import Circuit
+from .svgdefs import SchSvgIds, SchSvgClasses
 
 
 class SvgTags(Enum):
@@ -36,28 +37,6 @@ class SvgTags(Enum):
     def from_element(element: Element) -> Optional["SvgTags"]:
         return SvgTags.from_etree_tag(element.tag)
 
-
-class SchSvgIds(Enum):
-    """Enumerated ID Tags used to identify Schematic content"""
-
-    CIRCUIT = "hdl21-schematic-circuit"
-    CIRCUIT_DEFS = "hdl21-schematic-circuit-defs"
-    BACKGROUND_DEFS = "hdl21-schematic-background-defs"
-    GRID_MINOR = "hdl21-grid-minor"
-    GRID_MAJOR = "hdl21-grid-major"
-
-
-class SchSvgClasses(Enum):
-    """Enumerated SVG Classes used to identify Schematic content"""
-
-    INSTANCE = "hdl21-instance"
-    INSTANCE_NAME = "hdl21-instance-name"
-    INSTANCE_OF = "hdl21-instance-of"
-    WIRE = "hdl21-wire"
-    WIRE_NAME = "hdl21-wire-name"
-    PORT = "hdl21-port"
-    PORT_NAME = "hdl21-port-name"
-    DOT = "hdl21-dot"
 
 
 class SvgImporter:

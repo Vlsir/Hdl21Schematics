@@ -7,6 +7,7 @@
 import { parse as svgparse } from 'svg-parser';
 
 // Local Imports
+import { SchSvgClasses, SchSvgIds } from './svgdefs';
 import { point } from "./point";
 import { Schematic } from "./schematicdata";
 import { matrix, orientation } from "./orientation";
@@ -23,7 +24,7 @@ export class Importer {
     }
     // Import a schematic SVG string to a `Schematic`. 
     // Creates an Importer and recursively traverses the SVG tree.
-    static import = svgstring => /* Schematic */ {
+    static import = svgstring => { /* Schematic */
         const me = new Importer();
         const svgDoc = svgparse(svgstring);
         return me.importSvgDoc(svgDoc);
@@ -37,20 +38,23 @@ export class Importer {
         this.schematic.size = point(width, height);
 
         // Walk its SVG children, adding HDL elements. 
+        // FIXME: check for our "metadata IDs" e.g. "hdl21-background", rather than adding to `otherSvgElements`.
         for (const child of svg.children) {
             if (child.type === 'element' && child.tagName === 'g') {
 
-                if (child.properties.class === "hdl21-instance") {
+                if (child.properties.class === SchSvgClasses.INSTANCE) {
                     this.importInstance(child);
-                } else if (child.properties.class === "hdl21-port") {
+                } else if (child.properties.class === SchSvgClasses.PORT) {
                     this.importPort(child);
-                } else if (child.properties.class === "hdl21-wire") {
+                } else if (child.properties.class === SchSvgClasses.WIRE) {
                     this.importWire(child);
                 } else {
                     this.addOtherSvgElement(child);
                 }
             } else if (child.type === 'element' && child.tagName === 'g') {
-                if (child.properties.class === "hdl21-dot") {
+                // FIXME: this test should be for `circle`, shouldn't it? 
+                // Once dots are really added, check on it
+                if (child.properties.class === SchSvgClasses.DOT) {
                     this.importDot(child);
                 } else {
                     this.addOtherSvgElement(child);
@@ -86,11 +90,11 @@ export class Importer {
 
         // Get the symbol type from the symbol group.
         const svgTag = symbolGroup.properties.class;
-        const prim = PrimitiveTags.get(svgTag);
-        if (!prim) {
+        const primitive = PrimitiveTags.get(svgTag);
+        if (!primitive) {
             throw this.fail(`Unknown symbol type: ${svgTag}`);
         }
-        const { kind } = prim;
+        const { kind } = primitive;
 
         // Get the instance name.
         if (nameElem.tagName !== "text") {
@@ -112,7 +116,7 @@ export class Importer {
         } else {
             // Create and add the instance 
             // const instance = new sch.Instance({ name: name, of: of, kind: kind, loc: loc, orientation: orientation });
-            const instance = { name, of, kind, loc, orientation };
+            const instance = { name, of, kind, primitive, loc, orientation };
             this.schematic.instances.push(instance);
         }
     };
@@ -147,7 +151,7 @@ export class Importer {
         const name = nameElem.children[0].value;
 
         // Create the Port and add it to the schematic.
-        const port = { name, kind, loc, orientation };
+        const port = { name, kind, portsymbol, loc, orientation };
         this.schematic.ports.push(port);
     };
     // Import an SVG `transform` to a location `Point` and an `Orientation`. 
