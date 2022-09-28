@@ -1,26 +1,27 @@
-import Two from "two.js";
+import { Text } from "two.js/src/text";
 import { Group } from "two.js/src/group";
+import { Vector } from "two.js/src/vector";
 
 // Local Imports
-import { Point } from "./point";
-import { PrimitiveMap } from "./primitive";
-import { PortMap } from "./portsymbol";
+import { Bbox, bbox } from "./bbox";
+import { Place } from "./place";
+import { Point, point } from "./point";
+import { Primitive, PrimitiveMap } from "./primitive";
+import { PortMap, PortSymbol } from "./portsymbol";
 import * as schdata from "./schematicdata";
 import { Rotation } from "./orientation";
 import { symbolStyle } from "./style";
 import { Label, LabelKind } from "./label";
 import { Entity, EntityKind, EntityInterface } from "./entity";
 import { theCanvas } from "./canvas";
-
-// Module-level state of the two.js canvas
-const two = theCanvas.two;
+import { exhaust } from "./errors";
 
 // FIXME! fill these guys in
 export class InstancePort {}
 
-// Recursively traverse a node with a list of `children`,
-// applying `fn` to each node.
-const traverseAndApply = (node: any, fn: any): void => {
+// Recursively traverse a node with a list of `children`, applying `fn` to each node.
+// Typing of this largely evades us, as the `children` array is of the `any` type.
+const traverseAndApply = (node: any, fn: (node: any) => void): void => {
   fn(node);
   if (node.children) {
     for (let child of node.children) {
@@ -29,155 +30,264 @@ const traverseAndApply = (node: any, fn: any): void => {
   }
 };
 
+// Apply rotation. Note two.js applies rotation *clockwise*,
+// hence the negation of 90 and 270 degrees.
+const radianRotation = (rotation: Rotation): number => {
+  switch (rotation) {
+    case Rotation.R0:
+      return 0;
+    case Rotation.R90:
+      return -Math.PI / 2;
+    case Rotation.R180:
+      return Math.PI;
+    case Rotation.R270:
+      return Math.PI / 2;
+    default:
+      throw exhaust(rotation);
+  }
+};
+
+function svgSymbolDrawing(svgLines: Array<string>): Group {
+  // Load the symbol as a two `Group`, wrapping the content in <svg> elements.
+  let symbolSvgStr = "<svg>" + svgLines.join() + "</svg>";
+  const symbol = theCanvas.two.load(symbolSvgStr, doNothing);
+  traverseAndApply(symbol, symbolStyle);
+  return symbol;
+}
+
+function svgInstancePortDrawing(loc: Point): Group {
+  // FIXME: this can probably become a native `Two.Circle` instead.
+  const svgStr =
+    "<svg>" +
+    `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="hdl21-instance-port" />` +
+    "</svg>";
+  const group = theCanvas.two.load(svgStr, doNothing);
+  // FIXME: style these different(ly)
+  traverseAndApply(group, symbolStyle);
+  return group;
+}
+
+// Apply placement, rotation, and reflection to `group`.
+function placeDrawingGroup(group: Group, place: Place) {
+  // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
+  group.scale = 1;
+  if (place.orientation.reflected) {
+    group.scale = new Vector(1, -1);
+  }
+  group.rotation = radianRotation(place.orientation.rotation);
+  group.translation.set(place.loc.x, place.loc.y);
+}
+
+function drawSymbolAndPorts(
+  symbolSvgLines: Array<string>,
+  portLocs: Array<Point>,
+  place: Place
+): Drawing {
+  // Create the Instance's drawing-Group, which includes its symbol, labels, and ports.
+  const root = new Group();
+  theCanvas.instanceLayer.add(root);
+
+  // Draw and add the symbol sub-group
+  const symbol = svgSymbolDrawing(symbolSvgLines);
+  root.add(symbol);
+
+  // Create a Group for the instance ports, draw and add each.
+  const ports = new Group();
+  root.add(ports);
+  for (let loc of portLocs) {
+    ports.add(svgInstancePortDrawing(loc));
+  }
+
+  // Add an initially empty label group to the root group.
+  // Labels differ between users, and are added after the fact.
+  const labelGroup = new Group();
+  root.add(labelGroup);
+
+  // Apply placement, rotation, and reflection.
+  placeDrawingGroup(root, place);
+
+  // Collect all these parts into a `Drawing`, and return it.
+  return new Drawing(root, symbol, ports, labelGroup, new Map());
+}
+
+// Shared Drawing Object
+// Used by both `Instance` and `Port`
+//
+class Drawing {
+  constructor(
+    public root: Group, // Root-level group, including all content
+    public symbol: Group, // Symbol group
+    public ports: Group, // Group of instance ports
+    public labelGroup: Group, // Group of Label drawings
+    public labelMap: Map<LabelKind, Label> // Map from Label kinds to Labels
+  ) {}
+  highlight = () => {
+    traverseAndApply(this.symbol, (node: any) => {
+      node.stroke = "red";
+    });
+    traverseAndApply(this.ports, (node: any) => {
+      node.stroke = "red";
+    });
+    for (let label of this.labelMap.values()) {
+      label.highlight();
+    }
+  };
+  unhighlight = () => {
+    traverseAndApply(this.symbol, (node: any) => {
+      node.stroke = "black";
+    });
+    traverseAndApply(this.ports, (node: any) => {
+      node.stroke = "black";
+    });
+    for (let label of this.labelMap.values()) {
+      label.unhighlight();
+    }
+  };
+}
+
+// Base Class shared by `Instance` and `SchPort`
+abstract class InstancePortBase {
+  constructor(
+    public drawing: Drawing // Drawing data
+  ) {}
+
+  entityId: number | null = null; // Numeric unique ID
+  bbox: Bbox = bbox.empty(); // Bounding Box
+  highlighted: boolean = false;
+
+  abstract labels(): Array<Label>; // Return all Labels
+  abstract createLabels(): void; // Create all Labels
+
+  highlight = () => {
+    this.drawing.highlight();
+    this.highlighted = true;
+  };
+  unhighlight = () => {
+    this.drawing.unhighlight();
+    this.highlighted = false;
+  };
+  addLabelDrawing(textElem: Text): void {
+    this.drawing.labelGroup.add(textElem);
+  }
+  removeDrawing = () => {
+    this.drawing.root.remove();
+  };
+  // Abort drawing an in-progress instance.
+  abort = () => {
+    this.drawing.root.remove();
+  };
+  // Boolean indication of whether `point` is inside the Instance's bounding box.
+  hitTest(point: Point) {
+    return bbox.hitTest(this.bbox, point);
+  }
+
+  updateBbox = () => {
+    // Set the bounding box for hit testing.
+    // Note this must come *after* the drawing is added to the scene.
+    // And note we use the *symbol* bounding box, not the overall drawing's,
+    // which might include some long text labels.
+    this.bbox = bbox.get(this.drawing.symbol);
+  };
+}
+
 // # Schematic Instance
 //
 // Combination of the Instance data and drawn visualization.
 //
-export class Instance implements EntityInterface {
-  entityKind: EntityKind = EntityKind.Instance;
-
-  data: schdata.Instance;
-  nameLabel: Label | null = null;
-  ofLabel: Label | null = null;
-
-  // Number, unique ID. Not a constructor argument.
-  entityId: number | null = null;
-  // Drawing data, set during calls to `draw()`.
-  drawing: Group | null = null;
-  // The bounding box for hit testing.
-  bbox: any = null; // FIXME! type
-  highlighted: boolean = false; // bool
-  constructor(data: schdata.Instance) {
-    // Instance Data
-    this.data = data; // schdata.Instance
+export class Instance extends InstancePortBase implements EntityInterface {
+  constructor(
+    public data: schdata.Instance, // Instance data
+    public drawing: Drawing, // Drawing data
+    public primitive: Primitive
+  ) {
+    super(drawing);
   }
-  highlight = () => {
-    this.highlighted = true;
-    if (!this.drawing) {
-      return;
+
+  readonly entityKind: EntityKind = EntityKind.Instance;
+
+  static create(data: schdata.Instance): Instance {
+    const primitive = PrimitiveMap.get(data.kind);
+    if (!primitive) {
+      console.log(`No primitive for kind ${data.kind}`);
+      throw new Error("No primitive for kind " + data.kind); // FIXME: do this sooner, e.g. on parsing
     }
-    traverseAndApply(this.drawing, (node: any) => {
-      // FIXME: merge with styling
-      // FIXME: this needs to set `fill` for text elements
-      // node.fill = "red";
-      node.stroke = "red";
-    });
-  };
-  unhighlight = () => {
-    this.highlighted = false;
-    if (!this.drawing) {
-      return;
-    }
-    traverseAndApply(this.drawing, (node: any) => {
-      // FIXME: merge with styling
-      // FIXME: this needs to set `fill` for text elements
-      // node.fill = "black";
-      node.stroke = "black";
-    });
-  };
+    const drawing = drawSymbolAndPorts(
+      primitive.svgLines,
+      primitive.ports.map((p) => p.loc),
+      { loc: data.loc, orientation: data.orientation }
+    );
+    const instance = new Instance(data, drawing, primitive);
+    instance.updateBbox();
+    instance.createLabels();
+    return instance;
+  }
   // Get references to our child `Label`s.
-  labels = () => {
-    return [this.nameLabel, this.ofLabel];
+  override labels = () => {
+    return Array.from(this.drawing.labelMap.values());
   };
   // Create and draw the Instance's `drawing`.
   draw = () => {
-    const primitive = PrimitiveMap.get(this.data.kind);
-    if (!primitive) {
-      console.log(`No primitive for kind ${this.data.kind}`);
-      return;
-    }
-    if (this.drawing) {
-      // Remove any existing drawing
-      this.drawing.remove();
-    }
+    // Remove the old drawing
+    this.drawing.root.remove();
 
-    // Load the symbol as a Two.Group, wrapping the content in <svg> elements.
-    let symbolSvgStr = "<svg>" + primitive.svgLines.join();
-    for (let port of primitive.ports) {
-      symbolSvgStr += `<circle cx="${port.loc.x}" cy="${port.loc.y}" r="4" class="hdl21-instance-port" />`;
-    }
-    symbolSvgStr += "</svg>";
-    const symbol = two.load(symbolSvgStr, doNothing);
-    traverseAndApply(symbol, symbolStyle);
+    // Draw our primary symbol and ports content
+    const { primitive } = this;
+    this.drawing = drawSymbolAndPorts(
+      primitive.svgLines,
+      primitive.ports.map((p) => p.loc),
+      { loc: this.data.loc, orientation: this.data.orientation }
+    );
 
-    // Create the Instance's drawing-Group, including its symbol, names, and ports.
-    this.drawing = new Two.Group();
-    this.drawing.add(symbol);
-    theCanvas.instanceLayer.add(this.drawing);
-
-    // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
-    this.drawing.scale = 1;
-    if (this.data.orientation.reflected) {
-      this.drawing.scale = new Two.Vector(1, -1);
-    }
-    // Apply rotation. Note two.js applies rotation *clockwise*,
-    // hence the negation of 90 and 270 degrees.
-    const radianRotation = () => {
-      switch (this.data.orientation.rotation) {
-        case Rotation.R0:
-          return 0;
-        case Rotation.R90:
-          return -Math.PI / 2;
-        case Rotation.R180:
-          return Math.PI;
-        case Rotation.R270:
-          return Math.PI / 2;
-      }
-    };
-    this.drawing.rotation = radianRotation();
-    this.drawing.translation.set(this.data.loc.x, this.data.loc.y);
-
-    // Set the bounding box for hit testing.
-    // Note this must come *after* the drawing is added to the scene.
-    this.bbox = symbol.getBoundingClientRect();
-
-    // Create and add the instance-name Label
-    this.nameLabel = Label.create({
-      text: this.data.name,
-      kind: LabelKind.Name,
-      loc: primitive.nameloc,
-      parent: this,
-    });
-
-    // Create and add the instance-of Label
-    this.ofLabel = Label.create({
-      text: this.data.of,
-      kind: LabelKind.Of,
-      loc: primitive.ofloc,
-      parent: this,
-    });
+    this.updateBbox();
+    this.createLabels();
 
     if (this.highlighted) {
       this.highlight();
     }
   };
-  // Boolean indication of whether `point` is inside the Instance's bounding box.
-  hitTest = (point: Point) => {
-    const bbox = this.bbox;
-    return (
-      point.x > bbox.left &&
-      point.x < bbox.right &&
-      point.y > bbox.top &&
-      point.y < bbox.bottom
-    );
+
+  override createLabels = () => {
+    const { primitive } = this;
+    // Create and add the instance-name Label
+    const nameLabel = Label.create({
+      text: this.data.name,
+      kind: LabelKind.Name,
+      loc: primitive.nameloc,
+      parent: this,
+    });
+    this.drawing.labelGroup.add(nameLabel.drawing);
+    this.drawing.labelMap.set(LabelKind.Name, nameLabel);
+
+    // Create and add the instance-of Label
+    const ofLabel = Label.create({
+      text: this.data.of,
+      kind: LabelKind.Of,
+      loc: primitive.ofloc,
+      parent: this,
+    });
+    this.drawing.labelGroup.add(ofLabel.drawing);
+    this.drawing.labelMap.set(LabelKind.Of, ofLabel);
   };
-  // Abort drawing an in-progress instance.
-  abort = () => {
-    if (this.drawing) {
-      // Remove any existing drawing
-      this.drawing.remove();
-      this.drawing = null;
-    }
-  };
+  // // Boolean indication of whether `point` is inside the Instance's bounding box.
+  // hitTest(point: Point) {
+  //   return bbox.hitTest(this.bbox, point);
+  // }
+  // // Abort drawing an in-progress instance.
+  // abort = () => {
+  //   this.drawing.root.remove();
+  // };
   // Update the string-value from a `Label`.
-  updateLabel = (label: Label) => {
-    const kind = label.kind;
-    if (kind === LabelKind.Name) {
-      this.data.name = label.text;
-    } else if (kind === LabelKind.Of) {
-      this.data.of = label.text;
-    } else {
-      console.log("Unknown label kind");
+  updateLabelText = (label: Label) => {
+    const { kind } = label;
+    switch (kind) {
+      case LabelKind.Name:
+        this.data.name = label.text;
+        return;
+      case LabelKind.Of:
+        this.data.of = label.text;
+        return;
+      default:
+        throw exhaust(kind);
     }
   };
 }
@@ -187,137 +297,73 @@ export class Instance implements EntityInterface {
 // An instance-like object with a drawing and location,
 // which annotates a net as being externally accessible.
 //
-export class SchPort implements EntityInterface {
-  entityKind: EntityKind = EntityKind.SchPort;
-
-  data: schdata.Port;
-  // Text port-name `Label`
-  nameLabel: Label | null = null;
-  // Number, unique ID. Not a constructor argument.
-  entityId: number | null = null;
-  // Drawing data, set during calls to `draw()`.
-  drawing: Group | null = null;
-  // The bounding box for hit testing.
-  bbox: any = null; // FIXME! type
-  highlighted: boolean = false; // bool
-  constructor(data: schdata.Port) {
-    this.data = data; // schdata.Port
+export class SchPort extends InstancePortBase implements EntityInterface {
+  constructor(
+    public data: schdata.Port,
+    public drawing: Drawing,
+    public portsymbol: PortSymbol
+  ) {
+    super(drawing);
   }
-  highlight = () => {
-    this.highlighted = true;
-    if (!this.drawing) {
-      return;
-    }
-    traverseAndApply(this.drawing, (node: any) => {
-      // FIXME: merge with styling
-      // FIXME: this needs to set `fill` for text elements
-      // node.fill = "red";
-      node.stroke = "red";
-    });
-  };
-  unhighlight = () => {
-    this.highlighted = false;
-    if (!this.drawing) {
-      return;
-    }
-    traverseAndApply(this.drawing, (node: any) => {
-      // FIXME: merge with styling
-      // FIXME: this needs to set `fill` for text elements
-      // node.fill = "black";
-      node.stroke = "black";
-    });
-  };
-  // Get references to our child `Label`s.
-  labels = () => {
-    return [this.nameLabel];
-  };
-  // Create and draw the Instance's `drawing`.
-  draw = () => {
-    const portsymbol = PortMap.get(this.data.kind);
+
+  readonly entityKind: EntityKind = EntityKind.SchPort;
+
+  static create(data: schdata.Port): SchPort {
+    const portsymbol = PortMap.get(data.kind);
     if (!portsymbol) {
-      console.log(`No portsymbol for kind ${this.data.kind}`);
-      return;
+      console.log(`No portsymbol for kind ${data.kind}`);
+      throw new Error("No portsymbol for kind " + data.kind); // FIXME: do this sooner, e.g. on parsing
     }
-    if (this.drawing) {
-      // Remove any existing drawing
-      this.drawing.remove();
-      //   theCanvas.instanceLayer.remove(this.drawing);
-      this.drawing = null;
-    }
+    const drawing = drawSymbolAndPorts(
+      portsymbol.svgLines,
+      [point(0, 0)], // Include the implicit port at the origin
+      { loc: data.loc, orientation: data.orientation }
+    );
+    const port = new SchPort(data, drawing, portsymbol);
+    port.updateBbox();
+    port.createLabels();
+    return port;
+  }
+  override createLabels = () => {
+    const { portsymbol } = this;
 
-    // Load the symbol as a Two.Group, wrapping the content in <svg> elements.
-    let symbolSvgStr = "<svg>" + portsymbol.svgLines.join();
-    symbolSvgStr += `<circle cx="0" cy="0" r="4" class="hdl21-instance-port" />`;
-    symbolSvgStr += "</svg>";
-    const symbol = two.load(symbolSvgStr, doNothing);
-    traverseAndApply(symbol, symbolStyle);
-
-    // Create the Instance's drawing-Group, including its symbol, names, and ports.
-    this.drawing = new Two.Group();
-    this.drawing.add(symbol);
-    theCanvas.instanceLayer.add(this.drawing);
-
-    // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
-    this.drawing.scale = 1;
-    if (this.data.orientation.reflected) {
-      this.drawing.scale = new Two.Vector(1, -1);
-    }
-    // Apply rotation. Note two.js applies rotation *clockwise*,
-    // hence the negation of 90 and 270 degrees.
-    const radianRotation = () => {
-      switch (this.data.orientation.rotation) {
-        case Rotation.R0:
-          return 0;
-        case Rotation.R90:
-          return -Math.PI / 2;
-        case Rotation.R180:
-          return Math.PI;
-        case Rotation.R270:
-          return Math.PI / 2;
-      }
-    };
-    this.drawing.rotation = radianRotation();
-    this.drawing.translation.set(this.data.loc.x, this.data.loc.y);
-
-    // Set the bounding box for hit testing.
-    // Note this must come *after* the drawing is added to the scene.
-    this.bbox = symbol.getBoundingClientRect();
-
-    // Create and add the port-name Label
-    this.nameLabel = Label.create({
+    // Create and add the name Label
+    const nameLabel = Label.create({
       text: this.data.name,
       kind: LabelKind.Name,
       loc: portsymbol.nameloc,
       parent: this,
     });
+    this.drawing.labelGroup.add(nameLabel.drawing);
+    this.drawing.labelMap.set(LabelKind.Name, nameLabel);
+  };
+
+  // Get references to our child `Label`s.
+  override labels = () => {
+    return Array.from(this.drawing.labelMap.values());
+  };
+  // Create and draw the Instance's `drawing`.
+  draw = () => {
+    // Remove the old drawing
+    this.drawing.root.remove();
+
+    // Draw our primary symbol and ports content
+    const { portsymbol } = this;
+    this.drawing = drawSymbolAndPorts(
+      portsymbol.svgLines,
+      [point(0, 0)], // Include the implicit port at the origin
+      { loc: this.data.loc, orientation: this.data.orientation }
+    );
+
+    this.updateBbox();
+    this.createLabels();
 
     if (this.highlighted) {
       this.highlight();
     }
   };
-  // Boolean indication of whether `point` is inside the Instance's bounding box.
-  hitTest = (point: Point) => {
-    if (!this.bbox) {
-      return false;
-    }
-    const bbox = this.bbox;
-    return (
-      point.x > bbox.left &&
-      point.x < bbox.right &&
-      point.y > bbox.top &&
-      point.y < bbox.bottom
-    );
-  };
-  // Abort drawing an in-progress instance.
-  abort = () => {
-    if (this.drawing) {
-      // Remove any existing drawing
-      this.drawing.remove();
-      this.drawing = null;
-    }
-  };
   // Update the string-value from a `Label`.
-  updateLabel = (label: Label) => {
+  updateLabelText = (label: Label) => {
     if (label.kind === LabelKind.Name) {
       this.data.name = label.text;
     } else {
@@ -326,6 +372,5 @@ export class SchPort implements EntityInterface {
   };
 }
 
-// A do-nothing callback function,
-// used in a few places that insist on calling back.
+// A do-nothing callback function, used in a few places that insist on calling back.
 function doNothing() {}

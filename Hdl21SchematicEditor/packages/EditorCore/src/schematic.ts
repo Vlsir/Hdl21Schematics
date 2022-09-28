@@ -4,18 +4,8 @@ import * as schdata from "./schematicdata";
 import { Entity, EntityKind } from "./entity";
 import { Wire } from "./wire";
 import { Instance, SchPort, InstancePort } from "./instance";
+import { Dot } from "./dot";
 import { exhaust } from "./errors";
-
-export class Dot {
-  loc: Point;
-  entityId: number | null = null;
-  drawing: any = null; // FIXME!
-
-  constructor(loc: Point) {
-    this.loc = loc;
-  }
-  draw = () => {};
-}
 
 export class Schematic {
   size: Point;
@@ -42,19 +32,19 @@ export class Schematic {
 
     // Add all instances
     for (let instData of schData.instances) {
-      sch.addInstance(new Instance(instData));
+      sch.addInstance(Instance.create(instData));
     }
     // Add all ports
     for (let portData of schData.ports) {
-      sch.addPort(new SchPort(portData));
+      sch.addPort(SchPort.create(portData));
     }
     // Add all wires. Note we strip the sole `points` field out of these.
     for (let wireData of schData.wires) {
-      sch.addWire(new Wire(wireData.points));
+      sch.addWire(Wire.create(wireData.points));
     }
     // Add all dots
     for (let dotLoc of schData.dots) {
-      sch.addDot(new Dot(dotLoc));
+      sch.addDot(Dot.create(dotLoc));
     }
     return sch;
   }
@@ -162,9 +152,7 @@ export class Schematic {
     // FIXME: delete its port and label entities too
 
     // Remove the port's drawing
-    if (port.drawing) {
-      port.drawing?.remove();
-    }
+    port.removeDrawing();
   };
   // Add a wire to the schematic. Returns its ID if successful, or `null` if not.
   addWire = (wire: Wire) => {
@@ -201,8 +189,6 @@ export class Schematic {
     // FIXME: need to also add Entities per Port and Label
   };
   removeInstance = (instance: Instance) => {
-    console.log(`Removing instance`);
-    console.log(instance);
     if (!this.instances.has(instance.entityId)) {
       console.log("Instance not found in schematic");
       return;
@@ -211,9 +197,7 @@ export class Schematic {
     this.entities.delete(instance.entityId);
 
     // Remove the instance's drawing
-    if (instance.drawing) {
-      instance.drawing?.remove();
-    }
+    instance.removeDrawing();
   };
   // Add an dot to the schematic.
   addDot = (dot: Dot) => {

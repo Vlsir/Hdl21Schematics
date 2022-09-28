@@ -642,7 +642,7 @@ class SchEditor {
       orientation: structuredClone(lastInstanceData.orientation),
     };
     this.uiState.lastInstanceData = newInstanceData;
-    const newInstance = new Instance(newInstanceData);
+    const newInstance = Instance.create(newInstanceData);
     return newInstance;
   }
   // Start adding a new Instance
@@ -747,7 +747,7 @@ class SchEditor {
       orientation: structuredClone(lastPortData.orientation),
     };
     this.uiState.lastPortData = newPortData;
-    const newPort = new SchPort(newPortData);
+    const newPort = SchPort.create(newPortData);
     return newPort;
   }
   // Start adding a new Port

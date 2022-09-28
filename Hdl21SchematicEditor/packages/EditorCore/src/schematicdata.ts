@@ -9,6 +9,7 @@ import { Point } from "./point";
 import { PortKind } from "./portsymbol";
 import { PrimitiveKind } from "./primitive";
 import { Orientation } from "./orientation";
+
 export interface Wire {
   points: Array<Point>;
 }
@@ -29,12 +30,8 @@ export interface Instance {
 }
 
 export class Schematic {
-  constructor(name: string, size: Point) {
-    this.name = name;
-    this.size = size;
-  }
-  name: string;
-  size: Point;
+  constructor(public name: string, public size: Point) {}
+
   prelude: string = "";
   instances: Array<Instance> = [];
   ports: Array<Port> = [];

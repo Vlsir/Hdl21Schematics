@@ -7,9 +7,6 @@ import { theCanvas } from "./canvas";
 import { EntityInterface, EntityKind } from "./entity";
 import { ManhattanSegment, hitTestSegment, calcSegments } from "./manhattan";
 
-// Module-level state of the two.js canvas
-const two = theCanvas.two;
-
 // Wrapper for hit-testing the pointer against drawn wire segements,
 // with tolerance equal to their drawn width.
 const hitTestDrawnSegment = (seg: ManhattanSegment, pt: Point): boolean => {
@@ -18,16 +15,16 @@ const hitTestDrawnSegment = (seg: ManhattanSegment, pt: Point): boolean => {
 };
 
 export class Wire implements EntityInterface {
-  entityKind: EntityKind = EntityKind.Wire;
+  constructor(public points: Array<Point>) {}
 
-  points: Array<Point>;
-  drawing: Path | null = null;
+  readonly entityKind: EntityKind = EntityKind.Wire;
+  drawing: Path | null = null; // FIXME: get rid of the null case
   highlighted: boolean = false;
   segments: Array<ManhattanSegment> | null = null;
-  entityId: number | null = null; // Number, unique ID. Not a constructor argument.
+  entityId: number | null = null; // Numeric unique ID
 
-  constructor(points: Array<Point>) {
-    this.points = points;
+  static create(points: Array<Point>): Wire {
+    return new Wire(points);
   }
   // Create from a list of `Point`s. Primarily creates the drawn `Path`.
   draw() {
@@ -42,7 +39,7 @@ export class Wire implements EntityInterface {
       coords.push(point.x, point.y);
     }
     // Create the drawing
-    this.drawing = two.makePath(...coords);
+    this.drawing = theCanvas.two.makePath(...coords);
     theCanvas.wireLayer.add(this.drawing);
     // Set the wire style
     wireStyle(this.drawing);
