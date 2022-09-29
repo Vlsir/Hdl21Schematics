@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
+    "jsx": "react",
     "declaration": true,
     "module": "commonjs",
     "target": "es2020",

@@ -5,12 +5,13 @@ import { Vector } from "two.js/src/vector";
 
 // Local Imports
 import { Point, point } from "./point";
+import { THE_SECRET_CANVAS_ID } from "./secret";
 
 class Canvas {
   // The Two.js "draw-er", canvas, whatever they call it.
   two: Two = new Two({
     // Lotta futzing with these options has found these two to be indispensible.
-    fullscreen: true,
+    fullscreen: false,
     autostart: true,
     // Perhaps some day we can better understand what goes on with the others.
     // Particularly when implementing resizing.
@@ -18,9 +19,9 @@ class Canvas {
     // fitted: true,
     // width: window.innerWidth,
     // height: window.innerHeight,
-    // width: 1600,
-    // height: 800,
-  }).appendTo(document.body);
+    width: 1600,
+    height: 800,
+  });
 
   stage: Group = this.two.makeGroup();
 
@@ -73,6 +74,13 @@ class Canvas {
     const screen = this.zui.surfaceToClient(new Vector(canvas.x, canvas.y));
     return point(screen.x, screen.y);
   }
+  // Attach the canvas to our DOM element.
+  // This will fail if called before the DOM element is created.
+  attach = () => {
+    // The "!" here in particular is what will fail if the DOM element is not yet created.
+    const e = document.getElementById(THE_SECRET_CANVAS_ID)!;
+    this.two.appendTo(e);
+  };
 }
 
 // Create "THE" one and only canvas object.

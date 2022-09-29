@@ -6,12 +6,21 @@
   "main": "src/index",
   "license": "MIT",
   "dependencies": {
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "@fontsource/roboto": "^4.5.8",
+    "@mui/icons-material": "^5.10.6",
+    "@mui/material": "^5.10.7",
     "PlatformInterface": "^1.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "svg-parser": "^2.0.4",
     "ts-results": "^3.3.0",
     "two.js": "^0.8.10"
   },
   "devDependencies": {
+    "@types/react": "^18.0.21",
+    "@types/react-dom": "^18.0.6",
     "typescript": "^4.8.2"
   }
 }

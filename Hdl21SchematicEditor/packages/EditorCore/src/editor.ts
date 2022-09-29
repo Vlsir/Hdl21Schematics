@@ -8,6 +8,7 @@
 import { Platform, Message, MessageKind } from "PlatformInterface";
 
 // Local Imports
+import { ControlPanels, updatePanels } from "./panels";
 import { exhaust } from "./errors";
 import { Change, ChangeKind } from "./changes";
 import { Point, point } from "./point";
@@ -78,23 +79,20 @@ export enum Keys {
 // Schematic Editors communicate with an underlying "platform" via Message passing.
 // The platform is responsible for tasks such as file I/O and launching the editor in the first place.
 // Each platform-type implements the `Platform` interface, which consists of two methods:
-// *
+// * `registerMessageHandler` - registers a callback to handle incoming messages. Called once during Editor initialization.
+// * `sendMessage` - sends a message from the Editor to the Platform
 //
 // At construction time, each editor needs a sole attribute: its `Platform`.
 // The platform is responsible for providing initial schematic content,
-// after the editor is constructed and indicates it is ready via a `renderer-up` message.
+// after the editor is constructed and indicates it is ready via messages.
 //
-class SchEditor {
-  platform: Platform;
+export class SchEditor {
   schematic: Schematic = new Schematic();
   uiState: UiState = new UiState();
   failer: (msg: string) => void = console.log; // Function called on errors
 
-  constructor(platform: Platform) {
-    this.platform = platform;
-
+  constructor(readonly platform: Platform) {
     // Perform all of our one-time startup activity, binding events, etc.
-    // window.addEventListener('resize', FIXME!);
     window.addEventListener("wheel", this.handleWheel);
     window.addEventListener("keydown", this.handleKey);
     window.addEventListener("mousedown", this.handleMouseDown, true);
@@ -102,6 +100,11 @@ class SchEditor {
     window.addEventListener("mousemove", this.handleMouseMove, true);
     window.addEventListener("dblclick", this.handleDoubleClick);
     // window.addEventListener("click", this.handleClick);
+    // window.addEventListener('resize', this.handleResize);
+
+    // Attach the drawing canvas to the DOM
+    // FIXME: the event handlers probably need to move there too.
+    theCanvas.attach();
 
     // Register our message-handler with the platform.
     this.platform.registerMessageHandler(this.handleMessage);
@@ -171,6 +174,7 @@ class SchEditor {
   // Go to the "UI Idle" state, in which nothing is moving, being drawn, or really doing anything.
   goUiIdle = () => {
     this.uiState.mode = UiModes.Idle;
+    updatePanels({ controlPanel: { whichKind: ControlPanels.ActionList } });
   };
   // Handle zoom via the mouse scroll wheel.
   handleWheel = (e: WheelEvent) => {
@@ -620,6 +624,7 @@ class SchEditor {
     this.uiState.mode = UiModes.AddInstance;
     this.uiState.pending_entity = entity;
     this.select(entity);
+    updatePanels({ controlPanel: { whichKind: ControlPanels.PrimList } });
 
     // And draw the instance.
     instance.draw();
@@ -713,11 +718,12 @@ class SchEditor {
     // Create the provisional `Port`. Note it is *not* added to the schematic yet.
     const port = this.createPort();
     const entity = new Entity(EntityKind.SchPort, port);
-
+    
     // Update our UI state.
     this.uiState.mode = UiModes.AddPort;
     this.uiState.pending_entity = entity;
     this.select(entity);
+    updatePanels({ controlPanel: { whichKind: ControlPanels.PortList } });
 
     // And draw the port.
     port.draw();
@@ -879,13 +885,4 @@ class SchEditor {
       to: placeTo,
     });
   };
-}
-
-// The singleton `SchEditor`, and our entrypoint to start it up.
-let theEditor: SchEditor | null = null;
-export function start(platform: Platform): void {
-  if (theEditor) {
-    return;
-  }
-  theEditor = new SchEditor(platform);
 }
