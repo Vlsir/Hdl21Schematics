@@ -34,7 +34,8 @@ export class Label implements EntityInterface {
     public drawing: Text,
     public failer: any = console.log
   ) {}
-  readonly entityKind: EntityKind = EntityKind.Label;
+  entityKind: EntityKind.Label = EntityKind.Label;
+  entityId: number | null = null;
   bbox: Bbox = bbox.empty();
   highlighted: boolean = false;
 
@@ -42,10 +43,6 @@ export class Label implements EntityInterface {
   static create(data: LabelData): Label {
     const drawing = Label.createDrawing(data);
     const label = new Label(data, drawing);
-    // Add it to our parent
-    // Note this must be done *before* we compute the bounding box.
-    data.parent.addLabelDrawing(drawing);
-    label.updateBbox();
     return label;
   }
   // Create the drawn element from label data
@@ -56,9 +53,12 @@ export class Label implements EntityInterface {
   }
   draw() {
     // Remove any existing drawing and replace it with a new one
-    // Note notification to our parent occurs in `createDrawing`.
+    // Note notification to our parent occurs in `create`.
     this.drawing.remove();
     this.drawing = Label.createDrawing(this.data);
+    // Add it to our parent
+    // Note this must be done *before* we compute the bounding box.
+    this.data.parent.addLabelDrawing(this.drawing);
     this.updateBbox();
   }
   // Update our text value

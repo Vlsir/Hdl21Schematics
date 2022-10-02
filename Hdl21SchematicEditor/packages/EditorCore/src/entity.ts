@@ -1,4 +1,8 @@
-import { Point, point } from "./point";
+import { Point } from "./point";
+import { Instance, SchPort, InstancePort } from "./drawing";
+import { Wire } from "./wire";
+import { Label } from "./label";
+import { Dot } from "./dot";
 
 // Enumerated Kinds of Schematic Entities
 export enum EntityKind {
@@ -16,7 +20,8 @@ export enum EntityKind {
 // "Implementers" include Symbols, Ports, and WireSegments.
 //
 export interface EntityInterface {
-  readonly entityKind: EntityKind;
+  entityKind: EntityKind;
+  entityId: number | null;
 
   // Create and add the drawn, graphical representation
   draw(): void;
@@ -30,36 +35,6 @@ export interface EntityInterface {
   abort(): void;
 }
 
-// # Schematic Entity
-//
-// All the methods for interacting with a schematic entity.
-// "Implementers" include Symbols, Ports, and WireSegments.
-//
-export class Entity {
-  kind: EntityKind;
-  obj: any; // FIXME!
-  constructor(kind: EntityKind, obj: any) {
-    this.kind = kind; // EntityKind
-    this.obj = obj; // Inner object
-  }
-  // Create and add the drawn, graphical representation
-  draw = () => {
-    return this.obj.draw();
-  };
-  // Update styling to indicate highlighted-ness
-  highlight = () => {
-    return this.obj.highlight();
-  };
-  // Update styling to indicate the lack of highlighted-ness
-  unhighlight = () => {
-    return this.obj.unhighlight();
-  };
-  // Boolean indication of whether `point` is inside the instance.
-  hitTest = (point: Point) => {
-    return this.obj.hitTest(point);
-  };
-  // Abort an in-progress instance.
-  abort = () => {
-    return this.obj.abort();
-  };
-}
+// The union-type of `EntityInterface` implementers
+// This is a tagged union on `entityKind`, which we often use to differentiate between them.
+export type Entity = Instance | SchPort | InstancePort | Wire | Label | Dot;

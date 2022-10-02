@@ -4,10 +4,13 @@
 //
 export interface Platform {
   // Send a message from the editor to its platform.
-  sendMessage(msg: Message): void;
+  sendMessage: MessageHandler;
   // Register a function to handle messages from the platform to the editor.
-  registerMessageHandler(handler: (msg: Message) => void): void;
+  registerMessageHandler(handler: MessageHandler): void;
 }
+
+// Type alias for a function that takes a `Message` and returns nothing.
+export type MessageHandler = (msg: Message) => void;
 
 /*
  * # Message Types

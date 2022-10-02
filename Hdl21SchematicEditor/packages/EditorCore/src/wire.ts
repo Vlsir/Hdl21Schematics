@@ -17,7 +17,7 @@ const hitTestDrawnSegment = (seg: ManhattanSegment, pt: Point): boolean => {
 export class Wire implements EntityInterface {
   constructor(public points: Array<Point>) {}
 
-  readonly entityKind: EntityKind = EntityKind.Wire;
+  entityKind: EntityKind.Wire = EntityKind.Wire;
   drawing: Path | null = null; // FIXME: get rid of the null case
   highlighted: boolean = false;
   segments: Array<ManhattanSegment> | null = null;

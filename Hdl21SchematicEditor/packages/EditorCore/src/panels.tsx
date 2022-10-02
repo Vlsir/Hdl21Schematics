@@ -129,7 +129,14 @@ function ControlPanelList(props: ControlPanelProps) {
 
 const PrimList = ["Nmos", "Pmos", "Res", "Res3", "Cap", "Cap3", "Ind", "Ind3"];
 const PortList = ["Input", "Output", "Inout"];
-const ActionList = ["Add Instance", "Add Wire", "Some Prelude Thing"];
+const ActionList = ["Add Instance", "Add Wire", "Edit Prelude"];
+
+interface ControlPanelItem {
+  text: string; // Text displayed in the control panel
+  icon: any; // FIXME: whatever this gonna be
+  shortcutKey: any; // FIXME: that too
+  onClick: () => void; // Callback when clicked
+}
 
 export enum ControlPanels {
   ActionList = "ActionList",

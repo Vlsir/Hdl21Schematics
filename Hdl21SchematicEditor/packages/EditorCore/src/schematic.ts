@@ -8,7 +8,7 @@ import { Dot } from "./dot";
 import { exhaust } from "./errors";
 
 export class Schematic {
-  size: Point;
+  constructor(public size: Point = point(1600, 800)) {}
 
   // Internal data stores
   wires = new Map(); // Map<Number, Wire>
@@ -23,9 +23,6 @@ export class Schematic {
   // Running count of added schematic entities. Serves as their "primary key" in each Map.
   num_entities = 0;
 
-  constructor(size: Point = point(1600, 800)) {
-    this.size = size;
-  }
   // Create a (drawn) `Schematic` from the abstract data model
   static fromData(schData: schdata.Schematic): Schematic {
     const sch = new Schematic(schData.size);
@@ -70,12 +67,12 @@ export class Schematic {
   _insertEntity = (entity: Entity) => {
     // Set the entity's ID, if it doesn't have one already.
     // We get re-inserted entities from the undo stack, so we need to check for this.
-    if (!entity.obj.entityId) {
-      entity.obj.entityId = this.num_entities;
+    if (!entity.entityId) {
+      entity.entityId = this.num_entities;
       // Increment the number of entities even if we fail, hopefully breaking out of failure cases.
       this.num_entities += 1;
     }
-    const { entityId } = entity.obj;
+    const { entityId } = entity;
 
     if (this.entities.has(entityId)) {
       console.log(`Entity ${entityId} already exists. Cannot add ${entity}.`);
@@ -86,55 +83,56 @@ export class Schematic {
     return entityId;
   };
   // Add an entity to the schematic. Largely dispatches according to the entity's kind.
-  addEntity = (entity: Entity) => {
+  addEntity = (entity: Entity): void => {
     /* Entity => void */
     // const entityId = this._insertEntity(entity);
     // if (entityId === null) { return; }
 
-    switch (entity.kind) {
+    const { entityKind } = entity;
+    switch (entityKind) {
       // Delete-able entities
       case EntityKind.SchPort:
-        return this.addPort(entity.obj);
+        return this.addPort(entity);
       case EntityKind.Dot:
-        return this.addDot(entity.obj);
+        return this.addDot(entity);
       case EntityKind.Wire:
-        return this.addWire(entity.obj);
+        return this.addWire(entity);
       case EntityKind.Instance:
-        return this.addInstance(entity.obj);
+        return this.addInstance(entity);
       // Non directly add-able "child" entities
       case EntityKind.Label:
       case EntityKind.InstancePort:
         return;
       default:
-        throw exhaust(entity.kind); // Exhaustiveness check
+        throw exhaust(entityKind); // Exhaustiveness check
     }
   };
   // Remove an entity from the schematic. Largely dispatches according to the entity's kind.
   removeEntity = (entity: Entity) => {
-    /* Entity => void */
-    switch (entity.kind) {
+    const { entityKind } = entity;
+    switch (entityKind) {
       // Delete-able entities
       case EntityKind.SchPort:
-        return this.removePort(entity.obj);
+        return this.removePort(entity);
       case EntityKind.Dot:
-        return this.removeDot(entity.obj);
+        return this.removeDot(entity);
       case EntityKind.Wire:
-        return this.removeWire(entity.obj);
+        return this.removeWire(entity);
       case EntityKind.Instance:
-        return this.removeInstance(entity.obj);
+        return this.removeInstance(entity);
       // Non-delete-able "child" entities
       case EntityKind.Label:
       case EntityKind.InstancePort:
         return;
       default:
-        throw exhaust(entity.kind); // Exhaustiveness check
+        throw exhaust(entityKind); // Exhaustiveness check
     }
   };
   // Add a port to the schematic.
   addPort = (port: SchPort) => {
     /* Port => Number | null */
     // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(new Entity(EntityKind.SchPort, port));
+    const entityId = this._insertEntity(port);
     // Increment our port count, whether we succeeded or not.
     this.num_ports += 1;
     if (entityId !== null) {
@@ -156,9 +154,8 @@ export class Schematic {
   };
   // Add a wire to the schematic. Returns its ID if successful, or `null` if not.
   addWire = (wire: Wire) => {
-    /* Wire => Number | null */
     // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(new Entity(EntityKind.Wire, wire));
+    const entityId = this._insertEntity(wire);
     // And if successful, add it to our `wires` mapping.
     if (entityId !== null) {
       this.wires.set(entityId, wire);
@@ -178,9 +175,7 @@ export class Schematic {
   addInstance = (instance: Instance) => {
     /* Instance => Number | null */
     // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(
-      new Entity(EntityKind.Instance, instance)
-    );
+    const entityId = this._insertEntity(instance);
     // Increment our instance count, whether we succeeded or not.
     this.num_instances += 1;
     if (entityId !== null) {
@@ -203,7 +198,7 @@ export class Schematic {
   addDot = (dot: Dot) => {
     /* Dot => Number | null */
     // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(new Entity(EntityKind.Dot, dot));
+    const entityId = this._insertEntity(dot);
     if (entityId !== null) {
       this.dots.set(entityId, dot);
     }

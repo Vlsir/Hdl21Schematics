@@ -8,19 +8,21 @@ import { Wire } from "./wire";
 import { Instance, SchPort, InstancePort } from "./instance";
 import { exhaust } from "./errors";
 
-// # Connection Dot 
-// 
-// The `Dot` class just looks like a circle in our drawing. 
-// But it's got among the most fun behavior. 
-// Each `Dot` has one or more `Wire`s and zero or one `Instance`s attached to it. 
-// The `update` methods check if the total number of these things has 
-// decreased to less than or equal to *one*, 
-// and if so, the dot is removed. 
-// 
+// # Connection Dot
+//
+// The `Dot` class just looks like a circle in our drawing.
+// But it's got among the most fun behavior.
+// Each `Dot` has one or more `Wire`s and zero or one `Instance`s attached to it.
+// The `update` methods check if the total number of these things has
+// decreased to less than or equal to *one*,
+// and if so, the dot is removed.
+//
 export class Dot {
   constructor(readonly loc: Point, public drawing: Circle) {}
 
+  entityKind: EntityKind.Dot = EntityKind.Dot;
   entityId: number | null = null;
+
   wires: Array<Wire> = [];
   instance: Instance | null = null;
   highlighted: boolean = false;
@@ -62,8 +64,5 @@ export class Dot {
   };
   abort = () => {};
 
-  updateInstance = (instance: Instance | null) => {
-
-  }
-
+  updateInstance = (instance: Instance | null) => {};
 }

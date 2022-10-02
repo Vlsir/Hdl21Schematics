@@ -5,26 +5,25 @@ import { PrimitiveKind, primitiveLib } from "./primitive";
 import { theCanvas } from "./canvas";
 import { PortKind, portLib } from "./portsymbol";
 import { Change, ChangeLog } from "./changes";
-
-/// # Enumerated UI Modes
-///
-export enum UiModes {
-  Idle = "Idle",
-  AddInstance = "AddInstance",
-  AddPort = "AddPort",
-  MoveInstance = "MoveInstance",
-  EditLabel = "EditLabel",
-  DrawWire = "DrawWire",
-  Pan = "Pan",
-}
+import { Entity } from "./entity";
+import { SchEditor } from "./editor";
+import { UiModes, UiModeHandler, ModeHandlers } from "./modes";
 
 // # UI State
 //
 // Everything about the current state of the UI that *is not* the content of the schematic.
 //
 export class UiState {
+  constructor(public editor: SchEditor) {
+    this.modeHandler = ModeHandlers.Idle.start(editor);
+  }
+
   // Global UI mode
-  mode: UiModes = UiModes.Idle;
+  modeHandler: UiModeHandler;
+  get mode(): UiModes {
+    return this.modeHandler.mode;
+  }
+
   // Change-log, for undo-redo
   changeLog: ChangeLog = new ChangeLog();
 
@@ -48,11 +47,9 @@ export class UiState {
   };
 
   // The currently selected entity (instance, wire, port, etc.)
-  selected_entity: any = null; // FIXME: type
+  selected_entity: Entity | null = null;
   // The currently pending entity, if there is one
-  pending_entity: any = null; // FIXME: type
-  // The currently pending change, if there is one
-  pendingChange: Change | null = null;
+  pending_entity: Entity | null = null;
 
   // Track the mouse position at all times.
   // Initializes to the center of the canvas.

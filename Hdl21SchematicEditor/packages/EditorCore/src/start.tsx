@@ -2,7 +2,7 @@
  * # Startup Bootstrapping Dance
  *
  * This is all about reconciling the React-based content (sidebars and similar)
- * with the singleton "canvas" and related schematic content.
+ * with the singleton "editor", "canvas", and related schematic content.
  *
  */
 
@@ -14,19 +14,12 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { Platform } from "PlatformInterface";
 
 // Local Imports
-import { SchEditor } from "./editor";
 import { THE_SECRET_CANVAS_ID } from "./secret";
+import { theEditor } from "./editor";
 import { Panels } from "./panels";
-
-// The singleton `SchEditor`, and our entrypoint to start it up.
-let theEditor: SchEditor | null = null;
 
 // Our exposed startup entry point: take a `Platform`, produce an Editor UI.
 export function start(platform: Platform): void {
-  if (theEditor !== null) {
-    return; // Already started, and we don't support re-starting.
-  }
-
   // # Sch Editor Starter
   // A React component that "does nothing", but starts up the module-scope editor.
   // This and its parent have no props and no state, and are never re-rendered after their initial drawing.
@@ -34,9 +27,7 @@ export function start(platform: Platform): void {
     // Rendering, which happens *before* `componentDidMount`, creates the parent DOM element.
     render = () => <div id={THE_SECRET_CANVAS_ID} />;
     // Mounting, which happens *after* `render`, starts the editor.
-    componentDidMount = () => {
-      theEditor = new SchEditor(platform);
-    };
+    componentDidMount = () => theEditor.start(platform);
   }
 
   // Have React render our top-level component.
