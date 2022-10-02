@@ -1,11 +1,11 @@
 import { Path } from "two.js/src/path";
 
 // Local Imports
-import { Point } from "./point";
+import { EntityInterface, EntityKind } from "./entity";
 import { wireStyle } from "./style";
 import { theCanvas } from "./canvas";
-import { EntityInterface, EntityKind } from "./entity";
-import { ManhattanSegment, hitTestSegment, calcSegments } from "./manhattan";
+import { Point } from "../point";
+import { ManhattanSegment, hitTestSegment, calcSegments } from "../manhattan";
 
 // Wrapper for hit-testing the pointer against drawn wire segements,
 // with tolerance equal to their drawn width.

@@ -2,19 +2,18 @@
  * # UI Mode Handlers
  */
 
-import { Keys } from "./keys";
-import { Label } from "./label";
-import { Place } from "./place";
-import { ChangeKind } from "./changes";
-import { nearestOnGrid, nearestManhattan } from "./grid";
-import { Primitive, primitiveLib } from "./primitive";
+import { EntityKind, Label } from "../drawing";
+import { Instance, SchPort, Wire } from "../drawing";
+import { nearestOnGrid, nearestManhattan } from "../drawing/grid";
 
-import { portLib, PortSymbol } from "./portsymbol";
-import { EntityKind } from "./entity";
-import { SchEditor } from "./editor";
-import { exhaust } from "./errors";
-import { Instance, SchPort, Wire } from "./drawing";
-import { ControlPanels, updatePanels } from "./panels";
+import { Keys } from "../keys";
+import { Place } from "../place";
+import { ChangeKind } from "../changes";
+import { Primitive, primitiveLib } from "../primitive";
+import { portLib, PortSymbol } from "../portsymbol";
+import { SchEditor } from "../editor";
+import { exhaust } from "../errors";
+import { ControlPanels, updatePanels } from "../panels";
 
 /// # Enumerated UI Modes
 ///
@@ -151,11 +150,11 @@ export class AddInstance extends UiModeHandlerBase {
   commitAddInstance = () => {
     const { editor, instance } = this;
 
+    // Add the instance to the schematic.
     editor.schematic.addInstance(instance);
 
     // Notify the changeLog and platform of the change.
-    const entity = editor.uiState.selected_entity;
-    editor.logChange({ kind: ChangeKind.Add, entity });
+    editor.logChange({ kind: ChangeKind.Add, entity: instance });
 
     editor.uiState.pending_entity = null;
     editor.deselect();
@@ -397,7 +396,6 @@ export class DrawWire extends UiModeHandlerBase {
     wire.draw();
   };
   // Commit the currently-drawn wire to the schematic.
-  // Removes it from `selected_entity` and adds it to the schematic.
   commitWire = () => {
     const { editor, wire } = this;
 

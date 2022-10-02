@@ -1,5 +1,11 @@
+/*
+ * # Changes & Change Log
+ *
+ * The undo-redo queue and its member types.
+ */
+
+import { Label, SchPort, Instance, Entity } from "./drawing";
 import { Place } from "./place";
-import { Label } from "./label";
 import { exhaust } from "./errors";
 
 // Enumerate Kinds of Changes
@@ -13,17 +19,17 @@ export enum ChangeKind {
 
 export interface Add {
   kind: ChangeKind.Add;
-  entity: any; // FIXME: type
+  entity: Entity;
 }
 
 export interface Remove {
   kind: ChangeKind.Remove;
-  entity: any; // FIXME: type
+  entity: Entity;
 }
 
 export interface Move {
   kind: ChangeKind.Move;
-  entity: any; // FIXME: type
+  entity: SchPort | Instance;
   from: Place;
   to: Place;
 }

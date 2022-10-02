@@ -4,15 +4,15 @@ import { Vector } from "two.js/src/vector";
 
 // Local Imports
 import { Bbox, bbox } from "./bbox";
-import { Place } from "./place";
-import { Point, point } from "./point";
-import * as schdata from "./schematicdata";
-import { Rotation } from "./orientation";
-import { symbolStyle, instacePortStyle } from "./style";
 import { Label, LabelKind, LabelParent } from "./label";
 import { EntityKind, EntityInterface } from "./entity";
+import { symbolStyle, instacePortStyle } from "./style";
+import * as schdata from "../schematicdata";
+import { Place } from "../place";
+import { Point, point } from "../point";
+import { Rotation } from "../orientation";
 import { theCanvas } from "./canvas";
-import { exhaust } from "./errors";
+import { exhaust } from "../errors";
 
 // FIXME! fill these guys in
 export class InstancePort implements EntityInterface {

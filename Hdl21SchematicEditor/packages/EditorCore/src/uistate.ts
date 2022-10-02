@@ -2,12 +2,11 @@ import { orientation } from "./orientation";
 import { Instance as InstanceData, Port as PortData } from "./schematicdata";
 import { Point, point } from "./point";
 import { PrimitiveKind, primitiveLib } from "./primitive";
-import { theCanvas } from "./canvas";
 import { PortKind, portLib } from "./portsymbol";
-import { Change, ChangeLog } from "./changes";
-import { Entity } from "./entity";
+import { ChangeLog } from "./changes";
 import { SchEditor } from "./editor";
 import { UiModes, UiModeHandler, ModeHandlers } from "./modes";
+import { Entity, theCanvas } from "./drawing";
 
 // # UI State
 //

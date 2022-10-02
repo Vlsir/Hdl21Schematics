@@ -1,11 +1,10 @@
-import Two from "two.js";
 import { Text } from "two.js/src/text";
 
 // Local Imports
 import { Bbox, bbox } from "./bbox";
-import { EntityInterface, EntityKind } from "./entity";
-import { Point, point } from "./point";
 import { labelStyle } from "./style";
+import { EntityInterface, EntityKind } from "./entity";
+import { Point } from "../point";
 
 export enum LabelKind {
   Name = "Name",

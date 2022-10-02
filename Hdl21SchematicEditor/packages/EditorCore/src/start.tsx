@@ -31,12 +31,12 @@ export function start(platform: Platform): void {
   }
 
   // Have React render our top-level component.
-  createRoot(document.body).render(
+  const root = document.body.appendChild(document.createElement("div"));
+  createRoot(root).render(
     <div>
       <CssBaseline />
       <SchEditorStarter />
       <Panels />
     </div>
   );
-  // FIXME: react complains about attaching to `body` now, presumably for decent-enough reasons.
 }

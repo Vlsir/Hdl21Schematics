@@ -3,11 +3,11 @@
  */
 
 // Local Imports
-import * as schdata from "./schematicdata";
-import { Orientation, matrix } from "./orientation";
-import { toCircuitJson } from "./circuit_extractor";
-import { Point, point } from "./point";
 import { SchSvgIds, SchSvgClasses } from "./svgdefs";
+import * as schdata from "../schematicdata";
+import { Orientation, matrix } from "../orientation";
+import { toCircuitJson } from "../circuit/extractor";
+import { Point, point } from "../point";
 
 // # Schematic to SVG Encoder/ Exporter
 //

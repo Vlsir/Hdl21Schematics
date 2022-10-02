@@ -8,12 +8,12 @@ import { Ok, Err, Result } from "ts-results";
 
 // Local imports
 import { Circuit, Instance, Signal, Connection, PortDir } from "./circuit";
-import { Point, point } from "./point";
-import { Schematic, Wire } from "./schematicdata";
-import { OrientationMatrix, matrix } from "./orientation";
-import { PortKind } from "./portsymbol";
-import { exhaust } from "./errors";
-import { calcSegments, ManhattanSegment, hitTestSegment } from "./manhattan";
+import { Point, point } from "../point";
+import { Schematic, Wire } from "../schematicdata";
+import { OrientationMatrix, matrix } from "../orientation";
+import { PortKind } from "../portsymbol";
+import { exhaust } from "../errors";
+import { calcSegments, ManhattanSegment, hitTestSegment } from "../manhattan";
 
 // Extract the `Circuit` from a `Schematic`.
 // Returns an `Err` if the schematic cannot be converted to a valid `Circuit`.
@@ -75,7 +75,7 @@ class ConverterSignal {
 }
 
 /* # Schematic to Circuit Converter State */
-export class SchematicToCircuitConverter {
+class SchematicToCircuitConverter {
   // Sole constructor argument: the input `Schematic`
   constructor(readonly sch: Schematic) {}
 
@@ -254,11 +254,7 @@ export class SchematicToCircuitConverter {
 
 /* Apply the `OrientationMatrix` transformation to `pt`.
     Computes `pt * mat + loc`. */
-export function transform(
-  pt: Point,
-  mat: OrientationMatrix,
-  loc: Point
-): Point {
+function transform(pt: Point, mat: OrientationMatrix, loc: Point): Point {
   return point(
     mat.a * pt.x + mat.c * pt.y + loc.x,
     mat.b * pt.x + mat.d * pt.y + loc.y

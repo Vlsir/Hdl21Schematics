@@ -1,5 +1,12 @@
-import { Point } from "./point";
-import { Instance, SchPort, InstancePort } from "./drawing";
+/* 
+ * # Schematic Entity 
+ * 
+ * The interface to and union-type of all the things that can be drawn on a schematic.
+ */
+
+// Local Imports 
+import { Point } from "../point";
+import { Instance, SchPort, InstancePort } from "./instance";
 import { Wire } from "./wire";
 import { Label } from "./label";
 import { Dot } from "./dot";

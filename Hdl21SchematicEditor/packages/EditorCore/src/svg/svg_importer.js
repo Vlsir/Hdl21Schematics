@@ -8,11 +8,11 @@ import { parse as svgparse } from 'svg-parser';
 
 // Local Imports
 import { SchSvgClasses, SchSvgIds } from './svgdefs';
-import { point } from "./point";
-import { Schematic } from "./schematicdata";
-import { matrix, orientation } from "./orientation";
-import { PrimitiveKind, PrimitiveTags } from "./primitive";
-import { PortTags } from "./portsymbol";
+import { point } from "../point";
+import { Schematic } from "../schematicdata";
+import { matrix, orientation } from "../orientation";
+import { PrimitiveKind, PrimitiveTags } from "../primitive";
+import { PortTags } from "../portsymbol";
 
 
 // # Schematic SVG Importer

@@ -20,11 +20,11 @@ import { Point, point } from "./point";
 import { Direction } from "./direction";
 import { Importer, Exporter } from "./svg";
 import { nextRotation } from "./orientation";
-import { Entity, EntityKind, Schematic } from "./drawing";
 import { UiState } from "./uistate";
 import { UiModes, ModeHandlers } from "./modes";
-import { theCanvas } from "./canvas";
-import { setupGrid } from "./grid";
+// import { theCanvas } from "./canvas";
+// import { setupGrid } from "./grid";
+import { Entity, EntityKind, Schematic, setupGrid, theCanvas } from "./drawing";
 
 // A dummy "Platform", which does nothing, and stands in for a real one between Editor construction and startup.
 const NoPlatform = {

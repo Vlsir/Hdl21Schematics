@@ -1,11 +1,11 @@
 // Local Imports
-import { Point, point } from "./point";
-import * as schdata from "./schematicdata";
 import { Entity, EntityKind } from "./entity";
 import { Wire } from "./wire";
-import { Instance, SchPort, InstancePort } from "./instance";
+import { Instance, SchPort } from "./instance";
 import { Dot } from "./dot";
-import { exhaust } from "./errors";
+import { Point, point } from "../point";
+import * as schdata from "../schematicdata";
+import { exhaust } from "../errors";
 
 export class Schematic {
   constructor(public size: Point = point(1600, 800)) {}

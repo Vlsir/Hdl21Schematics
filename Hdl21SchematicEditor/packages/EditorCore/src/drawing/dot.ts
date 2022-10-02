@@ -1,12 +1,11 @@
 import { Circle } from "two.js/src/shapes/circle";
 
 // Local Imports
-import { Point, point } from "./point";
-import * as schdata from "./schematicdata";
+import { Point, point } from "../point";
+import { exhaust } from "../errors";
 import { EntityInterface, Entity, EntityKind } from "./entity";
 import { Wire } from "./wire";
 import { Instance, SchPort, InstancePort } from "./instance";
-import { exhaust } from "./errors";
 
 // # Connection Dot
 //
