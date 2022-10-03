@@ -19,11 +19,8 @@ import { Change, ChangeKind } from "./changes";
 import { Point, point } from "./point";
 import { Direction } from "./direction";
 import { Importer, Exporter } from "./svg";
-import { nextRotation } from "./orientation";
 import { UiState } from "./uistate";
-import { UiModes, ModeHandlers } from "./modes";
-// import { theCanvas } from "./canvas";
-// import { setupGrid } from "./grid";
+import { ModeHandlers } from "./modes";
 import { Entity, EntityKind, Schematic, setupGrid, theCanvas } from "./drawing";
 
 // A dummy "Platform", which does nothing, and stands in for a real one between Editor construction and startup.
@@ -63,20 +60,41 @@ export class SchEditor {
       return; // We've already started, and won't start again.
     }
     this.platform = platform;
-
-    // Perform all of our one-time startup activity, binding events, etc.
-    window.addEventListener("wheel", this.handleWheel);
-    window.addEventListener("keydown", this.handleKey);
-    window.addEventListener("mousedown", this.handleMouseDown, true);
-    window.addEventListener("mouseup", this.handleMouseUp, true);
-    window.addEventListener("mousemove", this.handleMouseMove, true);
-    window.addEventListener("dblclick", this.handleDoubleClick);
-    // window.addEventListener("click", this.handleClick);
-    // window.addEventListener('resize', this.handleResize);
+    // Perform all of our one-time startup activity,
+    // creating the canvas, binding it to the DOM, binding events, etc.
 
     // Attach the drawing canvas to the DOM
-    // FIXME: the event handlers probably need to move there too.
     theCanvas.attach();
+
+    // The key event listener seems to need to be on `window`,
+    // while mouse events are on the canvas's parent div.
+    window.addEventListener("keydown", this.handleKey);
+    // FIXME: where will this `wheel` event eventually attach
+    window.addEventListener("wheel", this.handleWheel);
+    // window.addEventListener('resize', this.handleResize);
+    theCanvas.parentDomElement!.addEventListener(
+      "mousedown",
+      this.handleMouseDown,
+      true
+    );
+    theCanvas.parentDomElement!.addEventListener(
+      "mouseup",
+      this.handleMouseUp,
+      true
+    );
+    theCanvas.parentDomElement!.addEventListener(
+      "mousemove",
+      this.handleMouseMove,
+      true
+    );
+    theCanvas.parentDomElement!.addEventListener(
+      "dblclick",
+      this.handleDoubleClick
+    );
+    // theCanvas.parentDomElement!.addEventListener("click", this.handleClick);
+
+    // Get ourselves out of the "before startup" mode, and into UI idle.
+    this.goUiIdle();
 
     // Register our message-handler with the platform.
     this.platform.registerMessageHandler(this.handleMessage);
@@ -174,50 +192,13 @@ export class SchEditor {
       // Skip everything else when a modifier key is pressed.
       return;
     }
-    const { mode } = this.uiState.modeHandler;
-    switch (mode) {
-      // Delegate keystrokes in these modes to their mode handlers.
-      case UiModes.EditLabel:
-      case UiModes.AddInstance:
-      case UiModes.AddPort:
-      case UiModes.DrawWire:
-        return this.uiState.modeHandler.handleKey(e);
-      default: {
-      }
+    // Save with... comma(?). FIXME: modifier keys plz!
+    if (e.key === Keys.Comma) {
+      return this.sendSaveFile();
     }
-    // All other UI states: check for "command" keystrokes.
-    switch (e.key) {
-      case Keys.Delete:
-      case Keys.Backspace: {
-        // Delete the selected entity
-        return this.deleteSelectedEntity();
-      }
-      // FIXME: if already in these states, we start a new entity without *really* finishing the pending one!
-      case Keys.i:
-        this.uiState.modeHandler = ModeHandlers.AddInstance.start(this);
-        return;
-      case Keys.p:
-        this.uiState.modeHandler = ModeHandlers.AddPort.start(this);
-        return;
-      case Keys.w:
-        this.uiState.modeHandler = ModeHandlers.DrawWire.start(this);
-        return;
-      // Rotation & refelection
-      case Keys.r:
-        return this.rotateSelected();
-      case Keys.v:
-        return this.flipSelected(Direction.Vert);
-      case Keys.h:
-        return this.flipSelected(Direction.Horiz);
-      // Save with... comma(?). FIXME: modifier keys plz!
-      case Keys.Comma:
-        return this.sendSaveFile();
-      default:
-        // Note this *is not* an exhaustive check, on purpose.
-        // There's lots of keys we don't care about!
-        // Some day the logging should go away too.
-        console.log(`Key we dont use: '${e.key}'`);
-    }
+
+    // Delegate everything else to the mode-specific key handler.
+    return this.uiState.modeHandler.handleKey(e);
   };
   // Log a `Change` to the change history and to the platform.
   logChange(change: Change): void {
@@ -241,7 +222,6 @@ export class SchEditor {
         return entity.draw();
 
       case ChangeKind.EditText:
-        console.log(change);
         change.label.update(change.to);
         return change.label.draw();
 
@@ -378,80 +358,64 @@ export class SchEditor {
 
   // Flip the selected instance, if one is selected.
   flipSelected = (dir: Direction) => {
-    if (!this.uiState.selected_entity) {
+    // FIXME: share this "filter down to Instances and SchPorts" bit
+    const entity = this.uiState.selected_entity;
+    if (!entity) {
       return;
     }
-    const { entityKind } = this.uiState.selected_entity;
+    const { entityKind } = entity;
     if (
       !(entityKind === EntityKind.Instance || entityKind === EntityKind.SchPort)
     ) {
       return;
     }
 
-    // We have a flippable selected entity. Flip it.
-    const obj = this.uiState.selected_entity;
+    // The selected entity is flippable. Flip it.
     // Before modifiying the entity, clone its location data for change logging.
-    const placeFrom = structuredClone({
-      loc: obj.data.loc,
-      orientation: obj.data.orientation,
-    });
+    const placeFrom = structuredClone(entity.place());
 
-    // Always flip vertically. Horizontal flips are comprised of a vertical flip and two rotations.
-    obj.data.orientation.reflected = !obj.data.orientation.reflected;
-    if (dir === Direction.Horiz) {
-      obj.data.orientation.rotation = nextRotation(
-        nextRotation(obj.data.orientation.rotation)
-      );
-    }
-    obj.draw();
+    // Flip and re-draw the entity
+    entity.flip(dir);
 
     // And clone the resulting location data for change logging.
-    const placeTo = structuredClone({
-      loc: obj.data.loc,
-      orientation: obj.data.orientation,
-    });
+    const placeTo = structuredClone(entity.place());
 
     // Notify the changeLog and platform of the change.
     this.logChange({
       kind: ChangeKind.Move,
-      entity: this.uiState.selected_entity,
+      entity,
       from: placeFrom,
       to: placeTo,
     });
   };
   // Rotate the selected entity by 90 degrees, if one is selected.
   rotateSelected = () => {
-    if (!this.uiState.selected_entity) {
+    // FIXME: share this "filter down to Instances and SchPorts" bit
+    const entity = this.uiState.selected_entity;
+    if (!entity) {
       return;
     }
-    const { entityKind } = this.uiState.selected_entity;
+    const { entityKind } = entity;
     if (
       !(entityKind === EntityKind.Instance || entityKind === EntityKind.SchPort)
     ) {
       return;
     }
 
-    // We have a selected Instance. Rotate it.
-    const obj = this.uiState.selected_entity;
+    // The selected entity is rotatable. Rotate it.
     // Before modifiying the entity, clone its location data for change logging.
-    const placeFrom = structuredClone({
-      loc: obj.data.loc,
-      orientation: obj.data.orientation,
-    });
+    const placeFrom = structuredClone(entity.place());
 
-    obj.data.orientation.rotation = nextRotation(obj.data.orientation.rotation);
-    obj.draw();
+    // Rotate and re-draw the entity
+    entity.rotate();
 
     // And clone the resulting location data for change logging.
-    const placeTo = structuredClone({
-      loc: obj.data.loc,
-      orientation: obj.data.orientation,
-    });
+    const placeTo = structuredClone(entity.place());
 
     // Notify the changeLog and platform of the change.
     this.logChange({
       kind: ChangeKind.Move,
-      entity: this.uiState.selected_entity,
+      entity,
       from: placeFrom,
       to: placeTo,
     });

@@ -8,11 +8,13 @@ import { Label, LabelKind, LabelParent } from "./label";
 import { EntityKind, EntityInterface } from "./entity";
 import { symbolStyle, instacePortStyle } from "./style";
 import * as schdata from "../schematicdata";
-import { Place } from "../place";
+import { Place, Placeable } from "../place";
+import { Direction } from "../direction";
 import { Point, point } from "../point";
-import { Rotation } from "../orientation";
+import { Rotation, nextRotation } from "../orientation";
 import { theCanvas } from "./canvas";
 import { exhaust } from "../errors";
+
 
 // FIXME! fill these guys in
 export class InstancePort implements EntityInterface {
@@ -167,11 +169,12 @@ interface DrawingData {
 }
 
 // Base Class shared by `Instance` and `SchPort`
-abstract class InstancePortBase implements LabelParent {
+abstract class InstancePortBase implements LabelParent, Placeable {
   constructor(
     public drawing: Drawing // Drawing data
   ) {}
 
+  abstract data: schdata.Instance | schdata.Port; // Data from the schematic
   labelMap: Map<LabelKind, Label> = new Map(); // Map from Label kinds to Labels
   entityId: number | null = null; // Numeric unique ID
   bbox: Bbox = bbox.empty(); // Bounding Box
@@ -242,6 +245,33 @@ abstract class InstancePortBase implements LabelParent {
   addLabelDrawing(textElem: Text): void {
     this.drawing.labelGroup.add(textElem);
   }
+
+  // The `Placeable` interface
+  place = (): Place => {
+    return structuredClone({
+      loc: this.data.loc,
+      orientation: this.data.orientation,
+    });
+  };
+  move = (to: Place) => {
+    console.log("FIXME! Placeable.move");
+  };
+  rotate = () => {
+    this.data.orientation.rotation = nextRotation(
+      this.data.orientation.rotation
+    );
+    this.draw();
+  };
+  flip = (dir: Direction) => {
+    // Always flip vertically. Horizontal flips are comprised of a vertical flip and two rotations.
+    this.data.orientation.reflected = !this.data.orientation.reflected;
+    if (dir === Direction.Horiz) {
+      this.data.orientation.rotation = nextRotation(
+        nextRotation(this.data.orientation.rotation)
+      );
+    }
+    this.draw();
+  };
 }
 
 // # Schematic Instance

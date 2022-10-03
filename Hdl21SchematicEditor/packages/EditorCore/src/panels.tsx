@@ -47,7 +47,7 @@ export function Panels() {
 }
 
 // Property types for the react-based `Panels`
-interface PanelProps {
+export interface PanelProps {
   controlPanel: ControlPanelProps;
 }
 // Associated "impl" functions
@@ -109,17 +109,23 @@ function ControlPanel(props: ControlPanelProps) {
 }
 
 function ControlPanelList(props: ControlPanelProps) {
-  const list = controlPanels.getList(props.whichKind);
+  // let list;
+  // if (props.items.length > 0) {
+  //   list = props.items.map((item, _) => item.text);
+  // } else {
+  //   list = controlPanels.getList(props.whichKind);
+  // }
+  // const list = props.items;
 
   return (
     <List>
-      {list.map((text, index) => (
-        <ListItem key={text} disablePadding>
+      {props.items.map((item, index) => (
+        <ListItem key={index} disablePadding onClick={item.onClick}>
           <ListItemButton>
             <ListItemIcon>
               <AccessTimeIcon />
             </ListItemIcon>
-            <ListItemText primary={text} />
+            <ListItemText primary={item.text} />
           </ListItemButton>
         </ListItem>
       ))}
@@ -131,7 +137,7 @@ const PrimList = ["Nmos", "Pmos", "Res", "Res3", "Cap", "Cap3", "Ind", "Ind3"];
 const PortList = ["Input", "Output", "Inout"];
 const ActionList = ["Add Instance", "Add Wire", "Edit Prelude"];
 
-interface ControlPanelItem {
+export interface ControlPanelItem {
   text: string; // Text displayed in the control panel
   icon: any; // FIXME: whatever this gonna be
   shortcutKey: any; // FIXME: that too
@@ -139,12 +145,13 @@ interface ControlPanelItem {
 }
 
 export enum ControlPanels {
+  Empty = "Empty",
   ActionList = "ActionList",
   PrimList = "PrimList",
   PortList = "PortList",
 }
 export const controlPanels = {
-  default: (): ControlPanels => ControlPanels.ActionList,
+  default: (): ControlPanels => ControlPanels.Empty,
   next: (p: ControlPanels): ControlPanels => {
     switch (p) {
       case ControlPanels.ActionList:
@@ -158,6 +165,8 @@ export const controlPanels = {
   },
   getList: (p: ControlPanels): Array<string> => {
     switch (p) {
+      case ControlPanels.Empty:
+        return [];
       case ControlPanels.ActionList:
         return ActionList;
       case ControlPanels.PrimList:
@@ -170,9 +179,11 @@ export const controlPanels = {
 };
 
 interface ControlPanelProps {
-  whichKind: ControlPanels;
+  items: Array<ControlPanelItem>;
 }
 
 export const controlPanelProps = {
-  default: (): ControlPanelProps => ({ whichKind: controlPanels.default() }),
+  default: (): ControlPanelProps => ({
+    items: [],
+  }),
 };

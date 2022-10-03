@@ -7,6 +7,7 @@ import { ChangeLog } from "./changes";
 import { SchEditor } from "./editor";
 import { UiModes, UiModeHandler, ModeHandlers } from "./modes";
 import { Entity, theCanvas } from "./drawing";
+import { PanelProps, panelProps } from "./panels";
 
 // # UI State
 //
@@ -14,10 +15,10 @@ import { Entity, theCanvas } from "./drawing";
 //
 export class UiState {
   constructor(public editor: SchEditor) {
-    this.modeHandler = ModeHandlers.Idle.start(editor);
+    this.modeHandler = new ModeHandlers.BeforeStartup(editor);
   }
 
-  // Global UI mode
+  // Mode-specific handler
   modeHandler: UiModeHandler;
   get mode(): UiModes {
     return this.modeHandler.mode;
@@ -55,4 +56,7 @@ export class UiState {
   mouse_pos: Point = point(theCanvas.two.width / 2, theCanvas.two.height / 2);
   // Initialize the "starting" mouse position for pans
   start_mouse_pos: Point = structuredClone(this.mouse_pos);
+
+  // State of the peripheral panels
+  panelProps: PanelProps = panelProps.default();
 }
