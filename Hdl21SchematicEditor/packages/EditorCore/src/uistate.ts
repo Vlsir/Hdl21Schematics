@@ -48,14 +48,10 @@ export class UiState {
 
   // The currently selected entity (instance, wire, port, etc.)
   selected_entity: Entity | null = null;
-  // The currently pending entity, if there is one
-  pending_entity: Entity | null = null;
 
   // Track the mouse position at all times.
   // Initializes to the center of the canvas.
   mouse_pos: Point = point(theCanvas.two.width / 2, theCanvas.two.height / 2);
-  // Initialize the "starting" mouse position for pans
-  start_mouse_pos: Point = structuredClone(this.mouse_pos);
 
   // State of the peripheral panels
   panelProps: PanelProps = panelProps.default();

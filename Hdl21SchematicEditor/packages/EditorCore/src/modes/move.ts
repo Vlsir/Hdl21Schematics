@@ -56,7 +56,7 @@ export class MoveInstance extends UiModeHandlerBase {
   };
   // Handle keystrokes.
   override handleKey = (e: KeyboardEvent) => {
-    const { editor, entity } = this;
+    const { entity } = this;
 
     // All other UI states: check for "command" keystrokes.
     switch (e.key) {
@@ -86,4 +86,14 @@ export class MoveInstance extends UiModeHandlerBase {
   override handleMouseUp = () => this.commitMove();
   // Update the rendering of the instance on mouse-move.
   override handleMouseMove = () => this.updateMove();
+
+  // On abort, send our entity back to its original location.
+  abort = () => {
+    const { editor, entity, from } = this;
+    entity.data.loc = from.loc;
+    entity.data.orientation = from.orientation;
+    entity.draw();
+    editor.deselect();
+    editor.goUiIdle();
+  };
 }

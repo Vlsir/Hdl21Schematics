@@ -15,7 +15,6 @@ import { Rotation, nextRotation } from "../orientation";
 import { theCanvas } from "./canvas";
 import { exhaust } from "../errors";
 
-
 // FIXME! fill these guys in
 export class InstancePort implements EntityInterface {
   entityKind: EntityKind.InstancePort = EntityKind.InstancePort;
@@ -175,13 +174,14 @@ abstract class InstancePortBase implements LabelParent, Placeable {
   ) {}
 
   abstract data: schdata.Instance | schdata.Port; // Data from the schematic
-  labelMap: Map<LabelKind, Label> = new Map(); // Map from Label kinds to Labels
+
   entityId: number | null = null; // Numeric unique ID
   bbox: Bbox = bbox.empty(); // Bounding Box
   highlighted: boolean = false;
 
   abstract createLabels(): void; // Create all Labels
   abstract drawingData(): DrawingData; // Get data for drawing
+  abstract labels(): Array<Label>; // Get all Labels
 
   // Draw the Instance's `drawing`.
   draw = () => {
@@ -200,24 +200,20 @@ abstract class InstancePortBase implements LabelParent, Placeable {
       this.highlight();
     }
   };
-  // Get references to our child `Label`s.
-  labels = (): Array<Label> => {
-    return Array.from(this.labelMap.values());
-  };
   // Draw each of our child `Label`s.
   drawLabels = () => {
     this.labels().map((label) => label.draw());
   };
   highlight = () => {
     this.drawing.highlight();
-    for (let label of this.labelMap.values()) {
+    for (let label of this.labels()) {
       label.highlight();
     }
     this.highlighted = true;
   };
   unhighlight = () => {
     this.drawing.unhighlight();
-    for (let label of this.labelMap.values()) {
+    for (let label of this.labels()) {
       label.unhighlight();
     }
     this.highlighted = false;
@@ -287,6 +283,10 @@ export class Instance extends InstancePortBase implements EntityInterface {
   }
 
   entityKind: EntityKind.Instance = EntityKind.Instance;
+  // Label(s)
+  // Temporarily null during startup so we can give them a parent.
+  nameLabel: Label | null = null;
+  ofLabel: Label | null = null;
 
   static create(data: schdata.Instance): Instance {
     const instance = new Instance(data, Drawing.empty());
@@ -306,24 +306,22 @@ export class Instance extends InstancePortBase implements EntityInterface {
   override createLabels = () => {
     const { primitive } = this.data;
     // Create and add the instance-name Label
-    const nameLabel = Label.create({
+    this.nameLabel = Label.create({
       text: this.data.name,
       kind: LabelKind.Name,
       loc: primitive.nameloc,
       parent: this,
     });
-    this.drawing.labelGroup.add(nameLabel.drawing);
-    this.labelMap.set(LabelKind.Name, nameLabel);
+    this.drawing.labelGroup.add(this.nameLabel.drawing);
 
     // Create and add the instance-of Label
-    const ofLabel = Label.create({
+    this.ofLabel = Label.create({
       text: this.data.of,
       kind: LabelKind.Of,
       loc: primitive.ofloc,
       parent: this,
     });
-    this.drawing.labelGroup.add(ofLabel.drawing);
-    this.labelMap.set(LabelKind.Of, ofLabel);
+    this.drawing.labelGroup.add(this.ofLabel.drawing);
   };
   // Update the string-value from a `Label`.
   override updateLabelText = (label: Label) => {
@@ -339,6 +337,8 @@ export class Instance extends InstancePortBase implements EntityInterface {
         throw exhaust(kind);
     }
   };
+  // Get references to our child `Label`s.
+  labels = (): Array<Label> => [this.nameLabel!, this.ofLabel!];
 }
 
 // # Schematic Port
@@ -355,6 +355,9 @@ export class SchPort
   }
 
   entityKind: EntityKind.SchPort = EntityKind.SchPort;
+  // Label(s)
+  // Temporarily null during startup so we can give them a parent.
+  nameLabel: Label | null = null;
 
   static create(data: schdata.Port): SchPort {
     const port = new SchPort(data, Drawing.empty());
@@ -375,14 +378,13 @@ export class SchPort
     const { portsymbol } = this.data;
 
     // Create and add the name Label
-    const nameLabel = Label.create({
+    this.nameLabel = Label.create({
       text: this.data.name,
       kind: LabelKind.Name,
       loc: portsymbol.nameloc,
       parent: this,
     });
-    this.drawing.labelGroup.add(nameLabel.drawing);
-    this.labelMap.set(LabelKind.Name, nameLabel);
+    this.drawing.labelGroup.add(this.nameLabel.drawing);
   };
   // Update the string-value from a `Label`.
   override updateLabelText = (label: Label) => {
@@ -392,6 +394,8 @@ export class SchPort
       console.log("Unknown label kind");
     }
   };
+  // Get references to our child `Label`s.
+  labels = (): Array<Label> => [this.nameLabel!];
 }
 
 // A do-nothing callback function, used in a few places that insist on calling back.

@@ -2,19 +2,74 @@
  * # Add Instance/ Port Mode Handler
  */
 
+// Local Imports
 import { Instance, SchPort } from "../drawing";
 import { nearestOnGrid } from "../drawing/grid";
 import { ChangeKind } from "../changes";
-import { Primitive, PrimitiveKind, primitiveLib } from "../primitive";
-import { PortKind, portLib, PortSymbol } from "../portsymbol";
+import { Primitive, primitiveLib } from "../primitive";
+import { PortSymbol, portLib } from "../portsymbol";
 import { SchEditor } from "../editor";
 import { ControlPanelItem, updatePanels } from "../panels";
-
 import { UiModes, UiModeHandlerBase } from "./base";
+
+// Base Class for shared logic between `AddInstance` and `AddPort`.
+abstract class AddBase extends UiModeHandlerBase {
+  // Get the Entity being added.
+  abstract entity(): Instance | SchPort;
+
+  // On abort, remove the entity and return to `Idle`.
+  override abort = () => {
+    this.editor.deselect();
+    this.entity().abort();
+    this.editor.goUiIdle();
+  };
+
+  // Get the list of control panel items for this mode.
+  abstract controlPanelItems(): Array<ControlPanelItem>;
+
+  // Set the state of the Panels to use ours.
+  updatePanels = () => {
+    const { panelProps } = this.editor.uiState;
+    updatePanels({
+      ...panelProps,
+      controlPanel: {
+        items: this.controlPanelItems(),
+      },
+    });
+  };
+
+  // Update the location of our in-progress entity.
+  updateLoc = () => {
+    const entity = this.entity();
+    entity.data.loc = nearestOnGrid(this.editor.uiState.mouse_pos);
+    entity.draw();
+  };
+
+  // Update the location on mouse-move.
+  override handleMouseMove = () => this.updateLoc();
+
+  // Add the currently-pending entity to the schematic.
+  commit = () => {
+    const { editor } = this;
+    const entity = this.entity();
+
+    // Add it to to the schematic.
+    editor.schematic.addEntity(entity);
+
+    // Notify the changeLog and platform of the change.
+    editor.logChange({ kind: ChangeKind.Add, entity });
+
+    editor.deselect();
+    editor.goUiIdle();
+  };
+
+  // Commit the instance on mouse-up, i.e. the end of a click to place it.
+  override handleMouseUp = () => this.commit();
+}
 
 // # Add Instance Mode
 // Tracks the pending Instance, which until `commit` time is not added to the schematic.
-export class AddInstance extends UiModeHandlerBase {
+export class AddInstance extends AddBase {
   mode: UiModes.AddInstance = UiModes.AddInstance;
   constructor(editor: SchEditor, public instance: Instance) {
     super(editor);
@@ -39,7 +94,6 @@ export class AddInstance extends UiModeHandlerBase {
     const instance = Instance.create(newInstanceData);
 
     // Update our UI state.
-    editor.uiState.pending_entity = instance;
     editor.select(instance);
 
     // And draw the instance.
@@ -48,81 +102,55 @@ export class AddInstance extends UiModeHandlerBase {
     me.updatePanels();
     return me;
   }
-  // Set the state of the Panels are entry time
-  updatePanels = () => {
-    const instancePanelItems: Array<ControlPanelItem> = [
-      {
-        text: "Nmos",
-        icon: null,
-        shortcutKey: null,
-        onClick: () =>
-          this.changeInstanceKind(primitiveLib.get(PrimitiveKind.Nmos)),
-      },
-      {
-        text: "Pmos",
-        icon: null,
-        shortcutKey: null,
-        onClick: () =>
-          this.changeInstanceKind(primitiveLib.get(PrimitiveKind.Pmos)),
-      },
-      {
-        text: "Edit Prelude",
-        icon: null,
-        shortcutKey: null,
-        onClick: () => console.log("Edit Prelude"),
-      },
-    ];
-    const { panelProps } = this.editor.uiState;
-    updatePanels({
-      ...panelProps,
-      controlPanel: {
-        items: instancePanelItems,
-      },
+
+  // Derive our control panel items from the primitive list.
+  override controlPanelItems = () => {
+    const itemFromPrim = (prim: Primitive): ControlPanelItem => ({
+      text: prim.kind,
+      icon: null, // FIXME! get some icons
+      shortcutKey: prim.keyboardShortcut,
+      onClick: () => this.changeInstanceKind(prim),
     });
+    return primitiveLib.list.map(itemFromPrim);
   };
-  // Handle a potential change-type keypress. Update the instance kind if the key is in the map.
+
+  // Handle a keystroke, potentially producing a change of kind.
   override handleKey = (e: KeyboardEvent) => {
     const primitive = primitiveLib.keyboardShortcuts.get(e.key);
     if (primitive) {
       return this.changeInstanceKind(primitive);
     }
   };
+
+  // Change the kind of the instance.
   changeInstanceKind = (primitive: Primitive) => {
-    // We hit a shortcut key and have a valid new type
-    const instance = this.instance;
+    const { instance } = this;
+
+    // Update the instance data
     instance.data.kind = primitive.kind;
     instance.data.primitive = primitive;
     instance.data.name = primitive.defaultNamePrefix;
     instance.data.of = primitive.defaultOf;
+
+    // Update its label data
+    instance.nameLabel!.data.text = primitive.defaultNamePrefix;
+    instance.nameLabel!.data.loc = primitive.nameloc;
+    instance.ofLabel!.data.text = primitive.defaultOf;
+    instance.ofLabel!.data.loc = primitive.ofloc;
+
+    // Store this as the last instance data for next time
     this.editor.uiState.lastInstanceData = instance.data;
+
+    // And redraw it
     instance.draw();
   };
-  // Update the rendering of an in-progress instance.
-  updateAddInstance = () => {
-    const { editor, instance } = this;
-    instance.data.loc = nearestOnGrid(editor.uiState.mouse_pos);
-    instance.draw();
-  };
-  // Add the currently-pending instance to the schematic.
-  commitAddInstance = () => {
-    const { editor, instance } = this;
 
-    // Add the instance to the schematic.
-    editor.schematic.addInstance(instance);
-
-    // Notify the changeLog and platform of the change.
-    editor.logChange({ kind: ChangeKind.Add, entity: instance });
-
-    editor.uiState.pending_entity = null;
-    editor.deselect();
-    editor.goUiIdle();
-  };
-  // Commit the instance on mouse-up, i.e. the end of a click to place it.
-  override handleMouseUp = () => this.commitAddInstance();
-  // Update the rendering of the instance on mouse-move.
-  override handleMouseMove = () => this.updateAddInstance();
+  // Our entity is our Instance
+  entity = () => this.instance;
 }
-export class AddPort extends UiModeHandlerBase {
+
+// # Add Port Mode
+export class AddPort extends AddBase {
   mode: UiModes.AddPort = UiModes.AddPort;
   constructor(editor: SchEditor, public port: SchPort) {
     super(editor);
@@ -146,7 +174,6 @@ export class AddPort extends UiModeHandlerBase {
     const port = SchPort.create(newPortData);
 
     // Update our UI state.
-    editor.uiState.pending_entity = port;
     editor.select(port);
 
     // And draw the port.
@@ -155,36 +182,19 @@ export class AddPort extends UiModeHandlerBase {
     me.updatePanels();
     return me;
   }
-  // Set the state of the Panels are entry time
-  updatePanels = () => {
-    const instancePanelItems: Array<ControlPanelItem> = [
-      {
-        text: "Input",
-        icon: null,
-        shortcutKey: null,
-        onClick: () => this.changePortKind(portLib.get(PortKind.Input)),
-      },
-      {
-        text: "Output",
-        icon: null,
-        shortcutKey: null,
-        onClick: () => this.changePortKind(portLib.get(PortKind.Output)),
-      },
-      {
-        text: "Inout",
-        icon: null,
-        shortcutKey: null,
-        onClick: () => this.changePortKind(portLib.get(PortKind.Inout)),
-      },
-    ];
-    const { panelProps } = this.editor.uiState;
-    updatePanels({
-      ...panelProps,
-      controlPanel: {
-        items: instancePanelItems,
-      },
+
+  // Derive our control panel items from the port symbols list.
+  override controlPanelItems = () => {
+    const itemFromPrim = (portsymbol: PortSymbol): ControlPanelItem => ({
+      text: portsymbol.kind,
+      icon: null, // FIXME! get some icons
+      shortcutKey: portsymbol.keyboardShortcut,
+      onClick: () => this.changePortKind(portsymbol),
     });
+    return portLib.list.map(itemFromPrim);
   };
+
+  // Handle a keystroke, potentially producing a change of kind.
   override handleKey = (e: KeyboardEvent) => {
     const portsymbol = portLib.keyboardShortcuts.get(e.key);
     if (portsymbol) {
@@ -192,40 +202,27 @@ export class AddPort extends UiModeHandlerBase {
       return this.changePortKind(portsymbol);
     }
   };
+
+  // Change the `PortKind` of the in-progress `Port`.
   changePortKind = (portsymbol: PortSymbol) => {
     const { editor, port } = this;
 
+    // Update the port data
     port.data.kind = portsymbol.kind;
     port.data.portsymbol = portsymbol;
     port.data.name = portsymbol.defaultName;
+
+    // Update its Label data
+    port.nameLabel!.data.text = portsymbol.defaultName;
+    port.nameLabel!.data.loc = portsymbol.nameloc;
+
+    // Store this as the last port data for next time
     editor.uiState.lastPortData = port.data;
+
+    // And redraw it
     port.draw();
   };
-  // Update the rendering of an in-progress port.
-  updateAddPort = () => {
-    const { editor, port } = this;
 
-    // Snap to our grid
-    const snapped = nearestOnGrid(editor.uiState.mouse_pos);
-    // Set the location of both the port and its drawing
-    port.data.loc = snapped;
-    port.draw();
-  };
-  // Add the currently-pending port to the schematic.
-  commitAddPort = () => {
-    const { editor, port } = this;
-
-    editor.schematic.addPort(port);
-
-    // Notify the changeLog and platform of the change.
-    editor.uiState.changeLog.add({ kind: ChangeKind.Add, entity: port });
-
-    editor.uiState.pending_entity = null;
-    editor.deselect();
-    editor.goUiIdle();
-  };
-  // Commit the port on mouse-up, i.e. the end of a click to place it.
-  override handleMouseUp = () => this.commitAddPort();
-  // Update the rendering of the port on mouse-move.
-  override handleMouseMove = () => this.updateAddPort();
+  // Our entity is our Port
+  entity = () => this.port;
 }

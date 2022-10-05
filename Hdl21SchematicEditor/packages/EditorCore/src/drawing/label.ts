@@ -28,11 +28,7 @@ export interface LabelData {
 // # Text Label
 //
 export class Label implements EntityInterface {
-  constructor(
-    public data: LabelData,
-    public drawing: Text,
-    public failer: any = console.log
-  ) {}
+  constructor(public data: LabelData, public drawing: Text) {}
   entityKind: EntityKind.Label = EntityKind.Label;
   entityId: number | null = null;
   bbox: Bbox = bbox.empty();

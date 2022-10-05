@@ -6,7 +6,9 @@
 import { Idle } from "./idle";
 import { AddPort, AddInstance } from "./add";
 import { MoveInstance } from "./move";
-import { BeforeStartup, EditLabel, DrawWire, Pan } from "./others";
+import { DrawWire } from "./draw_wire";
+import { EditLabel } from "./edit_label";
+import { BeforeStartup, Pan } from "./others";
 
 // The union-type of all the UiModeHandlers.
 export type UiModeHandler =

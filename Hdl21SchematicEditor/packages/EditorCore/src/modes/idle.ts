@@ -12,7 +12,8 @@ import { ControlPanelItem, updatePanels } from "../panels";
 import { UiModes, UiModeHandlerBase } from "./base";
 import { AddPort, AddInstance } from "./add";
 import { MoveInstance } from "./move";
-import { EditLabel, DrawWire, Pan } from "./others";
+import { EditLabel } from "./edit_label";
+import { DrawWire } from "./draw_wire";
 
 // # Idle Mode
 //
@@ -35,20 +36,26 @@ export class Idle extends UiModeHandlerBase {
       {
         text: "Add Instance",
         icon: null,
-        shortcutKey: null,
-        onClick: () => console.log("Add Instance"),
+        shortcutKey: Keys.i,
+        onClick: () => this.startAddInstance(),
+      },
+      {
+        text: "Add Port",
+        icon: null,
+        shortcutKey: Keys.p,
+        onClick: () => this.startAddPort(),
       },
       {
         text: "Add Wire",
         icon: null,
-        shortcutKey: null,
-        onClick: () => console.log("Add Wire"),
+        shortcutKey: Keys.w,
+        onClick: () => this.startDrawWire(),
       },
       {
         text: "Edit Prelude",
         icon: null,
-        shortcutKey: null,
-        onClick: () => console.log("Edit Prelude"),
+        shortcutKey: Keys.c,
+        onClick: () => this.startEditPrelude(),
       },
     ];
     const { panelProps } = this.editor.uiState;
@@ -58,6 +65,25 @@ export class Idle extends UiModeHandlerBase {
         items: idlePanelItems,
       },
     });
+  };
+  // Move to the `EditPrelude` mode.
+  startEditPrelude = () => {
+    console.log("FIXME! edit prelude");
+  };
+  // Move to the `AddInstance` mode.
+  startAddInstance = () => {
+    const { editor } = this;
+    editor.uiState.modeHandler = AddInstance.start(editor);
+  };
+  // Move to the `AddPort` mode.
+  startAddPort = () => {
+    const { editor } = this;
+    editor.uiState.modeHandler = AddPort.start(editor);
+  };
+  // Move to the `DrawWire` mode.
+  startDrawWire = () => {
+    const { editor } = this;
+    editor.uiState.modeHandler = DrawWire.start(editor);
   };
   // In idle mode, if we clicked on something, react and update our UI state.
   override handleMouseDown = () => {
@@ -109,15 +135,13 @@ export class Idle extends UiModeHandlerBase {
         // Delete the selected entity
         return editor.deleteSelectedEntity();
       }
+      // Mode-Changing Command Keys
       case Keys.i:
-        editor.uiState.modeHandler = AddInstance.start(editor);
-        return;
+        return this.startAddInstance();
       case Keys.p:
-        editor.uiState.modeHandler = AddPort.start(editor);
-        return;
+        return this.startAddPort();
       case Keys.w:
-        editor.uiState.modeHandler = DrawWire.start(editor);
-        return;
+        return this.startDrawWire();
       // Rotation & refelection
       // Note these are versions of rotation & reflection which *are*
       // added to the undo/redo changelog.
@@ -134,4 +158,7 @@ export class Idle extends UiModeHandlerBase {
         console.log(`Key we dont use: '${e.key}'`);
     }
   };
+  // We're already in idle mode.
+  // On `abort`, just de-select anything highlighted.
+  abort = () => this.editor.deselect();
 }

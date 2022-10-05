@@ -31,6 +31,9 @@ export function start(platform: Platform): void {
   }
 
   // Have React render our top-level component.
+  // Note React 18 warns against rendering directly onto `document.body`,
+  // for what we imagine must be good enough reasons.
+  // So we create this `root` div first.
   const root = document.body.appendChild(document.createElement("div"));
   createRoot(root).render(
     <div>

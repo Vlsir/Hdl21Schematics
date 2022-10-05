@@ -173,11 +173,9 @@ export class SchEditor {
   };
   // Handle keystrokes.
   handleKey = (e: KeyboardEvent) => {
-    // Always go back to idle mode on escape.
+    // Always abort any pending operation and go back to idle mode on escape.
     if (e.key === Keys.Escape) {
-      this.deselect();
-      this.abortPending();
-      return this.goUiIdle();
+      return this.uiState.modeHandler.abort();
     }
     // FIXME: these OS-specific keys should probably come from the platform instead.
     if (e.metaKey && e.shiftKey && e.key === Keys.z) {
@@ -326,15 +324,7 @@ export class SchEditor {
     }
     this.uiState.selected_entity = null;
   };
-  // Abort a pending change/ entity.
-  // FIXME: this doesn't totally work with the undo change-log,
-  // probably needs to be delegated to mode-handlers.
-  abortPending() {
-    if (this.uiState.pending_entity) {
-      this.uiState.pending_entity.abort();
-    }
-    this.uiState.pending_entity = null;
-  }
+
   // FIXME: whether we want a "click" handler, in addition to mouse up/down.
   // handleClick = e => {}
 
