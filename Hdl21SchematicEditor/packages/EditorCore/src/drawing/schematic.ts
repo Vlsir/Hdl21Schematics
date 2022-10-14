@@ -8,7 +8,11 @@ import * as schdata from "../schematicdata";
 import { exhaust } from "../errors";
 
 export class Schematic {
-  constructor(public size: Point = point(1600, 800)) {}
+  constructor(
+    public size: Point = point(1600, 800),
+    public prelude: string = "",
+    public otherSvgElements: Array<string> = []
+  ) {}
 
   // Internal data stores
   wires = new Map(); // Map<Number, Wire>
@@ -25,7 +29,11 @@ export class Schematic {
 
   // Create a (drawn) `Schematic` from the abstract data model
   static fromData(schData: schdata.Schematic): Schematic {
-    const sch = new Schematic(schData.size);
+    const sch = new Schematic(
+      schData.size,
+      schData.prelude,
+      schData.otherSvgElements
+    );
 
     // Add all instances
     for (let instData of schData.instances) {
@@ -48,7 +56,11 @@ export class Schematic {
   // Export to the abstract data model
   toData = () => {
     /* Schematic => schdata.Schematic */
-    const schData = new schdata.Schematic("", this.size);
+    const schData = new schdata.Schematic();
+    schData.name = ""; // FIXME
+    schData.size = structuredClone(this.size);
+    schData.prelude = structuredClone(this.prelude);
+    schData.otherSvgElements = structuredClone(this.otherSvgElements);
     for (let [id, inst] of this.instances) {
       schData.instances.push(inst.data);
     }

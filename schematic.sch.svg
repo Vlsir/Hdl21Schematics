@@ -1,22 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg width="1600" height="800" xmlns="http://www.w3.org/2000/svg">
-<defs id="hdl21-schematic-circuit-defs">
-  <text id="hdl21-schematic-circuit">
-    {"name":"","prelude":"","signals":[{"name":"inp","portdir":"INPUT"},{"name":"VDD","portdir":"INOUT"},{"name":"out","portdir":"OUTPUT"},{"name":"VSS","portdir":"INOUT"}],"instances":[{"name":"p0","of":"pmos(args)","conns":[{"portname":"d","signame":"VDD"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"out"},{"portname":"b","signame":"VDD"}]},{"name":"n0","of":"nmos(args)","conns":[{"portname":"d","signame":"out"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]}]}
-  </text>
-</defs>
-
-<defs id="hdl21-schematic-background-defs">
-    <!-- Grid Background -->
-    <pattern id="hdl21-grid-minor" width="10" height="10" patternUnits="userSpaceOnUse">
-        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
-    </pattern>
-    <pattern id="hdl21-grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
-        <rect width="100" height="100" fill="url(#hdl21-grid-minor)"/>
-        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
-    </pattern>
-</defs>
-<rect id="hdl21-schematic-background" width="100%" height="100%" fill="url(#hdl21-grid-major)" stroke="gray" stroke-width="1"/>
 
 <style id="hdl21-schematic-style">
 
@@ -95,6 +78,27 @@
     }
 }
 </style>
+<defs id="hdl21-schematic-defs">
+  <g id="hdl21-schematic-prelude">
+  <text>import hdl21 as h</text>
+  <text>from hdl21.primitives import *</text>
+  </g>
+  <text id="hdl21-schematic-circuit">
+    {"name":"","prelude":"import hdl21 as h\nfrom hdl21.primitives import *","signals":[{"name":"inp","portdir":"INPUT"},{"name":"VDD","portdir":"INOUT"},{"name":"out","portdir":"OUTPUT"},{"name":"VSS","portdir":"INOUT"}],"instances":[{"name":"p0","of":"pmos(args)","conns":[{"portname":"d","signame":"VDD"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"out"},{"portname":"b","signame":"VDD"}]},{"name":"n0","of":"nmos(args)","conns":[{"portname":"d","signame":"out"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]}]}
+  </text>
+
+    <!-- Grid Background -->
+    <pattern id="hdl21-grid-minor" width="10" height="10" patternUnits="userSpaceOnUse">
+        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="hdl21-grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
+        <rect width="100" height="100" fill="url(#hdl21-grid-minor)"/>
+        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+    </pattern>
+</defs>
+
+<rect id="hdl21-schematic-background" width="100%" height="100%" fill="url(#hdl21-grid-major)" stroke="gray" stroke-width="1"/>
+
 <!-- Svg Schematic Content -->
 
 <g class="hdl21-instance" transform="matrix(1 0 0 1 300 100)">

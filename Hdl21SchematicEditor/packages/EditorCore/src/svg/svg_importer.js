@@ -29,50 +29,110 @@ export class Importer {
         const svgDoc = svgparse(svgstring);
         return me.importSvgDoc(svgDoc);
     };
+
+    // Import an SVG root document object to a `Schematic`.
     importSvgDoc = svgDoc => {
-        // FIXME: handle case where there's stuff other than <svg> in the document.
+        if (svgDoc.children.length !== 1) {
+            throw this.fail("SVG document must have exactly one root element");
+        }
         const svg = svgDoc.children[0];
+        if (svg.tagName !== 'svg') {
+            throw this.fail("SVG document root element must be <svg>");
+        }
 
         const width = svg.properties.width || 1600;
         const height = svg.properties.height || 800;
         this.schematic.size = point(width, height);
 
-        // Walk its SVG children, adding HDL elements. 
-        // FIXME: check for our "metadata IDs" e.g. "hdl21-background", rather than adding to `otherSvgElements`.
+        // Walk its SVG children, adding schematic elements. 
         for (const child of svg.children) {
-            if (child.type === 'element' && child.tagName === 'g') {
-
-                if (child.properties.class === SchSvgClasses.INSTANCE) {
-                    this.importInstance(child);
-                } else if (child.properties.class === SchSvgClasses.PORT) {
-                    this.importPort(child);
-                } else if (child.properties.class === SchSvgClasses.WIRE) {
-                    this.importWire(child);
-                } else {
-                    this.addOtherSvgElement(child);
-                }
-            } else if (child.type === 'element' && child.tagName === 'g') {
-                // FIXME: this test should be for `circle`, shouldn't it? 
-                // Once dots are really added, check on it
-                if (child.properties.class === SchSvgClasses.DOT) {
-                    this.importDot(child);
-                } else {
-                    this.addOtherSvgElement(child);
-                }
-            } else {
-                this.addOtherSvgElement(child);
-            }
+            this.importSvgChild(child);
         }
-        if (this.otherSvgElements) {
+
+        // FIXME: convert the "other" elements into forms that the schematic can use.
+        if (this.otherSvgElements.length) {
             console.log("Non-schematic SVG elements:");
             console.log(this.otherSvgElements);
         }
+
         return this.schematic;
     };
+
+    // Import a child node of the root SVG element.
+    // This is where most schematic content must be found per our schema. 
+    importSvgChild = child => {
+        if (child.type !== "element") {
+            console.log(`Unknown SVG element type: ${child}`);
+            return this.addOtherSvgElement(child);
+        }
+        const { tagName, properties } = child;
+
+        // Check for schematic elements.
+        if (tagName === 'g' && properties.class === SchSvgClasses.INSTANCE) {
+            return this.importInstance(child);
+        }
+        if (tagName === 'g' && properties.class === SchSvgClasses.PORT) {
+            return this.importPort(child);
+        }
+        if (tagName === 'g' && properties.class === SchSvgClasses.WIRE) {
+            return this.importWire(child);
+        }
+        if (tagName === 'circle' && properties.class === SchSvgClasses.DOT) {
+            return this.importDot(child);
+        }
+
+        // Check for our special elements, added to every schematic. 
+        const { id } = properties;
+        if (tagName === "defs" && id === SchSvgIds.DEFS) {
+            return this.importDefs(child);
+        }
+        if (tagName === "style" && id === SchSvgIds.STYLE
+            || tagName === "rect" && id === SchSvgIds.BACKGROUND) {
+            return; // Do nothing on these. 
+        }
+
+        // Fell through everything schematic-related.
+        // Store this as an "other" SVG element.
+        this.addOtherSvgElement(child);
+    }
+
+    // Import the definitions block, particularly for the code prelude. 
+    // Throws an Error if no prelude is found.
+    importDefs = defs => {
+        for (const child of defs.children) {
+            const { tagName, properties } = child;
+            if (tagName === "g" && properties.id === SchSvgIds.PRELUDE) {
+                return this.importPrelude(child);
+            }
+        }
+        throw this.fail("No prelude found in defs");
+    }
+
+    // Import the code-prelude group 
+    importPrelude = prelude => {
+        let lines = [];
+        for (const lineElem of prelude.children) {
+            if (lineElem.tagName !== "text") {
+                throw this.fail("Prelude must contain only text elements");
+            }
+            // If there is a child, it's the string, push it to the result 
+            if (lineElem.children.length > 0) {
+                lines.push(lineElem.children[0].value);
+            }
+            // And if there's more than one child, something went wrong. 
+            if (lineElem.children.length > 1) {
+                throw this.fail("Prelude text element must contain only one child");
+            }
+        }
+        this.schematic.prelude = lines.join("\n");
+    }
+
+    // Import a `Dot`
     importDot = svgCircle => {
         // FIXME!
         console.log("FIXME! importDot");
     }
+
     // Import an instance
     importInstance = svgGroup => {
         const transform = svgGroup.properties.transform;
@@ -120,6 +180,7 @@ export class Importer {
             this.schematic.instances.push(instance);
         }
     };
+
     // Import a Port
     importPort = svgGroup => {
 
@@ -154,6 +215,7 @@ export class Importer {
         const port = { name, kind, portsymbol, loc, orientation };
         this.schematic.ports.push(port);
     };
+
     // Import an SVG `transform` to a location `Point` and an `Orientation`. 
     importTransform = transform => {
         // Start splitting up the `transform` string.
@@ -178,6 +240,7 @@ export class Importer {
         const mat = matrix.new(m[0], m[1], m[2], m[3]);
         return [loc, orientation.fromMatrix(mat)];
     };
+
     // Import a wire group
     importWire = svgGroup => {
         if (svgGroup.children.length !== 2) {
@@ -211,10 +274,13 @@ export class Importer {
         const wire = { points };
         this.schematic.wires.push(wire);
     };
+
     // Add an element to the "other", non-schematic elements list.
     addOtherSvgElement = svgElement => {
         this.otherSvgElements.push(svgElement);
     };
+
+    // Error helper. Place for a breakpoint to capture our state. 
     fail = msg => {
         return new Error(msg);
     }

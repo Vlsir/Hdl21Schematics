@@ -38,7 +38,6 @@ class SvgTags(Enum):
         return SvgTags.from_etree_tag(element.tag)
 
 
-
 class SvgImporter:
     """
     # SvgImporter
@@ -58,13 +57,13 @@ class SvgImporter:
         # Examine each child element, looking for the `circuit-defs`.
         # Note this *does not* search hierarchically, only the top-level SVG element's children.
         for element in self.root:
-            if self.is_this_circuit_defs(element):
-                return self.import_circuit_defs(element)
+            if self.is_this_schematic_defs(element):
+                return self.import_schematic_defs(element)
 
         # Not found; error time.
-        return self.fail(f"No {SchSvgClasses.CIRCUIT_DEFS} found in {self.svg_file}")
+        return self.fail(f"No {SchSvgClasses.DEFS} found in {self.svg_file}")
 
-    def is_this_circuit_defs(self, element: Element) -> bool:
+    def is_this_schematic_defs(self, element: Element) -> bool:
         """Boolean indication of whether `element` is the `circuit-defs` element."""
 
         svgtag = SvgTags.from_element(element)
@@ -73,9 +72,9 @@ class SvgImporter:
 
         # We have a `defs` element. Check its `id`.
         elem_id = element.attrib.get(f"id", None)
-        return elem_id is not None and elem_id == SchSvgIds.CIRCUIT_DEFS.value
+        return elem_id is not None and elem_id == SchSvgIds.DEFS.value
 
-    def import_circuit_defs(self, defs: Element) -> str:
+    def import_schematic_defs(self, defs: Element) -> str:
         """Import the string circuit content from its `defs` element."""
 
         # The circuit-defs thus far contain a single text element.

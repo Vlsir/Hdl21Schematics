@@ -5,7 +5,7 @@
  */
 
 // Local Imports
-import { Point } from "./point";
+import { point, Point } from "./point";
 import { PortKind, PortSymbol } from "./portsymbol";
 import { PrimitiveKind, Primitive } from "./primitive";
 import { Orientation } from "./orientation";
@@ -32,11 +32,12 @@ export interface Instance {
 }
 
 export class Schematic {
-  constructor(public name: string, public size: Point) {}
-
+  name: string = "";
+  size: Point = point(1600, 800);
   prelude: string = "";
   instances: Array<Instance> = [];
   ports: Array<Port> = [];
   wires: Array<Wire> = [];
   dots: Array<Point> = [];
+  otherSvgElements: Array<string> = [];
 }

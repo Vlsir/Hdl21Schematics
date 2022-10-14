@@ -8,6 +8,7 @@ import * as schdata from "../schematicdata";
 import { Orientation, matrix } from "../orientation";
 import { toCircuitJson } from "../circuit/extractor";
 import { Point, point } from "../point";
+import { Place } from "../place";
 
 // # Schematic to SVG Encoder/ Exporter
 //
@@ -50,19 +51,8 @@ export class Exporter {
       `<svg width="${schematic.size.x}" height="${schematic.size.y}" xmlns="http://www.w3.org/2000/svg">`
     );
 
-    // FIXME: move to Result types here especially
-    const circuitJson = toCircuitJson(schematic);
-    if (circuitJson.ok) {
-      this.writeCircuitDef(circuitJson.val);
-    } else {
-      // Circuit extraction failed. Log it and carry on.
-      // FIXME: some day this should be a UI message or something.
-      console.log(circuitJson.val);
-    }
-
-    // Add schematic styling and background grid.
-    this.write(schematicBackground);
-    this.write(schematicStyle);
+    // Write the definitions section
+    this.writeDefs();
     this.writeLine(`<!-- Svg Schematic Content -->\n`);
 
     // Write each instance
@@ -84,37 +74,76 @@ export class Exporter {
     // And finally add the closing tag.
     this.writeLine("</svg>");
   }
+
+  // Write the definitions section
+  writeDefs() {
+    // Styling is also added here, although outside the `<defs>` element.
+    this.write(schematicStyle);
+
+    // Open the `<defs>` element
+    this.writeLine(`<defs id="${SchSvgIds.DEFS}">`);
+    this.indent += 1;
+
+    // Write the code prelude
+    this.writePrelude();
+
+    // Export a `Circuit`, and if successful include it in the file.
+    const circuitJson = toCircuitJson(this.schematic);
+    if (circuitJson.ok) {
+      this.writeCircuitDef(circuitJson.val);
+    } else {
+      // Circuit extraction failed. Log it and carry on.
+      // FIXME: some day this should be a UI message or something.
+      console.log(circuitJson.val);
+    }
+
+    // Add schematic styling and background grid.
+    this.write(schematicBackgroundDefs);
+
+    // Close the `<defs>` element
+    this.indent -= 1;
+    this.writeLine(`</defs>`);
+
+    // Add the background grid-filling rectangle
+    this.writeLine(schematicBackground);
+  }
+
+  // Write the code prelude
+  writePrelude() {
+    this.writeLine(`<g id="${SchSvgIds.PRELUDE}">`);
+    // Note that the prelude is split into lines, and each line *is not* indented.
+    // This may be significant depending on its language.
+    for (let line of this.schematic.prelude.split(/\r?\n/)) {
+      this.writeLine(`<text>${line}</text>`);
+    }
+    this.writeLine(`</g>`);
+  }
+
   // Write the JSON-encoded content of the extracted `Circuit`.
   //
   // The structure of this definition element is:
   // ```
-  // <defs id="hdl21-schematic-circuit-defs">
+  // <defs id="hdl21-schematic-defs">
   //   <text id="hdl21-schematic-circuit">
   //     {"name": ..., } // JSON-encoded Circuit content
   //   </text>
   // </defs>
   // ```
-  // I.e.
-  // * The Json-encoded content is in a `<text>` element with ID `hdl21-schematic-circuit`.
-  // * That text element is embedded in a `<defs>` element with ID `hdl21-schematic-circuit-defs`.
   //
   writeCircuitDef(circuitJson: string) {
-    this.writeLine(`<defs id="${SchSvgIds.CIRCUIT_DEFS}">`);
-    this.indent += 1;
     this.writeLine(`<text id="${SchSvgIds.CIRCUIT}">`);
     this.indent += 1;
     this.writeLine(circuitJson);
     this.indent -= 1;
     this.writeLine(`</text>`);
-    this.indent -= 1;
-    this.writeLine(`</defs>`);
   }
+
   // Create the SVG `<g>` group for an `Instance`.
   writeInstance(inst: schdata.Instance) {
     const { primitive } = inst;
     // FIXME: return errors for unnamed stuff, rather than defaulting them
-    const name = inst.name || "unnamed";
-    const of = inst.of || "unknown";
+    const name = inst.name || "unnamed"; // FIXME
+    const of = inst.of || "unknown"; // FIXME
     const orientationMatrix = this.formatOrientation(inst.orientation);
     this.writeLine(
       `<g class="${SchSvgClasses.INSTANCE}" transform="matrix(${orientationMatrix} ${inst.loc.x} ${inst.loc.y})">`
@@ -149,7 +178,7 @@ export class Exporter {
   writePort(port: schdata.Port) {
     const { portsymbol } = port;
     // FIXME: return errors for unnamed stuff, rather than defaulting them
-    const name = port.name || "unnamed";
+    const name = port.name || "unnamed"; // FIXME
     const orientationMatrix = this.formatOrientation(port.orientation);
     this.writeLine(
       `<g class="${SchSvgClasses.PORT}" transform="matrix(${orientationMatrix} ${port.loc.x} ${port.loc.y})">`
@@ -214,6 +243,12 @@ export class Exporter {
     this.writeLine(
       `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="${SchSvgClasses.INSTANCE_PORT}" />`
     );
+  }
+  // Format a `Place` to an SVG matrix transform string.
+  formatPlace(place: Place): string {
+    const { loc, orientation } = place;
+    const mat = matrix.fromOrientation(orientation);
+    return `transform="matrix(${mat.a} ${mat.b} ${mat.c} ${mat.d} ${loc.x} ${loc.y})">`;
   }
   // Produce the SVG `x` and `y` attributes for a `Point` location.
   formatLoc(loc: Point): string {
@@ -307,8 +342,7 @@ const schematicStyle = `
 </style>
 `;
 
-const schematicBackground = `
-<defs id="${SchSvgIds.BACKGROUND_DEFS}">
+const schematicBackgroundDefs = `
     <!-- Grid Background -->
     <pattern id="${SchSvgIds.GRID_MINOR}" width="10" height="10" patternUnits="userSpaceOnUse">
         <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
@@ -317,6 +351,8 @@ const schematicBackground = `
         <rect width="100" height="100" fill="url(#${SchSvgIds.GRID_MINOR})"/>
         <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
     </pattern>
-</defs>
+`;
+
+const schematicBackground = `
 <rect id="${SchSvgIds.BACKGROUND}" width="100%" height="100%" fill="url(#${SchSvgIds.GRID_MAJOR})" stroke="gray" stroke-width="1"/>
 `;

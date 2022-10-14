@@ -7,6 +7,8 @@
 
 // Enumerated ID Tags used to identify Schematic content
 export enum SchSvgIds {
+  DEFS = "hdl21-schematic-defs",
+  PRELUDE = "hdl21-schematic-prelude",
   CIRCUIT = "hdl21-schematic-circuit",
   CIRCUIT_DEFS = "hdl21-schematic-circuit-defs",
   BACKGROUND_DEFS = "hdl21-schematic-background-defs",
