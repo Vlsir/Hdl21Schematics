@@ -66,8 +66,12 @@ export class SchEditor {
     // Attach the drawing canvas to the DOM
     theCanvas.attach();
 
-    // The key event listener seems to need to be on `window`,
-    // while mouse events are on the canvas's parent div.
+    // Listener for color-scheme changes
+    // Note the Panels have separate tracking of this.
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", this.handleColorSchemeChange);
+    // The key event listener seems to need to be on `window`, while mouse events are on the canvas's parent div.
     window.addEventListener("keydown", this.handleKey);
     // FIXME: where will this `wheel` event eventually attach
     window.addEventListener("wheel", this.handleWheel);
@@ -102,6 +106,11 @@ export class SchEditor {
     // Send a message back to the main process, to indicate this has all run.
     this.platform.sendMessage({ kind: MessageKind.RendererUp });
   }
+  handleColorSchemeChange = (e: MediaQueryListEvent) => {
+    // FIXME! actually react to this!
+    console.log("SchEditor got color scheme change");
+    console.log(e);
+  };
   // Send the schematic's SVG content to the platform for saving.
   sendSaveFile = () => {
     const schData = this.schematic.toData();

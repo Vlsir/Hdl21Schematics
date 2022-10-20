@@ -17,6 +17,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Another bit of startup dancing.
 //
@@ -36,6 +37,11 @@ export let updatePanels = (props: PanelProps) => {};
 // so should be relatively light weight.
 //
 export function Panels() {
+  // Track the system-level color-theme preference via `useMediaQuery`. 
+  // Note the SchEditor has its own tracking of this. 
+  // FIXME! actually react to this!
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
   const [state, updater] = React.useState(panelProps.default());
   updatePanels = (props: PanelProps) => updater(props);
 
