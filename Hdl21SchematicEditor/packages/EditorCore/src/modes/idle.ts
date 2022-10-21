@@ -7,7 +7,7 @@ import { Direction } from "../direction";
 import { Keys } from "../keys";
 import { SchEditor } from "../editor";
 import { exhaust } from "../errors";
-import { ControlPanelItem, updatePanels } from "../panels";
+import { ControlPanelItem } from "../panels";
 
 import { UiModes, UiModeHandlerBase } from "./base";
 import { AddPort, AddInstance } from "./add";
@@ -51,24 +51,14 @@ export class Idle extends UiModeHandlerBase {
         shortcutKey: Keys.w,
         onClick: () => this.startDrawWire(),
       },
-      {
-        text: "Edit Prelude",
-        icon: null,
-        shortcutKey: Keys.c,
-        onClick: () => this.startEditPrelude(),
-      },
     ];
     const { panelProps } = this.editor.uiState;
-    updatePanels({
+    this.editor.updatePanels({
       ...panelProps,
       controlPanel: {
         items: idlePanelItems,
       },
     });
-  };
-  // Move to the `EditPrelude` mode.
-  startEditPrelude = () => {
-    console.log("FIXME! edit prelude");
   };
   // Move to the `AddInstance` mode.
   startAddInstance = () => {

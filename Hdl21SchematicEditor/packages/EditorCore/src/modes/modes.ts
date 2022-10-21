@@ -8,7 +8,7 @@ import { AddPort, AddInstance } from "./add";
 import { MoveInstance } from "./move";
 import { DrawWire } from "./draw_wire";
 import { EditLabel } from "./edit_label";
-import { BeforeStartup, Pan } from "./others";
+import { BeforeStartup, EditPrelude, Pan } from "./others";
 
 // The union-type of all the UiModeHandlers.
 export type UiModeHandler =
@@ -18,6 +18,7 @@ export type UiModeHandler =
   | AddPort
   | MoveInstance
   | EditLabel
+  | EditPrelude
   | DrawWire
   | Pan;
 
@@ -29,6 +30,7 @@ export const ModeHandlers = {
   AddPort,
   MoveInstance,
   EditLabel,
+  EditPrelude,
   DrawWire,
   Pan,
 };

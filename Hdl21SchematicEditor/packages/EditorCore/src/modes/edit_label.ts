@@ -3,7 +3,6 @@ import { Keys } from "../keys";
 import { ChangeKind } from "../changes";
 import { SchEditor } from "../editor";
 import { UiModes, UiModeHandlerBase } from "./base";
-import { updatePanels } from "../panels";
 
 export class EditLabel extends UiModeHandlerBase {
   mode: UiModes.EditLabel = UiModes.EditLabel;
@@ -14,7 +13,7 @@ export class EditLabel extends UiModeHandlerBase {
   // Set the state of the Panels to use ours. Which is to say, none.
   updatePanels = () => {
     const { panelProps } = this.editor.uiState;
-    updatePanels({
+    this.editor.updatePanels({
       ...panelProps,
       controlPanel: {
         items: [],

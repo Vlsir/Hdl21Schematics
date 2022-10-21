@@ -13,6 +13,7 @@ export enum UiModes {
   AddPort = "AddPort",
   MoveInstance = "MoveInstance",
   EditLabel = "EditLabel",
+  EditPrelude = "EditPrelude",
   DrawWire = "DrawWire",
   Pan = "Pan",
 }
@@ -29,7 +30,7 @@ export abstract class UiModeHandlerBase {
   // Abort the in-progress operation and return to the `Idle` mode.
   // The result of calling `abort` should be that the UI looks identical
   // to its state as of the moment before the mode was entered.
-  abstract abort(): void;
+  abort = () => {};
 
   // Event handlers, forwarded from the `SchEditor`.
   // Note:

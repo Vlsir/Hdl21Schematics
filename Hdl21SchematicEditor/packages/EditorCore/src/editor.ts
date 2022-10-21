@@ -13,6 +13,7 @@ import {
 } from "PlatformInterface";
 
 // Local Imports
+import { PanelProps, PanelUpdater } from "./panels";
 import { Keys } from "./keys";
 import { exhaust } from "./errors";
 import { Change, ChangeKind } from "./changes";
@@ -20,7 +21,7 @@ import { Point, point } from "./point";
 import { Direction } from "./direction";
 import { Importer, Exporter } from "./svg";
 import { UiState } from "./uistate";
-import { ModeHandlers } from "./modes";
+import { UiModes, ModeHandlers } from "./modes";
 import { Entity, EntityKind, Schematic, setupGrid, theCanvas } from "./drawing";
 
 // A dummy "Platform", which does nothing, and stands in for a real one between Editor construction and startup.
@@ -28,6 +29,8 @@ const NoPlatform = {
   sendMessage: (msg: Message) => {},
   registerMessageHandler: (handler: MessageHandler) => {},
 };
+// Kinda the same thing for the `Panels` updater-function.
+const NoPanelUpdater = (_: PanelProps) => {};
 
 // # The Schematic Editor UI
 //
@@ -48,8 +51,9 @@ const NoPlatform = {
 //
 export class SchEditor {
   platform: Platform = NoPlatform; // Platform interface. Set upon the one (and only) call to `start`.
-  schematic: Schematic = new Schematic();
-  uiState: UiState = new UiState(this);
+  schematic: Schematic = new Schematic(); // The schematic content
+  uiState: UiState = new UiState(this); // Non-schematic UI state
+  panelUpdater: PanelUpdater = NoPanelUpdater; // Function to update the peripheral `Panels`
   failer: (msg: string) => void = console.log; // Function called on errors
 
   // Editor startup
@@ -60,8 +64,8 @@ export class SchEditor {
       return; // We've already started, and won't start again.
     }
     this.platform = platform;
-    // Perform all of our one-time startup activity,
-    // creating the canvas, binding it to the DOM, binding events, etc.
+
+    // Perform all of our one-time startup activity, creating the canvas, binding it to the DOM, binding events, etc.
 
     // Attach the drawing canvas to the DOM
     theCanvas.attach();
@@ -167,12 +171,23 @@ export class SchEditor {
     // Set up the background grid
     setupGrid(this.schematic.size);
 
+    // Load the schematic's code-prelude into the `Panels` editor area.
+    // This will also set `schematic.prelude` back to itself, but meh, it's harmless and we share that line.
+    this.updateCodePrelude(schematic.prelude);
+
     // And draw the loaded schematic
     this.schematic.draw();
   };
   // Go to the "UI Idle" state, in which nothing is moving, being drawn, or really doing anything.
   goUiIdle = () => {
     this.uiState.modeHandler = ModeHandlers.Idle.start(this);
+  };
+  // Start the "Edit Prelude" state
+  startEditPrelude = () => {
+    this.uiState.modeHandler = ModeHandlers.EditPrelude.start(
+      this,
+      structuredClone(this.schematic.prelude)
+    );
   };
   // Handle zoom via the mouse scroll wheel.
   handleWheel = (e: WheelEvent) => {
@@ -182,6 +197,11 @@ export class SchEditor {
   };
   // Handle keystrokes.
   handleKey = (e: KeyboardEvent) => {
+    if (this.uiState.mode === UiModes.EditPrelude) {
+      // FIXME: bailing here in favor of letting the text-input handle keystrokes.
+      // This is particularly for ESCAPE, which exits the UI state, but we haven't figured out how to de-select the text input.
+      return;
+    }
     // Always abort any pending operation and go back to idle mode on escape.
     if (e.key === Keys.Escape) {
       return this.uiState.modeHandler.abort();
@@ -418,6 +438,28 @@ export class SchEditor {
       from: placeFrom,
       to: placeTo,
     });
+  };
+  // Update the schematic's code-prelude.
+  // Note a copy of this is also kept in the `PanelProps`; this is in fact the one rendered to the screen.
+  updateCodePrelude = (codePrelude: string) => {
+    // Set the prelude on the `schematic`
+    this.schematic.prelude = codePrelude;
+    // And set it on the `Panels`
+    this.updatePanels({
+      ...this.uiState.panelProps,
+      codePrelude: { codePrelude },
+    });
+  };
+  // Update the peripheral `Panels`
+  // Notes:
+  // * We generally need to keep a copy of our `PanelProps` in the `UiState`, to enable partial edits.
+  //   * Updates really need to route through here, or the `PanelProps` will get out of sync.
+  // * Calling `panelUpdater` will generally re-render everything but the central schematic canvas.
+  updatePanels = (props: PanelProps): void => {
+    // Set the `PanelProps` in the `UiState`
+    this.uiState.panelProps = props;
+    // And set them on the `Panels`
+    return this.panelUpdater(props);
   };
 }
 

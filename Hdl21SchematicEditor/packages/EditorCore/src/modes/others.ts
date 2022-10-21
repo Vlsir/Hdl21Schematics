@@ -3,19 +3,7 @@
  * All the "others" that haven't been filed into modules.
  */
 
-import { EntityKind, Label } from "../drawing";
-import { Instance, SchPort, Wire } from "../drawing";
-import { nearestOnGrid, nearestManhattan } from "../drawing/grid";
-import { Direction } from "../direction";
-import { Keys } from "../keys";
-import { Place } from "../place";
-import { ChangeKind } from "../changes";
-import { Primitive, PrimitiveKind, primitiveLib } from "../primitive";
-import { PortKind, portLib, PortSymbol } from "../portsymbol";
 import { SchEditor } from "../editor";
-import { exhaust } from "../errors";
-import { ControlPanelItem, updatePanels } from "../panels";
-
 import { UiModes, UiModeHandlerBase } from "./base";
 
 // # Before Startup
@@ -26,14 +14,52 @@ import { UiModes, UiModeHandlerBase } from "./base";
 //
 export class BeforeStartup extends UiModeHandlerBase {
   mode: UiModes.BeforeStartup = UiModes.BeforeStartup;
-  abort = () => {}; // Never called, but must be defined.
 }
 
-export class Pan extends UiModeHandlerBase {
-  mode: UiModes.Pan = UiModes.Pan;
-  static start(editor: SchEditor) {
-    return new Pan(editor);
+// # Edit Prelude
+//
+// Actual editing of the text is handled by its input element.
+// This mode largely removes the shortcut keys, while retaining the mode-changing control panel list.
+//
+export class EditPrelude extends UiModeHandlerBase {
+  mode: UiModes.EditPrelude = UiModes.EditPrelude;
+
+  // Internal data
+  constructor(
+    editor: SchEditor,
+    public orig: string // Original text, as of mode entry
+  ) {
+    super(editor);
   }
 
-  abort = () => {}; // FIXME!
+  // Set the state of the Panels to use ours. Which is to say, none.
+  // FIXME: should we keep the `Idle` mode panels instead? 
+  // Probably, but it'll require piping some more stuff around. 
+  updatePanels = () => {
+    const { panelProps } = this.editor.uiState;
+    this.editor.updatePanels({
+      ...panelProps,
+      controlPanel: {
+        items: [],
+      },
+    });
+  };
+
+  static start(editor: SchEditor, orig: string) {
+    const me = new EditPrelude(editor, orig);
+    me.updatePanels();
+    return me;
+  }
+  // Revert to the initial text on abort
+  abort = () => {
+    this.editor.updateCodePrelude(this.orig);
+    this.editor.deselect();
+    this.editor.goUiIdle();
+  };
+}
+
+// # Panning, in the sense of scrolling, Mode
+// FIXME: Experimental and not safe for work.
+export class Pan extends UiModeHandlerBase {
+  mode: UiModes.Pan = UiModes.Pan;
 }
