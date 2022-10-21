@@ -80,11 +80,10 @@
 </style>
 <defs id="hdl21-schematic-defs">
   <g id="hdl21-schematic-prelude">
-  <text>import hdl21 as h</text>
   <text>from hdl21.primitives import *</text>
   </g>
   <text id="hdl21-schematic-circuit">
-    {"name":"","prelude":"import hdl21 as h\nfrom hdl21.primitives import *","signals":[{"name":"inp","portdir":"INPUT"},{"name":"VDD","portdir":"INOUT"},{"name":"out","portdir":"OUTPUT"},{"name":"VSS","portdir":"INOUT"}],"instances":[{"name":"p0","of":"pmos(args)","conns":[{"portname":"d","signame":"VDD"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"out"},{"portname":"b","signame":"VDD"}]},{"name":"n0","of":"nmos(args)","conns":[{"portname":"d","signame":"out"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]}]}
+    {"name":"","prelude":"from hdl21.primitives import *","signals":[{"name":"inp","portdir":"INPUT"},{"name":"VDD","portdir":"INOUT"},{"name":"out","portdir":"OUTPUT"},{"name":"VSS","portdir":"INOUT"}],"instances":[{"name":"p0","of":"pmos(args)","conns":[{"portname":"d","signame":"VDD"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"out"},{"portname":"b","signame":"VDD"}]},{"name":"n0","of":"nmos(args)","conns":[{"portname":"d","signame":"out"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]}]}
   </text>
 
     <!-- Grid Background -->

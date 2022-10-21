@@ -3,7 +3,6 @@ import { nearestOnGrid, nearestManhattan } from "../drawing/grid";
 import { ChangeKind } from "../changes";
 import { SchEditor } from "../editor";
 import { UiModes, UiModeHandlerBase } from "./base";
-import { updatePanels } from "../panels";
 
 export class DrawWire extends UiModeHandlerBase {
   mode: UiModes.DrawWire = UiModes.DrawWire;
@@ -25,7 +24,7 @@ export class DrawWire extends UiModeHandlerBase {
   // Set the state of the Panels to use ours. Which is to say, none.
   updatePanels = () => {
     const { panelProps } = this.editor.uiState;
-    updatePanels({
+    this.editor.updatePanels({
       ...panelProps,
       controlPanel: {
         items: [],

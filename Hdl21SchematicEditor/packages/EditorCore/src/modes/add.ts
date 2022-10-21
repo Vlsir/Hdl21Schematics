@@ -9,7 +9,7 @@ import { ChangeKind } from "../changes";
 import { Primitive, primitiveLib } from "../primitive";
 import { PortSymbol, portLib } from "../portsymbol";
 import { SchEditor } from "../editor";
-import { ControlPanelItem, updatePanels } from "../panels";
+import { ControlPanelItem } from "../panels";
 import { UiModes, UiModeHandlerBase } from "./base";
 
 // Base Class for shared logic between `AddInstance` and `AddPort`.
@@ -30,7 +30,7 @@ abstract class AddBase extends UiModeHandlerBase {
   // Set the state of the Panels to use ours.
   updatePanels = () => {
     const { panelProps } = this.editor.uiState;
-    updatePanels({
+    this.editor.updatePanels({
       ...panelProps,
       controlPanel: {
         items: this.controlPanelItems(),

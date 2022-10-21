@@ -14,12 +14,15 @@ import { PanelProps, panelProps } from "./panels";
 // Everything about the current state of the UI that *is not* the content of the schematic.
 //
 export class UiState {
+  // Our sole contructor argument is the parent schematic editor
   constructor(public editor: SchEditor) {
+    // Set the "null" before-startup mode, so we can defer some construction-time links.
     this.modeHandler = new ModeHandlers.BeforeStartup(editor);
   }
 
   // Mode-specific handler
   modeHandler: UiModeHandler;
+  // Accessor for the enumerated `UiModes` value.
   get mode(): UiModes {
     return this.modeHandler.mode;
   }
