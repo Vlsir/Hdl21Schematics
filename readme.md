@@ -395,7 +395,9 @@ Prerequisites:
 
 - Install the JavaScript package manager [Yarn](https://classic.yarnpkg.com/en/docs/install)
   - MacOS: [Homebrew](https://brew.sh/) makes this particularly easy: https://formulae.brew.sh/formula/yarn
-  - Debian: Use `apt`: `sudo apt install yarnpkg`
+  - Debian:
+    - Install `npm` and `node` through `apt: `sudo apt install nodejs npm`
+    - Update `node` through `npm`: `sudo npm install -g n && sudo n stable`
   - (FIXME: add any recommendations for other OSes - or just stick with Yarn's docs.)
 - Clone this repository
   - `git clone git@github.com:Vlsir/Hdl21Schematics.git`
