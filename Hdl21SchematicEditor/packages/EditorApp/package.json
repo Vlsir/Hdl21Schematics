@@ -2,8 +2,8 @@
   "name": "hdl21-schematic-editor-app",
   "private": true,
   "version": "1.0.0",
-  "productName": "Hdl21 Schematic Editor",
-  "description": "Hdl21 Schematic Editor",
+  "productName": "Hdl21SchematicEditor",
+  "description": "Hdl21SchematicEditor",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
