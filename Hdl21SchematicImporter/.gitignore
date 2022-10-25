@@ -3,6 +3,7 @@
 ## Custom Additions
 ## 
 
+poetry.lock
 scratch 
 **/__pycache__
 **/*.so

@@ -1,0 +1,102 @@
+name: Editor Builds
+on:
+  - push
+  - pull_request
+
+jobs:
+  build_vscode_extension:
+    runs-on: ubuntu-latest
+    name: Build VsCode Extension
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
+      - name: Build & Package VsCode Extension
+        run: yarn package
+        working-directory: Hdl21SchematicEditor/packages/VsCodePlugin/
+
+  # FIXME: these three "build_app" jobs can probably be a single job with a matrix
+
+  build_app_on_mac:
+    runs-on: macos-latest
+    name: Build App on Mac
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
+      - name: Make App
+        run: yarn make
+        working-directory: Hdl21SchematicEditor/packages/EditorApp/
+
+  build_app_on_windows:
+    runs-on: windows-latest
+    name: Build App on Windows
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
+      - name: Make App
+        run: yarn make
+        working-directory: Hdl21SchematicEditor/packages/EditorApp/
+
+  build_app_on_linux:
+    runs-on: ubuntu-latest
+    name: Build App on Linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
+      - name: Make App
+        run: yarn make
+        working-directory: Hdl21SchematicEditor/packages/EditorApp/
+    continue-on-error: true # FIXME! haven't gotten this one working yet
+
+  python_importer_tests:
+    name: Python Importer Test Suite
+    runs-on: ubuntu-latest
+    continue-on-error: true # FIXME! needs a compatible, published version of Hdl21
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Adapted from the very helpful article at https://jacobian.org/til/github-actions-poetry/
+      - name: Set up Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.1.12
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      - name: Install Dependencies
+        run: poetry install --no-interaction
+        working-directory: Hdl21SchematicImporter/
+      - name: PyTest
+        run: poetry run pytest --verbose
+        working-directory: Hdl21SchematicImporter/
