@@ -1,0 +1,19 @@
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
+      - name: Package VsCode Extension
+        run: yarn package
+        working-directory: Hdl21SchematicEditor/packages/VsCodePlugin/
+      - name: Make App
+        run: yarn make
+        working-directory: Hdl21SchematicEditor/packages/EditorApp/
