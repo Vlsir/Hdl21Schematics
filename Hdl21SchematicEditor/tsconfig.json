@@ -13,6 +13,7 @@
     "strict": true,
     "composite": true,
     "importHelpers": true,
+    "esModuleInterop": true
   },
   "files": [],
   "references": [

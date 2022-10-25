@@ -1,0 +1,9 @@
+.vscode
+node_modules/**
+scratch/
+src/
+tsconfig.json
+tsconfig.tsbuildinfo
+webpack.extension.js
+webpack.webview.js
+*.log

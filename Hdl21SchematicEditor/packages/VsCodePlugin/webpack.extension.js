@@ -1,36 +1,47 @@
-// FIXME! using webpack here seems like a fine idea in theory, but doesn't seem to load the extension. 
-// It probably tried to import some parts of the editor which fail, get stuck, whatever. 
-// This file is here largely for this warning, but doesn't work. 
+// 
+// # Extension Webpack Configuration
+// 
+// Adapted from Microsoft's vscode-extension-samples:
+// https://github.com/microsoft/vscode-extension-samples/tree/main/webpack-sample
+// 
+
+//@ts-check
+'use strict';
 
 const path = require('path');
 
-module.exports = {
+/**@type {import('webpack').Configuration}*/
+const config = {
+  target: 'node',
   entry: './src/extension.ts',
   output: {
-    filename: 'extension.js',
     path: path.resolve(__dirname, 'out'),
+    filename: 'extension.js',
+    libraryTarget: "commonjs2",
+    devtoolModuleFilenameTemplate: "../[resource-path]",
   },
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: {
-          loader: "ts-loader",
-          options: {
-            projectReferences: true
-          }
-        },
-        exclude: /node_modules/,
-      },
-    ],
+  devtool: 'cheap-module-source-map',
+  // devtool: 'source-map',
+  externals: {
+    vscode: "commonjs vscode"
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.ts', '.js']
   },
-  // VsCode creates some stuff "on the fly", and cannot WebPack it. 
-  // https://webpack.js.org/configuration/externals/
-  externals: {
-    'vscode': 'commonjs vscode',
-    'util': 'commonjs util',
+  module: {
+    rules: [{
+      test: /\.ts$/,
+      exclude: /node_modules/,
+      use: [{
+        loader: 'ts-loader',
+        options: {
+          compilerOptions: {
+            "module": "es6"
+          }
+        }
+      }]
+    }]
   },
-};
+}
+
+module.exports = config;

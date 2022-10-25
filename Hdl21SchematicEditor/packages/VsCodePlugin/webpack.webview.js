@@ -18,9 +18,14 @@ module.exports = {
         },
         exclude: /node_modules/,
       },
+      {
+        test: /\.css$/,
+        use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
+      }
     ],
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
+  devtool: 'cheap-module-source-map',
 };

@@ -1,8 +1,9 @@
 {
-  "name": "Hdl21SchematicEditor",
-  "productName": "Hdl21SchematicEditor",
+  "name": "hdl21-schematic-editor-app",
+  "private": true,
   "version": "1.0.0",
-  "description": "Hdl21SchematicEditor",
+  "productName": "Hdl21 Schematic Editor",
+  "description": "Hdl21 Schematic Editor",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -82,11 +83,10 @@
     "node-loader": "^2.0.0",
     "style-loader": "^3.0.0",
     "ts-loader": "^9.3.1",
+    "tslib": "^2.4.0",
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "EditorCore": "^1.0.0",
-    "PlatformInterface": "^1.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "file-loader": "^6.2.0"
   }

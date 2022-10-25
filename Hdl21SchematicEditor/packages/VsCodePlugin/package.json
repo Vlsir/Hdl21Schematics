@@ -1,8 +1,8 @@
 {
   "name": "hdl21-schematics-vscode",
   "private": true,
-  "displayName": "Hdl21 Schematics VS Code Plug-In",
-  "description": "Hdl21 Schematics VS Code Plug-In",
+  "displayName": "Hdl21 Schematics VS Code Extension",
+  "description": "Hdl21 Schematics VS Code Extension",
   "version": "0.0.1",
   "publisher": "dan-fritchman",
   "license": "MIT",
@@ -42,22 +42,25 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "yarn compile",
-    "compile": "tsc --build && webpack --config webpack.webview.js",
-    "watch": "tsc --build && webpack --watch --hot --config webpack.webview.js",
+    "vscode:prepublish": "yarn compile-prod",
+    "prepackage": "yarn compile-prod",
+    "package": "vsce package --yarn",
+    "compile-prod": "webpack --mode production --config webpack.extension.js && webpack --mode production --config webpack.webview.js",
+    "compile-dev": "webpack --mode development --config webpack.extension.js && webpack --mode development --config webpack.webview.js",
+    "compile": "yarn compile-dev",
+    "watch": "webpack --mode development --config webpack.extension.js && webpack --mode development --config webpack.webview.js --watch --hot",
     "lint": "eslint . --ext .ts,.tsx"
   },
-  "dependencies": {
-    "EditorCore": "^1.0.0",
-    "PlatformInterface": "^1.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@types/vscode": "^1.65.0",
     "@types/node": "^16.11.7",
+    "@types/vscode": "^1.65.0",
     "@typescript-eslint/eslint-plugin": "^5.30.0",
     "@typescript-eslint/parser": "^5.30.0",
     "eslint": "^8.13.0",
     "ts-loader": "^9.3.1",
+    "tslib": "^2.4.0",
+    "style-loader": "^3.3.1",
     "typescript": "^4.7.2",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"

@@ -279,13 +279,13 @@ export class SchematicEditorProvider
     );
     // Set the CSP to only allow scripts with a specific nonce, generated in this function.
     const nonce = getNonce();
-
+    // FIXME: get rid of the `unsafe-inline` style-tags here, as it says they are "unsafe"
     return /* html */ `
       <!DOCTYPE html>
       <html lang="en">
       <head>
         <meta charset="UTF-8">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} blob:; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} blob:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
       </head>
       <body>

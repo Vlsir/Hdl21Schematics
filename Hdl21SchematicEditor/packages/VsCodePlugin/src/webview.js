@@ -5,6 +5,7 @@
  * The code that runs inside VsCode's iframe-style webview panel. 
  */
 
+import "./index.css";
 import { start } from "EditorCore";
 
 // Get a VsCode API "instance". 
