@@ -317,7 +317,8 @@ const schematicStyle = `
 .hdl21-port-name,
 .hdl21-wire-name {
   fill: black;
-  font-family: comic sans ms; /* We know, it's just too funny */
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-weight: bold;
   font-size: 16px;
 }
 

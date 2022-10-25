@@ -55,7 +55,8 @@
 .hdl21-port-name,
 .hdl21-wire-name {
   fill: black;
-  font-family: comic sans ms; /* We know, it's just too funny */
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-weight: bold;
   font-size: 16px;
 }
 
@@ -81,9 +82,10 @@
 <defs id="hdl21-schematic-defs">
   <g id="hdl21-schematic-prelude">
   <text>from hdl21.primitives import *</text>
+  <text>Params = MosParams</text>
   </g>
   <text id="hdl21-schematic-circuit">
-    {"name":"","prelude":"from hdl21.primitives import *","signals":[{"name":"inp","portdir":"INPUT"},{"name":"VDD","portdir":"INOUT"},{"name":"out","portdir":"OUTPUT"},{"name":"VSS","portdir":"INOUT"}],"instances":[{"name":"p0","of":"pmos(args)","conns":[{"portname":"d","signame":"VDD"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"out"},{"portname":"b","signame":"VDD"}]},{"name":"n0","of":"nmos(args)","conns":[{"portname":"d","signame":"out"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]}]}
+    {"name":"","prelude":"from hdl21.primitives import *\nParams = MosParams","signals":[{"name":"inp","portdir":"INPUT"},{"name":"VDD","portdir":"INOUT"},{"name":"out","portdir":"OUTPUT"},{"name":"VSS","portdir":"INOUT"}],"instances":[{"name":"p0","of":"pmos(params)","conns":[{"portname":"d","signame":"VDD"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"out"},{"portname":"b","signame":"VDD"}]},{"name":"n0","of":"nmos(params)","conns":[{"portname":"d","signame":"out"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]}]}
   </text>
 
     <!-- Grid Background -->
@@ -114,7 +116,7 @@
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
   <text  x="10" y="0"  class="hdl21-instance-name">p0</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">pmos(args)</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">pmos(params)</text>
 </g>
 <g class="hdl21-instance" transform="matrix(1 0 0 1 300 300)">
   <g class="hdl21::primitives::nmos">
@@ -129,7 +131,7 @@
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
   <text  x="10" y="0"  class="hdl21-instance-name">n0</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">nmos(args)</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">nmos(params)</text>
 </g>
 
 

@@ -59,14 +59,14 @@ export function instacePortStyle(
 // Apply the `hdl21-labels` styling in two.js terms
 export function labelStyle(textElem: Text, highlighted: boolean = false): Text {
   textElem.alignment = "left";
-  textElem.family = "Comic Sans MS";
-  textElem.style = "heavy";
+  textElem.family = "Menlo, Monaco, 'Courier New', monospace";
+  textElem.style = "normal";
+  textElem.weight = 700; // Typical value for "bold"
   textElem.size = 16;
+  textElem.noStroke();
   if (highlighted) {
-    textElem.stroke = "red";
     textElem.fill = "red";
   } else {
-    textElem.noStroke();
     textElem.fill = "black";
   }
   return textElem;
@@ -78,10 +78,13 @@ export function gridLineStyle(line: Line, isMajor: boolean): Line {
   line.visible = true;
   line.closed = false;
   line.noFill();
+  // FIXME: these line-widths are halved compared to the SVG-file ones.
+  // It remains unclear why the same values here vs there don't seem to render the same. 
+  // Perhaps these are being "double counted", somehow. 
   if (isMajor) {
-    line.linewidth = 1;
-  } else {
     line.linewidth = 0.5;
+  } else {
+    line.linewidth = 0.25;
   }
   return line;
 }

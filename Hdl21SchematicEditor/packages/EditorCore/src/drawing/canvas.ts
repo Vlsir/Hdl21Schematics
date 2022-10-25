@@ -49,8 +49,8 @@ class Canvas {
     // fitted: true,
     // width: window.innerWidth,
     // height: window.innerHeight,
-    width: 1600,
-    height: 800,
+    width: 1610,
+    height: 810,
   });
 
   // The central `Stage` group, which contains all the other groups.
