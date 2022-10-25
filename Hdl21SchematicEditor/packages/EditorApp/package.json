@@ -21,7 +21,7 @@
   "license": "MIT",
   "config": {
     "forge": {
-      "packagerConfig": {},
+      "packagerConfig": {"executableName": "Hdl21SchematicEditor",},
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",

@@ -1,13 +1,12 @@
-
 name: Editor Builds
 on:
   - push
   - pull_request
 
 jobs:
-  build:
+  build_vscode_extension:
     runs-on: ubuntu-latest
-    name: Build
+    name: Build VsCode Extension
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -17,9 +16,54 @@ jobs:
       - name: Install Dependencies
         run: yarn
         working-directory: Hdl21SchematicEditor/
-      - name: Package VsCode Extension
+      - name: Build & Package VsCode Extension
         run: yarn package
         working-directory: Hdl21SchematicEditor/packages/VsCodePlugin/
+
+  build_app_on_mac:
+    runs-on: macos-latest
+    name: Build App on Mac
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
+      - name: Make App
+        run: yarn make
+        working-directory: Hdl21SchematicEditor/packages/EditorApp/
+
+  build_app_on_linux:
+    runs-on: ubuntu-latest
+    name: Build App on Linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
+      - name: Make App
+        run: yarn make
+        working-directory: Hdl21SchematicEditor/packages/EditorApp/
+
+  build_app_on_windows:
+    runs-on: windows-latest
+    name: Build App on Windows
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: yarn
+        working-directory: Hdl21SchematicEditor/
       - name: Make App
         run: yarn make
         working-directory: Hdl21SchematicEditor/packages/EditorApp/
