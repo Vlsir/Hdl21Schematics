@@ -21,7 +21,7 @@ jobs:
         working-directory: Hdl21SchematicEditor/packages/VsCodePlugin/
 
   # FIXME: these three "build_app" jobs can probably be a single job with a matrix
-  
+
   build_app_on_mac:
     runs-on: macos-latest
     name: Build App on Mac
@@ -89,11 +89,15 @@ jobs:
 
       - name: Install dependencies
         run: pip install -e ".[dev]"
+        working-directory: Hdl21SchematicImporter/
 
       - name: Test with pytest
         run: pytest --verbose
+        working-directory: Hdl21SchematicImporter/
 
-      - name: Black Formatting Check
-        uses: psf/black@stable
-        with:
-          version: "22.6"
+      # FIXME: some conflict between how `psf/black` is set up with `working-directory`
+      # - name: Black Formatting Check
+      #   uses: psf/black@stable
+      #   with:
+      #     version: "22.6"
+      #   working-directory: Hdl21SchematicImporter/
