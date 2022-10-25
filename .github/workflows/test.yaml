@@ -95,5 +95,7 @@ jobs:
           virtualenvs-in-project: true
       - name: Install Dependencies
         run: poetry install --no-interaction
+        working-directory: Hdl21SchematicImporter/
       - name: PyTest
         run: poetry run pytest --verbose
+        working-directory: Hdl21SchematicImporter/
