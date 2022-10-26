@@ -12,7 +12,8 @@ import { Place, Placeable } from "../place";
 import { Direction } from "../direction";
 import { Point, point } from "../point";
 import { Rotation, nextRotation } from "../orientation";
-import { theCanvas } from "./canvas";
+import { Canvas } from "./canvas";
+import { theEditor } from "../editor";
 import { MousePos } from "../mousepos";
 import { exhaust } from "../errors";
 
@@ -69,7 +70,7 @@ const radianRotation = (rotation: Rotation): number => {
 function svgSymbolDrawing(svgLines: Array<string>): Group {
   // Load the symbol as a two `Group`, wrapping the content in <svg> elements.
   let symbolSvgStr = "<svg>" + svgLines.join() + "</svg>";
-  const symbol = theCanvas.two.load(symbolSvgStr, doNothing);
+  const symbol = theEditor.canvas.two.load(symbolSvgStr, doNothing);
   traverseAndApply(symbol, symbolStyle);
   return symbol;
 }
@@ -80,7 +81,7 @@ function svgInstancePortDrawing(loc: Point): Group {
     "<svg>" +
     `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="hdl21-instance-port" />` +
     "</svg>";
-  const group = theCanvas.two.load(svgStr, doNothing);
+  const group = theEditor.canvas.two.load(svgStr, doNothing);
   traverseAndApply(group, instacePortStyle);
   return group;
 }
@@ -109,6 +110,8 @@ class Drawing {
     public ports: Group, // Group of instance ports
     public labelGroup: Group // Group of Label drawings
   ) {}
+  canvas: Canvas = theEditor.canvas; // Reference to the drawing canvas. FIXME: the "the" part.
+
   // Create an empty Drawing
   static empty(): Drawing {
     return new Drawing(new Group(), new Group(), new Group(), new Group());
@@ -119,7 +122,7 @@ class Drawing {
 
     // Create the Instance's drawing-Group, which includes its symbol, labels, and ports.
     const root = new Group();
-    theCanvas.instanceLayer.add(root);
+    theEditor.canvas.instanceLayer.add(root);
 
     // Draw and add the symbol sub-group
     const symbol = svgSymbolDrawing(symbolSvgLines);

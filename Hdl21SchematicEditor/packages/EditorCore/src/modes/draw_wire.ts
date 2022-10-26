@@ -41,7 +41,10 @@ export class DrawWire extends UiModeHandlerBase {
     const prev_point = points[wire.points.length - 2];
 
     // Sort out the closest Manhattan-separated point on the grid.
-    const landing = nearestManhattan(editor.uiState.mousePos.canvas, prev_point);
+    const landing = nearestManhattan(
+      editor.uiState.mousePos.canvas,
+      prev_point
+    );
 
     // Chop out the last point, replacing it with the new landing point.
     points = points.slice(0, -1);
@@ -61,7 +64,10 @@ export class DrawWire extends UiModeHandlerBase {
     const prev_point = points[wire.points.length - 2];
 
     // Sort out the closest Manhattan-separated point on the grid.
-    const landing = nearestManhattan(editor.uiState.mousePos.canvas, prev_point);
+    const landing = nearestManhattan(
+      editor.uiState.mousePos.canvas,
+      prev_point
+    );
     if (landing.x == prev_point.x && landing.y == prev_point.y) {
       // If editor is the same point, no need to make updates, we're done.
       return;

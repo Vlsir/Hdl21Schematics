@@ -22,7 +22,7 @@ import { Importer, Exporter } from "./svg";
 import { UiState } from "./uistate";
 import { UiModes, ModeHandlers } from "./modes";
 import { MousePos } from "./mousepos";
-import { Entity, EntityKind, Schematic, setupGrid, theCanvas } from "./drawing";
+import { Entity, EntityKind, Schematic, setupGrid, Canvas } from "./drawing";
 
 // A dummy "Platform", which does nothing, and stands in for a real one between Editor construction and startup.
 const NoPlatform = {
@@ -51,8 +51,9 @@ const NoPanelUpdater = (_: PanelProps) => {};
 //
 export class SchEditor {
   platform: Platform = NoPlatform; // Platform interface. Set upon the one (and only) call to `start`.
-  schematic: Schematic = new Schematic(); // The schematic content
+  schematic: Schematic = new Schematic(this); // The schematic content
   uiState: UiState = new UiState(this); // Non-schematic UI state
+  canvas: Canvas = new Canvas(this); // The drawing canvas
   panelUpdater: PanelUpdater = NoPanelUpdater; // Function to update the peripheral `Panels`
   failer: (msg: string) => void = console.log; // Function called on errors
 
@@ -65,13 +66,13 @@ export class SchEditor {
     }
     this.platform = platform;
 
-    // Perform all of our one-time startup activity, creating the canvas, binding it to the DOM, binding events, etc.
+    // Perform all of our one-time startup activity, binding the canvas to the DOM, binding events, etc.
 
     // Attach the drawing canvas to the DOM
-    theCanvas.attach();
+    this.canvas.attach();
 
     // Listener for color-scheme changes
-    // Note the Panels have separate tracking of this.
+    // Note the `Panels` have separate tracking of this.
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", this.handleColorSchemeChange);
@@ -80,26 +81,26 @@ export class SchEditor {
     // FIXME: where will this `wheel` event eventually attach
     window.addEventListener("wheel", this.handleWheel);
     // window.addEventListener('resize', this.handleResize);
-    theCanvas.parentDomElement!.addEventListener(
+    this.canvas.parentDomElement!.addEventListener(
       "mousedown",
       this.handleMouseDown,
       true
     );
-    theCanvas.parentDomElement!.addEventListener(
+    this.canvas.parentDomElement!.addEventListener(
       "mouseup",
       this.handleMouseUp,
       true
     );
-    theCanvas.parentDomElement!.addEventListener(
+    this.canvas.parentDomElement!.addEventListener(
       "mousemove",
       this.handleMouseMove,
       true
     );
-    theCanvas.parentDomElement!.addEventListener(
+    this.canvas.parentDomElement!.addEventListener(
       "dblclick",
       this.handleDoubleClick
     );
-    // theCanvas.parentDomElement!.addEventListener("click", this.handleClick);
+    // this.canvas.parentDomElement!.addEventListener("click", this.handleClick);
 
     // Get ourselves out of the "before startup" mode, and into UI idle.
     this.goUiIdle();
@@ -139,7 +140,7 @@ export class SchEditor {
         // FIXME: error handling via Result
         try {
           const schData = Importer.import(msg.body);
-          const schematic = Schematic.fromData(schData);
+          const schematic = Schematic.fromData(this, schData);
           return this.loadSchematic(schematic);
         } catch (e) {
           return this.failer(`Error loading schematic: ${e}`);
@@ -159,17 +160,17 @@ export class SchEditor {
   };
   // Load a new and empty schematic into the editor.
   newSchematic = () => {
-    this.loadSchematic(new Schematic());
+    this.loadSchematic(new Schematic(this));
   };
   // Load `schematic` into the UI and draw it.
   loadSchematic = (schematic: Schematic) => {
     this.schematic = schematic;
 
     // Clear the drawing window, in case we have a previous drawing.
-    theCanvas.clear();
+    this.canvas.clear();
 
     // Set up the background grid
-    setupGrid(this.schematic.size);
+    setupGrid(this.schematic.size, this.canvas);
 
     // Load the schematic's code-prelude into the `Panels` editor area.
     // This will also set `schematic.prelude` back to itself, but meh, it's harmless and we share that line.
@@ -368,7 +369,7 @@ export class SchEditor {
   // Handle mouse movement events.
   handleMouseMove = (e: MouseEvent) => {
     // Update our tracking of the mouse position.
-    this.uiState.mousePos = theCanvas.newMousePos(e);
+    this.uiState.mousePos = this.canvas.newMousePos(e);
     // And delegate to the mode-handler.
     return this.uiState.modeHandler.handleMouseMove();
   };

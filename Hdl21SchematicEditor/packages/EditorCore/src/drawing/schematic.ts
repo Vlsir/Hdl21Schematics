@@ -6,12 +6,14 @@ import { Dot } from "./dot";
 import { Point, point } from "../point";
 import * as schdata from "../schematicdata";
 import { exhaust } from "../errors";
+import { SchEditor } from "../editor";
 
 export class Schematic {
   constructor(
-    public size: Point = point(1600, 800),
-    public prelude: string = "",
-    public otherSvgElements: Array<string> = []
+    public editor: SchEditor, // Reference to the parent Editor
+    public size: Point = point(1600, 800), // Size/ outline
+    public prelude: string = "", // Code prelude string
+    public otherSvgElements: Array<string> = [] // List of other SVG elements, stored as strings. FIXME: kinda?
   ) {}
 
   // Internal data stores
@@ -28,8 +30,9 @@ export class Schematic {
   num_entities = 0;
 
   // Create a (drawn) `Schematic` from the abstract data model
-  static fromData(schData: schdata.Schematic): Schematic {
+  static fromData(editor: SchEditor, schData: schdata.Schematic): Schematic {
     const sch = new Schematic(
+      editor,
       schData.size,
       schData.prelude,
       schData.otherSvgElements

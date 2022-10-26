@@ -1,7 +1,7 @@
 import { Line } from "two.js/src/shapes/line";
 
 // Local Imports
-import { theCanvas } from "./canvas";
+import { Canvas } from "./canvas";
 import { gridLineStyle } from "./style";
 import { Point, point } from "../point";
 
@@ -9,19 +9,19 @@ export const GRID_SIZE = 10;
 export const GRID_MAJOR_SIZE = 100;
 
 // Draw the background grid with dimensions of `size`.
-export function setupGrid(size: Point) {
+export function setupGrid(size: Point, canvas: Canvas) {
   // Get the outline size from the Schematic
   const x = size.x;
   const y = size.y;
 
   for (let i = 0; i <= x; i += 10) {
     const line = new Line(i, 0, i, y);
-    theCanvas.gridLayer.add(line);
+    canvas.gridLayer.add(line);
     gridLineStyle(line, i % 100 == 0);
   }
   for (let i = 0; i <= y; i += 10) {
     const line = new Line(0, i, x, i);
-    theCanvas.gridLayer.add(line);
+    canvas.gridLayer.add(line);
     gridLineStyle(line, i % 100 == 0);
   }
 }

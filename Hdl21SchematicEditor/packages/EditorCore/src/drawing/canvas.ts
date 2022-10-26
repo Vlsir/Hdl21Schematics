@@ -6,31 +6,13 @@ import { MousePos } from "../mousepos";
 import { point } from "../point";
 import { bbox, Bbox } from "./bbox";
 import { THE_SECRET_CANVAS_ID } from "../secret";
+import { SchEditor } from "../editor";
 
-class Stage {
-  // The root group, which contains all drawn content
-  root: Group = new Group();
-
-  // The drawing layer groups. These are the basis for our "z-axis" drawing order & priority.
-  gridLayer: Group = new Group();
-  instanceLayer: Group = new Group();
-  wireLayer: Group = new Group();
-  labelLayer: Group = new Group();
-  dotLayer: Group = new Group();
-
-  // In the custom part of our constructor, set the hierarchical relationship between all these groups:
-  // `root` contains all the others.
-  constructor() {
-    // The order of these call arguments right here sets the background to foreground ordering.
-    this.root.add(
-      this.gridLayer,
-      this.instanceLayer,
-      this.wireLayer,
-      this.dotLayer
-    );
-  }
-}
 export class Canvas {
+  constructor(
+    public editor: SchEditor // Reference to the parent Editor
+  ) {}
+
   // Our parent DOM element, set during `attach`.
   parentDomElement: HTMLElement | null = null;
   parentBbox: Bbox | null = null;
@@ -51,13 +33,9 @@ export class Canvas {
     height: 810,
   });
 
-  // The central `Stage` group, which contains all the other groups.
+  // The central `Stage`, which contains all content in layered `Group`s.
   stage: Stage = new Stage();
 
-  // In the custom part of of construction, add the `Stage` to our `Two` instance.
-  constructor() {
-    this.two.add(this.stage.root);
-  }
   // Clear everything from the canvas, and recreate our groups and layers.
   clear() {
     this.two.clear();
@@ -67,6 +45,7 @@ export class Canvas {
   // Attach the canvas to our DOM element.
   // This will fail if called before the DOM element is created.
   attach = () => {
+    this.two.add(this.stage.root);
     // The "!" here in particular is what will fail if the DOM element is not yet created.
     const e = document.getElementById(THE_SECRET_CANVAS_ID)!;
     this.two.appendTo(e);
@@ -97,5 +76,31 @@ export class Canvas {
   }
 }
 
-// Create "THE" one and only canvas object.
-export const theCanvas = new Canvas();
+// # Stage
+// A shorthand for our tiered list of drawing groups, including the `root` group which includes all drawn content.
+// The point of keeping this separate from `Canvas` is largely that it can be replaced.
+// `Canvas` is includes several one-time items, such as the `Two` instance and DOM element.
+// When we start or load a new schematic, the `Canvas` stays, but the `Stage` is replaced with a new one.
+class Stage {
+  // The root group, which contains all drawn content
+  root: Group = new Group();
+
+  // The drawing layer groups. These are the basis for our "z-axis" drawing order & priority.
+  gridLayer: Group = new Group();
+  instanceLayer: Group = new Group();
+  wireLayer: Group = new Group();
+  labelLayer: Group = new Group();
+  dotLayer: Group = new Group();
+
+  // In the custom part of our constructor, set the hierarchical relationship between all these groups:
+  // `root` contains all the others.
+  constructor() {
+    // The order of these call arguments right here sets the background to foreground ordering.
+    this.root.add(
+      this.gridLayer,
+      this.instanceLayer,
+      this.wireLayer,
+      this.dotLayer
+    );
+  }
+}

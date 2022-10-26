@@ -3,10 +3,11 @@ import { Path } from "two.js/src/path";
 // Local Imports
 import { EntityInterface, EntityKind } from "./entity";
 import { wireStyle } from "./style";
-import { Canvas, theCanvas, } from "./canvas";
+import { Canvas } from "./canvas";
 import { MousePos } from "../mousepos";
 import { Point } from "../point";
 import { ManhattanSegment, hitTestSegment, calcSegments } from "../manhattan";
+import { theEditor } from "../editor";
 
 // Wrapper for hit-testing the pointer against drawn wire segements,
 // with tolerance equal to their drawn width.
@@ -23,6 +24,7 @@ export class Wire implements EntityInterface {
   highlighted: boolean = false;
   segments: Array<ManhattanSegment> | null = null;
   entityId: number | null = null; // Numeric unique ID
+  canvas: Canvas = theEditor.canvas; // Reference to the drawing canvas. FIXME: the "the" part.
 
   static create(points: Array<Point>): Wire {
     return new Wire(points);
@@ -40,8 +42,8 @@ export class Wire implements EntityInterface {
       coords.push(point.x, point.y);
     }
     // Create the drawing
-    this.drawing = theCanvas.two.makePath(...coords);
-    theCanvas.wireLayer.add(this.drawing);
+    this.drawing = this.canvas.two.makePath(...coords);
+    this.canvas.wireLayer.add(this.drawing);
     // Set the wire style
     wireStyle(this.drawing);
 
@@ -75,7 +77,9 @@ export class Wire implements EntityInterface {
     if (!this.segments) {
       return false;
     }
-    return this.segments.some((segment) => hitTestDrawnSegment(segment, mousePos.canvas));
+    return this.segments.some((segment) =>
+      hitTestDrawnSegment(segment, mousePos.canvas)
+    );
   }
   updateSegments() {
     if (!this.segments) {
