@@ -35,7 +35,7 @@ export class Schematic {
       editor,
       schData.size,
       schData.prelude,
-      schData.otherSvgElements
+      [] // FIXME! otherSvgElements
     );
 
     // Add all instances
@@ -63,7 +63,7 @@ export class Schematic {
     schData.name = ""; // FIXME
     schData.size = structuredClone(this.size);
     schData.prelude = structuredClone(this.prelude);
-    schData.otherSvgElements = structuredClone(this.otherSvgElements);
+    schData.otherSvgElements = []; // FIXME!
     for (let [id, inst] of this.instances) {
       schData.instances.push(inst.data);
     }

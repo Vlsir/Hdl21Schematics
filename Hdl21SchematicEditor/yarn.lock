@@ -1564,6 +1564,11 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
 
+"@types/svg-parser@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@types/svg-parser/-/svg-parser-2.0.3.tgz#a840615540e96e3b5819a9ce31e077efadfdefe2"
+  integrity sha512-PKEmDmVWO8f4wwSZDHKHtdnYRM5NI4dCB0lawtUYpxfGhhuQ0qUky80qk6CR8SZhFrRcJmNnWOpN+8uh/X9qgg==
+
 "@types/vscode@^1.65.0":
   version "1.71.0"
   resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.71.0.tgz#a8d9bb7aca49b0455060e6eb978711b510bdd2e2"
