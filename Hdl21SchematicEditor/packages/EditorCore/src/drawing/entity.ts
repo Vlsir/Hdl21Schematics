@@ -1,11 +1,11 @@
-/* 
- * # Schematic Entity 
- * 
+/*
+ * # Schematic Entity
+ *
  * The interface to and union-type of all the things that can be drawn on a schematic.
  */
 
-// Local Imports 
-import { Point } from "../point";
+// Local Imports
+import { MousePos } from "../mousepos";
 import { Instance, SchPort, InstancePort } from "./instance";
 import { Wire } from "./wire";
 import { Label } from "./label";
@@ -37,7 +37,7 @@ export interface EntityInterface {
   // Update styling to indicate the lack of highlighted-ness
   unhighlight(): void;
   // Boolean indication of whether `point` is inside the instance.
-  hitTest(point: Point): boolean;
+  hitTest(mousePos: MousePos): boolean;
   // Abort an in-progress instance.
   abort(): void;
 }

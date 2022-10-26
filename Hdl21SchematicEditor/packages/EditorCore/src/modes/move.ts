@@ -35,7 +35,7 @@ export class MoveInstance extends UiModeHandlerBase {
   updateMove = () => {
     const { editor, entity } = this;
     // Set the location of both the entity and its drawing, snapped to our grid.
-    const loc = nearestOnGrid(editor.uiState.mouse_pos);
+    const loc = nearestOnGrid(editor.uiState.mousePos.canvas);
     this.to.loc = structuredClone(loc);
     entity.data.loc = structuredClone(loc);
     entity.draw();

@@ -1,18 +1,15 @@
 import Two from "two.js";
 import { Group } from "two.js/src/group";
-import { ZUI } from "two.js/extras/jsm/zui";
-import { Vector } from "two.js/src/vector";
 
 // Local Imports
-import { Point, point } from "../point";
+import { MousePos } from "../mousepos";
+import { point } from "../point";
+import { bbox, Bbox } from "./bbox";
 import { THE_SECRET_CANVAS_ID } from "../secret";
 
 class Stage {
   // The root group, which contains all drawn content
   root: Group = new Group();
-
-  // The "zui" pan & zoom thing.
-  zui: ZUI = new ZUI(this.root);
 
   // The drawing layer groups. These are the basis for our "z-axis" drawing order & priority.
   gridLayer: Group = new Group();
@@ -33,9 +30,10 @@ class Stage {
     );
   }
 }
-class Canvas {
+export class Canvas {
   // Our parent DOM element, set during `attach`.
   parentDomElement: HTMLElement | null = null;
+  parentBbox: Bbox | null = null;
 
   // The Two.js "draw-er", canvas, whatever they call it.
   // Attached to `parentDomElement` during `attach`.
@@ -66,25 +64,23 @@ class Canvas {
     this.stage = new Stage();
     this.two.add(this.stage.root);
   }
-
-  // Translate user-screen coordinates into our (maybe zoomed, maybe moved) canvas coordinates.
-  screenToCanvas(screen: Point): Point {
-    const canvas = this.zui.clientToSurface(screen.x, screen.y);
-    return point(canvas.x, canvas.y);
-  }
-  // Translate canvas coordinates into the user/ screen space.
-  canvasToScreen(canvas: Point): Point {
-    const screen = this.zui.surfaceToClient(new Vector(canvas.x, canvas.y));
-    return point(screen.x, screen.y);
-  }
   // Attach the canvas to our DOM element.
   // This will fail if called before the DOM element is created.
   attach = () => {
     // The "!" here in particular is what will fail if the DOM element is not yet created.
     const e = document.getElementById(THE_SECRET_CANVAS_ID)!;
-    this.parentDomElement = e;
     this.two.appendTo(e);
+    this.parentDomElement = e;
+    this.parentBbox = bbox.get(e);
   };
+  // Create a new mouse-position from a `MouseEvent`, or anything else with {clientX, clientY} properties.
+  // Fails if the canvas is not attached to a DOM element.
+  newMousePos(e: { clientX: number; clientY: number }): MousePos {
+    const parentBbox = this.parentBbox!; // This here fails if the canvas is not attached to a DOM element.
+    const client = point(e.clientX, e.clientY);
+    const canvas = point(client.x - parentBbox.left, client.y - parentBbox.top);
+    return { client, canvas };
+  }
 
   // Forwarded properties from `stage`.
   get gridLayer() {
@@ -98,9 +94,6 @@ class Canvas {
   }
   get dotLayer() {
     return this.stage.dotLayer;
-  }
-  get zui() {
-    return this.stage.zui;
   }
 }
 

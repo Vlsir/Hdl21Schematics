@@ -1,12 +1,13 @@
 import { orientation } from "./orientation";
 import { Instance as InstanceData, Port as PortData } from "./schematicdata";
-import { Point, point } from "./point";
+import { point } from "./point";
 import { PrimitiveKind, primitiveLib } from "./primitive";
 import { PortKind, portLib } from "./portsymbol";
 import { ChangeLog } from "./changes";
 import { SchEditor } from "./editor";
 import { UiModes, UiModeHandler, ModeHandlers } from "./modes";
-import { Entity, theCanvas } from "./drawing";
+import { Entity } from "./drawing";
+import { MousePos, mousepos } from "./mousepos";
 import { PanelProps, panelProps } from "./panels";
 
 // # UI State
@@ -54,7 +55,7 @@ export class UiState {
 
   // Track the mouse position at all times.
   // Initializes to the center of the canvas.
-  mouse_pos: Point = point(theCanvas.two.width / 2, theCanvas.two.height / 2);
+  mousePos: MousePos = mousepos.origin();
 
   // State of the peripheral panels
   panelProps: PanelProps = panelProps.default();

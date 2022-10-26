@@ -13,6 +13,7 @@ import { Direction } from "../direction";
 import { Point, point } from "../point";
 import { Rotation, nextRotation } from "../orientation";
 import { theCanvas } from "./canvas";
+import { MousePos } from "../mousepos";
 import { exhaust } from "../errors";
 
 // FIXME! fill these guys in
@@ -30,7 +31,7 @@ export class InstancePort implements EntityInterface {
   // Update styling to indicate the lack of highlighted-ness
   unhighlight() {}
   // Boolean indication of whether `point` is inside the instance.
-  hitTest(point: Point) {
+  hitTest(mousePos: MousePos) {
     return false;
   }
   // Abort an in-progress instance.
@@ -225,10 +226,10 @@ abstract class InstancePortBase implements LabelParent, Placeable {
   abort = () => {
     this.drawing.root.remove();
   };
-  // Boolean indication of whether `point` is inside the Instance's bounding box.
-  hitTest(point: Point) {
-    return bbox.hitTest(this.bbox, point);
-  }
+  // Boolean indication of whether `mousePos` is inside the Instance's bounding box.
+  // The confusing part: despite calling "getBoundingClientRect", this uses the *canvas* coordinates(?).
+  hitTest = (mousePos: MousePos) => bbox.hitTest(this.bbox, mousePos.canvas);
+  // Update the Instance's bounding box.
   updateBbox = () => {
     // Set the bounding box for hit testing.
     // Note this must come *after* the drawing is added to the scene.

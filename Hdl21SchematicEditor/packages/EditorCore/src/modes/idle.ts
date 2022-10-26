@@ -79,7 +79,7 @@ export class Idle extends UiModeHandlerBase {
   override handleMouseDown = () => {
     const { editor } = this;
     // Hit test, finding which element was clicked on.
-    const whatd_we_hit = editor.whatdWeHit(editor.uiState.mouse_pos);
+    const whatd_we_hit = editor.whatdWeHit(editor.uiState.mousePos);
 
     if (!whatd_we_hit) {
       // Hit "blank space". De-select whatever we've got.

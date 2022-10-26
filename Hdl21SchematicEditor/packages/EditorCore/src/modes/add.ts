@@ -41,7 +41,7 @@ abstract class AddBase extends UiModeHandlerBase {
   // Update the location of our in-progress entity.
   updateLoc = () => {
     const entity = this.entity();
-    entity.data.loc = nearestOnGrid(this.editor.uiState.mouse_pos);
+    entity.data.loc = nearestOnGrid(this.editor.uiState.mousePos.canvas);
     entity.draw();
   };
 
@@ -85,7 +85,7 @@ export class AddInstance extends AddBase {
       of: `${primitive.defaultOf}`,
       kind,
       primitive,
-      loc: nearestOnGrid(editor.uiState.mouse_pos),
+      loc: nearestOnGrid(editor.uiState.mousePos.canvas),
       orientation: structuredClone(lastInstanceData.orientation),
     };
     editor.uiState.lastInstanceData = newInstanceData;
@@ -165,7 +165,7 @@ export class AddPort extends AddBase {
       name: `${portsymbol.defaultName}`,
       kind,
       portsymbol,
-      loc: nearestOnGrid(editor.uiState.mouse_pos),
+      loc: nearestOnGrid(editor.uiState.mousePos.canvas),
       orientation: structuredClone(lastPortData.orientation),
     };
     editor.uiState.lastPortData = newPortData;

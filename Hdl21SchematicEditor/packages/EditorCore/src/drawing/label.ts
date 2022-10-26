@@ -1,6 +1,8 @@
 import { Text } from "two.js/src/text";
 
 // Local Imports
+import { Canvas } from "./canvas";
+import { MousePos } from "../mousepos";
 import { Bbox, bbox } from "./bbox";
 import { labelStyle } from "./style";
 import { EntityInterface, EntityKind } from "./entity";
@@ -66,10 +68,9 @@ export class Label implements EntityInterface {
   updateBbox() {
     this.bbox = bbox.get(this.drawing);
   }
-  // Boolean indication of whether `point` is inside the instance.
-  hitTest(point: Point) {
-    return bbox.hitTest(this.bbox, point);
-  }
+  // Boolean indication of whether `mousePos` is inside the instance.
+  // The confusing part: despite calling "getBoundingClientRect", this uses the *canvas* coordinates(?).
+  hitTest = (mousePos: MousePos) => bbox.hitTest(this.bbox, mousePos.canvas);
   // Update styling to indicate highlighted-ness
   highlight() {
     labelStyle(this.drawing, true);

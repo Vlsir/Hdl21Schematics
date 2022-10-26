@@ -17,11 +17,11 @@ import { PanelProps, PanelUpdater } from "./panels";
 import { Keys } from "./keys";
 import { exhaust } from "./errors";
 import { Change, ChangeKind } from "./changes";
-import { Point, point } from "./point";
 import { Direction } from "./direction";
 import { Importer, Exporter } from "./svg";
 import { UiState } from "./uistate";
 import { UiModes, ModeHandlers } from "./modes";
+import { MousePos } from "./mousepos";
 import { Entity, EntityKind, Schematic, setupGrid, theCanvas } from "./drawing";
 
 // A dummy "Platform", which does nothing, and stands in for a real one between Editor construction and startup.
@@ -190,11 +190,8 @@ export class SchEditor {
     );
   };
   // Handle zoom via the mouse scroll wheel.
-  handleWheel = (e: WheelEvent) => {
-    // FIXME: not quite ready.
-    // const dy = (e.wheelDeltaY || - e.deltaY) / 1000;
-    // theCanvas.zui.zoomBy(dy, e.clientX, e.clientY);
-  };
+  // FIXME: not quite ready for prime time.
+  handleWheel = (e: WheelEvent) => {};
   // Handle keystrokes.
   handleKey = (e: KeyboardEvent) => {
     if (this.uiState.mode === UiModes.EditPrelude) {
@@ -302,11 +299,11 @@ export class SchEditor {
   };
   // Hit test all schematic entities.
   // Returns the "highest priority" entity that is hit, or `null` if none are hit.
-  whatdWeHit(point: Point): Entity | null {
+  whatdWeHit(mousePos: MousePos): Entity | null {
     // Check all Instance Labels
     for (let [key, instance] of this.schematic.instances) {
       for (let label of instance.labels()) {
-        if (label.hitTest(point)) {
+        if (label.hitTest(mousePos)) {
           return label;
         }
       }
@@ -314,26 +311,26 @@ export class SchEditor {
     // Check all Port Labels
     for (let [key, port] of this.schematic.ports) {
       for (let label of port.labels()) {
-        if (label.hitTest(point)) {
+        if (label.hitTest(mousePos)) {
           return label;
         }
       }
     }
     // Check all Instance symbols / bodies
     for (let [key, instance] of this.schematic.instances) {
-      if (instance.hitTest(point)) {
+      if (instance.hitTest(mousePos)) {
         return instance;
       }
     }
     // Check all Port symbols / bodies
     for (let [key, port] of this.schematic.ports) {
-      if (port.hitTest(point)) {
+      if (port.hitTest(mousePos)) {
         return port;
       }
     }
     // Check all Wires
     for (let [key, wire] of this.schematic.wires) {
-      if (wire.hitTest(point)) {
+      if (wire.hitTest(mousePos)) {
         return wire;
       }
     }
@@ -358,8 +355,11 @@ export class SchEditor {
   // handleClick = e => {}
 
   // Handle mouse-down events. Fully delegated to the mode-handlers.
-  handleMouseDown = (_: MouseEvent) =>
+  handleMouseDown = (e: MouseEvent) => {
+    console.log(e);
+    console.log(this.uiState.mousePos);
     this.uiState.modeHandler.handleMouseDown();
+  };
   // Handle mouse-up events. Fully delegated to the mode-handlers.
   handleMouseUp = (_: MouseEvent) => this.uiState.modeHandler.handleMouseUp();
   // Handle double-click events. Fully delegated to the mode-handlers.
@@ -368,9 +368,7 @@ export class SchEditor {
   // Handle mouse movement events.
   handleMouseMove = (e: MouseEvent) => {
     // Update our tracking of the mouse position.
-    this.uiState.mouse_pos = theCanvas.screenToCanvas(
-      point(e.clientX, e.clientY)
-    );
+    this.uiState.mousePos = theCanvas.newMousePos(e);
     // And delegate to the mode-handler.
     return this.uiState.modeHandler.handleMouseMove();
   };

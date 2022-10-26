@@ -3,7 +3,8 @@ import { Path } from "two.js/src/path";
 // Local Imports
 import { EntityInterface, EntityKind } from "./entity";
 import { wireStyle } from "./style";
-import { theCanvas } from "./canvas";
+import { Canvas, theCanvas, } from "./canvas";
+import { MousePos } from "../mousepos";
 import { Point } from "../point";
 import { ManhattanSegment, hitTestSegment, calcSegments } from "../manhattan";
 
@@ -69,12 +70,12 @@ export class Wire implements EntityInterface {
     this.highlighted = false;
   }
   // Boolean indication of whether `point` lands on the wire. i.e. on any of its segments.
-  hitTest(point: Point): boolean {
+  hitTest(mousePos: MousePos): boolean {
     this.updateSegments();
     if (!this.segments) {
       return false;
     }
-    return this.segments.some((segment) => hitTestDrawnSegment(segment, point));
+    return this.segments.some((segment) => hitTestDrawnSegment(segment, mousePos.canvas));
   }
   updateSegments() {
     if (!this.segments) {
