@@ -234,7 +234,7 @@ export class Exporter {
   // Write the SVG `circle` element for a `Dot`.
   writeDot(dot: Point) {
     this.writeLine(
-      `<circle cx="${dot.x}" cy="${dot.y}" r="4" class="${SchSvgClasses.DOT}" />`
+      `<circle cx="${dot.x}" cy="${dot.y}" r="6" class="${SchSvgClasses.DOT}" />`
     );
   }
   // Write the SVG `circle` element for an Instance port.
@@ -289,8 +289,8 @@ const schematicStyle = `
 }
 
 .hdl21-dot {
-  fill: black;
-  stroke: black;
+  fill: blue;
+  stroke: blue;
   stroke-opacity: 1;
   stroke-miterlimit: 0;
   stroke-linecap: round;
@@ -327,17 +327,22 @@ const schematicStyle = `
     svg {
         background-color: #1e1e1e;
     }
+    .hdl21-dot {
+        fill: #87d3f8;
+        stroke: #87d3f8;
+    }
     .hdl21-wire {
         stroke: #87d3f8;
     }
     .hdl21-symbols {
-        stroke: darkgrey;
+        stroke: lightgrey;
     }
     .hdl21-labels,
+    .hdl21-port-name,
     .hdl21-instance-name,
     .hdl21-instance-of,
     .hdl21-wire-name {
-        fill: grey;
+        fill: lightgrey;
     }
 }
 </style>

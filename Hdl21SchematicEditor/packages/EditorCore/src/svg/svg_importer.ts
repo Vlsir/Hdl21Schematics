@@ -14,7 +14,6 @@ import { Schematic } from "../schematicdata";
 import { matrix, orientation } from "../orientation";
 import { PrimitiveTags } from "../primitive";
 import { PortTags } from "../portsymbol";
-import { inferDots } from "../inferdots";
 
 // Type alias for the return-type of `ElementNode.children()`
 type Child = ElementNode | TextNode | string;
@@ -51,14 +50,9 @@ export class Importer {
     const properties = svg.properties || {};
     let width = properties.width || 1600;
     let height = properties.height || 800;
-    function convert(inp: number | string): number {
-      if (typeof inp === "string") {
-        return parseInt(inp, 10);
-      }
-      return inp;
-    }
-    width = convert(width);
-    height = convert(height);
+
+    width = this.propToNum(width);
+    height = this.propToNum(height);
     this.schematic.size = point(width, height);
 
     // Walk its SVG children, adding schematic elements.
@@ -157,10 +151,21 @@ export class Importer {
     this.schematic.prelude = lines.join("\n");
   }
 
-  // Import a `Dot`
-  importDot(svgCircle: ElementNode) {
-    // FIXME!
-    console.log("FIXME! importDot");
+  // Import a `Dot` from an SVG `<circle>` element.
+  // Throws an Error if the element lacks the "dot properties" `cx` and `cy`.
+  // Does not check that this is a `circle` in the first place, or that it has the `hd21-dot` class.
+  importDot(svgCircle: ElementNode): void {
+    const { properties } = svgCircle;
+    if (!properties) {
+      throw this.fail("Dot <circle> element must have properties");
+    }
+    const { cx, cy } = properties;
+    if (cx === undefined || cy === undefined) {
+      throw this.fail("Dot <circle> element must have cx and cy properties");
+    }
+    const x = this.propToNum(cx);
+    const y = this.propToNum(cy);
+    this.schematic.dots.push(point(x, y));
   }
 
   // Import an instance
@@ -351,6 +356,20 @@ export class Importer {
       throw this.fail(`Could not extract string from ${child}`);
     }
     return value;
+  }
+
+  // Property to Number Helper Function
+  // Each value in the SVG `properties` object is either a number or a string.
+  // This converts string-valued ones to
+  propToNum(inp: number | string): number {
+    if (typeof inp === "string") {
+      try {
+        return parseInt(inp, 10);
+      } catch (e) {
+        throw this.fail(`Could not parse property value ${inp} to integer`);
+      }
+    }
+    return inp;
   }
 
   // Error helper. Place for a breakpoint to capture our state.

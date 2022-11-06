@@ -175,6 +175,9 @@ class SchematicToCircuitConverter {
     for (let port_instance of this.sch.ports) {
       // Transform the portsymbol-referenced port location to the instance's location
       const mat = matrix.fromOrientation(port_instance.orientation);
+      
+      // FIXME: this seems (at the time of this writing) to be just making the identity transform on `port_instance.loc`
+      // Check this, test it, remove it if so. 
       const instance_port_loc = transform(
         point(0, 0), // Each PortSymbol's "instance port location" is implicitly its origin.
         mat,
@@ -252,8 +255,8 @@ class SchematicToCircuitConverter {
   };
 }
 
-/* Apply the `OrientationMatrix` transformation to `pt`.
-    Computes `pt * mat + loc`. */
+// Apply the `OrientationMatrix` transformation to `pt`.
+// Computes `pt * mat + loc`.
 function transform(pt: Point, mat: OrientationMatrix, loc: Point): Point {
   return point(
     mat.a * pt.x + mat.c * pt.y + loc.x,

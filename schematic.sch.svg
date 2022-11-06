@@ -27,8 +27,8 @@
 }
 
 .hdl21-dot {
-  fill: black;
-  stroke: black;
+  fill: blue;
+  stroke: blue;
   stroke-opacity: 1;
   stroke-miterlimit: 0;
   stroke-linecap: round;
@@ -65,17 +65,22 @@
     svg {
         background-color: #1e1e1e;
     }
+    .hdl21-dot {
+        fill: #87d3f8;
+        stroke: #87d3f8;
+    }
     .hdl21-wire {
         stroke: #87d3f8;
     }
     .hdl21-symbols {
-        stroke: darkgrey;
+        stroke: lightgrey;
     }
     .hdl21-labels,
+    .hdl21-port-name,
     .hdl21-instance-name,
     .hdl21-instance-of,
     .hdl21-wire-name {
-        fill: grey;
+        fill: lightgrey;
     }
 }
 </style>
@@ -203,6 +208,20 @@
 </g>
 
 
+<circle cx="170" cy="250" r="6" class="hdl21-dot" />
+<circle cx="200" cy="250" r="6" class="hdl21-dot" />
+<circle cx="230" cy="150" r="6" class="hdl21-dot" />
+<circle cx="230" cy="350" r="6" class="hdl21-dot" />
+<circle cx="300" cy="100" r="6" class="hdl21-dot" />
+<circle cx="300" cy="200" r="6" class="hdl21-dot" />
+<circle cx="300" cy="250" r="6" class="hdl21-dot" />
+<circle cx="300" cy="300" r="6" class="hdl21-dot" />
+<circle cx="300" cy="400" r="6" class="hdl21-dot" />
+<circle cx="320" cy="150" r="6" class="hdl21-dot" />
+<circle cx="320" cy="350" r="6" class="hdl21-dot" />
+<circle cx="340" cy="250" r="6" class="hdl21-dot" />
+<circle cx="340" cy="450" r="6" class="hdl21-dot" />
+<circle cx="340" cy="60" r="6" class="hdl21-dot" />
 
 
 </svg>

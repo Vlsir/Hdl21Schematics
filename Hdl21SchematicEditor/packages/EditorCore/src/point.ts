@@ -12,3 +12,8 @@ export interface Point {
 export function point(x: number, y: number): Point {
   return { x, y };
 }
+
+export const pointNamespace = {
+  new: point,
+  eq: (a: Point, b: Point) => a.x === b.x && a.y === b.y,
+};
