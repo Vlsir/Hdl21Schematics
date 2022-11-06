@@ -74,7 +74,6 @@ jobs:
   python_importer_tests:
     name: Python Importer Test Suite
     runs-on: ubuntu-latest
-    continue-on-error: true # FIXME! needs a compatible, published version of Hdl21
     strategy:
       fail-fast: false
       matrix:
