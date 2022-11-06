@@ -7,7 +7,7 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 hdl21 = "2.0"
 pydantic = "1.9.1"
-python = ">=3.7, <4"
+python = ">=3.7,<3.11"
 
 [tool.poetry.dev-dependencies]
 black = "22.6.0"
