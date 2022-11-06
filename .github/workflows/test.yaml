@@ -20,11 +20,12 @@ jobs:
         run: yarn package
         working-directory: Hdl21SchematicEditor/packages/VsCodePlugin/
 
-  # FIXME: these three "build_app" jobs can probably be a single job with a matrix
-
-  build_app_on_mac:
-    runs-on: macos-latest
-    name: Build App on Mac
+  build_app:
+    name: Build App
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
@@ -37,39 +38,8 @@ jobs:
       - name: Make App
         run: yarn make
         working-directory: Hdl21SchematicEditor/packages/EditorApp/
-
-  build_app_on_windows:
-    runs-on: windows-latest
-    name: Build App on Windows
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - name: Install Dependencies
-        run: yarn
-        working-directory: Hdl21SchematicEditor/
-      - name: Make App
-        run: yarn make
-        working-directory: Hdl21SchematicEditor/packages/EditorApp/
-
-  build_app_on_linux:
-    runs-on: ubuntu-latest
-    name: Build App on Linux
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - name: Install Dependencies
-        run: yarn
-        working-directory: Hdl21SchematicEditor/
-      - name: Make App
-        run: yarn make
-        working-directory: Hdl21SchematicEditor/packages/EditorApp/
-    continue-on-error: true # FIXME! haven't gotten this one working yet
+    continue-on-error: ${{ matrix.os == 'ubuntu-latest' }}
+    # FIXME: haven't sorted this out on Linux, yet
 
   python_importer_tests:
     name: Python Importer Test Suite
