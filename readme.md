@@ -91,8 +91,6 @@ class Params:
   l = h.Param(dtype=int, desc="Length")
 ```
 
-![](./docs/inverter_params.svg)
-
 The combination maps to something like the following Python code:
 
 ```python
