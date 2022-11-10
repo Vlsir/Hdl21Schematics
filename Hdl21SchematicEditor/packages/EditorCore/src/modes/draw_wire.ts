@@ -92,13 +92,12 @@ export class DrawWire extends UiModeHandlerBase {
 
     // Notify the changeLog and platform of the change.
     editor.logChange({ kind: ChangeKind.Add, entity: wire });
+    // FIXME: update dots incrementally, instead of re-inferring them all!
+    editor.schematic.updateDots();
 
     // And go back to the UI Idle, nothing selected state.
     editor.deselect();
     editor.goUiIdle();
-
-    // FIXME: editor will probably want some more computing at commit-time,
-    // figuring out hit-test areas, etc.
   };
 
   // Update the rendering of the wire on mouse-move.

@@ -1,13 +1,14 @@
-/*
- * # Schematics Styling
- *
- * In the two.js API's terms.
- */
+//
+// # Schematics Styling
+//
+// In the two.js API's terms.
+//
 
 import { Path } from "two.js/src/path";
 import { Group } from "two.js/src/group";
 import { Text } from "two.js/src/text";
 import { Line } from "two.js/src/shapes/line";
+import { Circle } from "two.js/src/shapes/circle";
 
 export enum ColorTheme {
   Light = "light",
@@ -56,6 +57,22 @@ export function instacePortStyle(
   return port;
 }
 
+// Apply the `hdl21-dot` styling in two.js terms
+export function dotStyle(
+  circle: Circle,
+  highlighted: boolean = false,
+  theme: ColorTheme = ColorTheme.Light
+): Path {
+  circle.radius = 6;
+  circle.linewidth = 4;
+  circle.visible = true;
+  circle.stroke = "blue";
+  circle.fill = "blue";
+  circle.cap = "round";
+  circle.join = "round";
+  return circle;
+}
+
 // Apply the `hdl21-labels` styling in two.js terms
 export function labelStyle(textElem: Text, highlighted: boolean = false): Text {
   textElem.alignment = "left";
@@ -79,8 +96,8 @@ export function gridLineStyle(line: Line, isMajor: boolean): Line {
   line.closed = false;
   line.noFill();
   // FIXME: these line-widths are halved compared to the SVG-file ones.
-  // It remains unclear why the same values here vs there don't seem to render the same. 
-  // Perhaps these are being "double counted", somehow. 
+  // It remains unclear why the same values here vs there don't seem to render the same.
+  // Perhaps these are being "double counted", somehow.
   if (isMajor) {
     line.linewidth = 0.5;
   } else {

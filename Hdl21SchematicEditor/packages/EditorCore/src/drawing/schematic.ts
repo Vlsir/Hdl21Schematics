@@ -4,20 +4,22 @@ import { Wire } from "./wire";
 import { Instance, SchPort } from "./instance";
 import { Dot } from "./dot";
 import { Point, pointNamespace } from "../point";
-import * as schdata from "../schematicdata";
 import { exhaust } from "../errors";
 import { SchEditor } from "../editor";
-import { calcSegments, ManhattanSegment, hitTestSegment } from "../manhattan";
+import { ManhattanSegment, hitTestSegment } from "../manhattan";
 import { OrientationMatrix, matrix } from "../orientation";
+import * as schdata from "../schematicdata";
 
 class DotMap {
   // x as the major/ outer key
-  byx: Map<number, Map<number, DotSomething>> = new Map();
+  byx: Map<number, Map<number, Dot>> = new Map();
   // y as the major/ outer key
-  byy: Map<number, Map<number, DotSomething>> = new Map();
+  byy: Map<number, Map<number, Dot>> = new Map();
+  // Set of all Dots
+  set: Set<Dot> = new Set();
 
   // Get the Dot at point `p`, if one exists.
-  get(p: Point): DotSomething | undefined {
+  get(p: Point): Dot | undefined {
     const xset = this.byx.get(p.x);
     if (!xset) {
       return undefined;
@@ -26,8 +28,10 @@ class DotMap {
   }
 
   // Insert a Dot into the map
-  insert(dot: DotSomething) {
+  insert(dot: Dot) {
     const p = dot.loc;
+
+    // Insert into the {x:{y:Dot}} map
     let xset = this.byx.get(p.x);
     if (!xset) {
       xset = new Map();
@@ -35,18 +39,45 @@ class DotMap {
     }
     xset.set(p.y, dot);
 
+    // Insert into the {y:{x:Dot}} map
     let yset = this.byy.get(p.y);
     if (!yset) {
       yset = new Map();
       this.byy.set(p.y, yset);
     }
     yset.set(p.x, dot);
+
+    // Insert into the set
+    this.set.add(dot);
   }
 
+  // Remove a `Dot` from the map
+  remove(dot: Dot): void {
+    // Remove the dot from the canvas and its parents
+    dot.remove();
+    // Remove it from our set
+    this.set.delete(dot);
+    const xmap = this.byx.get(dot.loc.x);
+    if (!xmap) {
+      return;
+    }
+    xmap.delete(dot.loc.y);
+  }
+
+  // Convert to an (unordered) array of Dots
+  toDotList(): Array<Dot> {
+    let arr: Array<Dot> = [];
+    for (const xmap of this.byx.values()) {
+      for (const dot of xmap.values()) {
+        arr.push(dot);
+      }
+    }
+    return arr;
+  }
   // Convert to an array of Dots
   // Sorted first by x, then by y
-  toDotList(): Array<DotSomething> {
-    let arr: Array<DotSomething> = [];
+  toOrderedDotList(): Array<Dot> {
+    let arr: Array<Dot> = [];
     const xorder = Array.from(this.byx.keys()).sort((a, b) => a - b);
     for (let x of xorder) {
       const xmap = this.byx.get(x)!;
@@ -58,62 +89,51 @@ class DotMap {
   // Convert to an array of Points
   // Sorted first by x, then by y
   toPoints(): Array<Point> {
-    return [...this.toDotList()].map((dot) => dot.loc);
+    return [...this.toOrderedDotList()].map((dot) => dot.loc);
   }
 
   // Get the Dot at `loc`, or create and insert a new one if none exists.
-  at(loc: Point): DotSomething {
+  at(loc: Point): Dot {
     let dot = this.get(loc);
     if (!dot) {
-      dot = new DotSomething(loc);
+      dot = Dot.create(loc);
       this.insert(dot);
     }
     return dot;
   }
 }
 
-class DotSomething {
-  constructor(public loc: Point) {}
-  wires: Set<WireAndSegments> = new Set();
-  instances: Set<schdata.Instance> = new Set();
-  schports: Set<schdata.Port> = new Set();
-}
-
-interface WireAndSegments {
-  wire: schdata.Wire;
-  segments: Array<ManhattanSegment>;
-}
-
-// Infer Dot locations from schematic data
+// Infer Dot locations from schematic
 //
 // Candidates for dot locations include:
 // * Each port of each instance
 // * The origin of each (schematic) port
 // * Each vertex of each wire
 //
-// A dot is inferred if these locations intersect a wire,
-// but are not at that wire's start or end point.
+// A dot is inferred if these locations intersect a wire.
+// One exception: the start/end of a wire coincident with the start/end of another wire
+// *does not* generate a dot; these instead look like a larger "continued" wire.
 //
 // Wires do not test for "self-dots", i.e. vertices that land on their own segments.
-function inferDots(schdata: schdata.Schematic): Array<Point> {
+function inferDots(sch: Schematic): DotMap {
   let dotMap = new DotMap();
 
   // First calculate the segments for each wire
-  const myWires: Array<WireAndSegments> = schdata.wires.map((wire) => ({
-    wire,
-    segments: calcSegments(wire.points)!, // FIXME: should zero-length wires be allowed? Perhaps with two instances ports at the same location.
-  }));
+  const myWires: Array<Wire> = Array.from(sch.wires.values());
+  // FIXME: should zero-length wires be allowed? Perhaps with two instances ports at the same location.
 
+  console.log("starting wires");
   // Now for a mouthful!
   // Find every place that a point in a wire intersects another wire.
   for (let myWire of myWires) {
     for (let otherWire of myWires.filter((w) => w !== myWire)) {
-      for (let myPoint of myWire.wire.points) {
+      for (let myPoint of myWire.points) {
         if (
-          !pointNamespace.eq(myPoint, otherWire.wire.points[0]) &&
+          // The "don't connect beginning/end of wires" rule
+          !pointNamespace.eq(myPoint, otherWire.points[0]) &&
           !pointNamespace.eq(
             myPoint,
-            otherWire.wire.points[otherWire.wire.points.length - 1]
+            otherWire.points[otherWire.points.length - 1]
           ) &&
           wireIntersectsPoint(otherWire, myPoint)
         ) {
@@ -124,31 +144,38 @@ function inferDots(schdata: schdata.Schematic): Array<Point> {
       }
     }
   }
-  for (let schport of schdata.ports) {
+
+  // And another one!
+  // Check every schematic port
+  for (let drawingPort of sch.ports.values()) {
+    const portData = drawingPort.data;
     for (let myWire of myWires) {
-      if (wireIntersectsPoint(myWire, schport.loc)) {
-        const myDot = dotMap.at(schport.loc);
-        myDot.schports.add(schport);
+      if (wireIntersectsPoint(myWire, portData.loc)) {
+        const myDot = dotMap.at(portData.loc);
+        myDot.ports.add(drawingPort);
         myDot.wires.add(myWire);
       }
     }
   }
-  for (let sch_instance of schdata.instances) {
-    const mat = matrix.fromOrientation(sch_instance.orientation);
-    for (let prim_port of sch_instance.primitive.ports) {
-      const instance_port_loc = transform(prim_port.loc, mat, sch_instance.loc);
+
+  // And yet another!
+  // Check every instance port
+  for (let drawing_instance of sch.instances.values()) {
+    const instData = drawing_instance.data;
+    const mat = matrix.fromOrientation(instData.orientation);
+    for (let prim_port of instData.primitive.ports) {
+      const instance_port_loc = transform(prim_port.loc, mat, instData.loc);
       for (let myWire of myWires) {
         if (wireIntersectsPoint(myWire, instance_port_loc)) {
           const myDot = dotMap.at(instance_port_loc);
-          myDot.instances.add(sch_instance);
+          myDot.instances.add(drawing_instance);
           myDot.wires.add(myWire);
         }
       }
     }
   }
-
-  // Convert the DotMap to list/ array form for return
-  return dotMap.toPoints();
+  // And return our resulting DotMap
+  return dotMap;
 }
 
 // Apply the `OrientationMatrix` transformation to `pt`.
@@ -160,8 +187,9 @@ function transform(pt: Point, mat: OrientationMatrix, loc: Point): Point {
   );
 }
 
-function wireIntersectsPoint(convWire: WireAndSegments, pt: Point): boolean {
-  return !!convWire.segments.some((seg) => hitTestSegmentConnects(seg, pt));
+function wireIntersectsPoint(convWire: Wire, pt: Point): boolean {
+  convWire.updateSegments();
+  return !!convWire.segments!.some((seg) => hitTestSegmentConnects(seg, pt));
 }
 
 // Wrapper for hit-testing the wire segments for connectivity
@@ -179,36 +207,20 @@ export class Schematic {
   ) {}
 
   // Internal data stores
-  wires = new Map(); // Map<Number, Wire>
-  instances = new Map(); // Map<Number, Instance>
-  ports = new Map(); // Map<Number, SchPort>
-  dots = new Map(); // Map<Number, Dot>
-  entities = new Map(); // Map<Number, Entity>
+  wires: Map<number, Wire> = new Map();
+  instances: Map<number, Instance> = new Map();
+  ports: Map<Number, SchPort> = new Map();
+  entities: Map<Number, Entity> = new Map();
+  dotMap: DotMap = new DotMap();
 
   // Running count of added instances, for naming.
-  num_instances = 0;
-  num_ports = 0;
+  num_instances: number = 0;
+  num_ports: number = 0;
   // Running count of added schematic entities. Serves as their "primary key" in each Map.
-  num_entities = 0;
+  num_entities: number = 0;
 
   // Create a (drawn) `Schematic` from the abstract data model
   static fromData(editor: SchEditor, schData: schdata.Schematic): Schematic {
-    // Run dot-inference, and compare the dot locations to those stored in the schematic.
-    // Neither have any semantic meaning, but are important visual aids.
-    // Not matching means... we're not sure what. Probably a version mismatch between writer and reader?
-    // FIXME! move this somewhere more helpful
-    const inferredDotLocs = inferDots(schData);
-    const sortedDotLocs = schData.dots.sort(pointOrder);
-    if (!pointListEq(inferredDotLocs, sortedDotLocs)) {
-      console.warn("Inferred dots do not match sorted dots!");
-      console.log("Inferred:");
-      console.log(inferredDotLocs);
-      console.log("From Schematic:");
-      console.log(sortedDotLocs);
-    } else {
-      console.log("Dot Inference vs Schematic ('DIVS' (tm)) Checked Out!");
-    }
-
     const sch = new Schematic(
       editor,
       schData.size,
@@ -226,35 +238,53 @@ export class Schematic {
     }
     // Add all wires. Note we strip the sole `points` field out of these.
     for (let wireData of schData.wires) {
-      sch.addWire(Wire.create(wireData.points));
+      const wire = Wire.create(wireData.points);
+      wire.updateSegments();
+      sch.addWire(wire);
     }
-    // Add all dots
-    for (let dotLoc of inferredDotLocs) {
-      sch.addDot(Dot.create(dotLoc));
+
+    // Run dot-inference, and compare the dot locations to those stored in the schematic.
+    // Neither have any semantic meaning, but are important visual aids.
+    // Not matching means... we're not sure what. Probably a version mismatch between writer and reader?
+    // FIXME! move this somewhere more helpful
+
+    sch.dotMap = inferDots(sch);
+
+    const inferredDotLocs = sch.dotMap.toPoints();
+    const sortedDotLocs = schData.dots.sort(pointOrder);
+    if (!pointListEq(inferredDotLocs, sortedDotLocs)) {
+      console.warn("Inferred dots do not match sorted dots!");
+      console.log("Inferred:");
+      console.log(inferredDotLocs);
+      console.log("From Schematic:");
+      console.log(sortedDotLocs);
+    } else {
+      console.log("Dot Inference vs Schematic ('DIVS' (tm)) Checked Out!");
     }
+    // And return the new schematic
     return sch;
   }
   // Export to the abstract data model
-  toData = () => {
-    /* Schematic => schdata.Schematic */
+  toData = (): schdata.Schematic => {
     const schData = new schdata.Schematic();
     schData.name = ""; // FIXME
     schData.size = structuredClone(this.size);
     schData.prelude = structuredClone(this.prelude);
     schData.otherSvgElements = []; // FIXME!
-    for (let [id, inst] of this.instances) {
-      schData.instances.push(inst.data);
-    }
-    for (let [id, port] of this.ports) {
-      schData.ports.push(port.data);
-    }
-    for (let [id, wire] of this.wires) {
-      schData.wires.push({ points: wire.points });
-    }
-    for (let [id, dot] of this.dots) {
-      schData.dots.push(dot.loc);
-    }
+
+    // Save all of our primary data structures `data` elements
+    this.instances.forEach((inst) => schData.instances.push(inst.data));
+    this.ports.forEach((port) => schData.ports.push(port.data));
+    this.wires.forEach((wire) => schData.wires.push({ points: wire.points }));
+    this.dots.forEach((dot) => schData.dots.push(dot.loc));
     return schData;
+  };
+  // Draw all elements in the schematic.
+  draw = () => {
+    this.instances.forEach((e) => e.draw());
+    this.ports.forEach((e) => e.draw());
+    this.wires.forEach((e) => e.draw());
+    this.dots.forEach((e) => e.draw());
   };
   // Add an element to the `entities` mapping. Returns its ID if successful.
   _insertEntity = (entity: Entity) => {
@@ -334,12 +364,12 @@ export class Schematic {
     // FIXME: need to also add Entities per Port and Label
   };
   removePort = (port: SchPort) => {
-    if (!this.ports.has(port.entityId)) {
+    if (!this.ports.has(port.entityId!)) {
       console.log("Port not found in schematic");
       return;
     }
-    this.ports.delete(port.entityId);
-    this.entities.delete(port.entityId);
+    this.ports.delete(port.entityId!);
+    this.entities.delete(port.entityId!);
     // FIXME: delete its port and label entities too
 
     // Remove the port's drawing
@@ -356,8 +386,8 @@ export class Schematic {
   };
   // Remove a wire from the schematic.
   removeWire = (wire: Wire) => {
-    this.wires.delete(wire.entityId);
-    this.entities.delete(wire.entityId);
+    this.wires.delete(wire.entityId!);
+    this.entities.delete(wire.entityId!);
 
     // Remove the wire's drawing
     if (wire.drawing) {
@@ -377,53 +407,31 @@ export class Schematic {
     // FIXME: need to also add Entities per Port and Label
   };
   removeInstance = (instance: Instance) => {
-    if (!this.instances.has(instance.entityId)) {
+    if (!this.instances.has(instance.entityId!)) {
       console.log("Instance not found in schematic");
       return;
     }
-    this.instances.delete(instance.entityId);
-    this.entities.delete(instance.entityId);
+    this.instances.delete(instance.entityId!);
+    this.entities.delete(instance.entityId!);
 
     // Remove the instance's drawing
     instance.removeDrawing();
   };
-  // Add an dot to the schematic.
-  addDot = (dot: Dot) => {
-    /* Dot => Number | null */
-    // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(dot);
-    if (entityId !== null) {
-      this.dots.set(entityId, dot);
-    }
-  };
-  removeDot = (dot: Dot) => {
-    if (!this.dots.has(dot.entityId)) {
-      console.log("Dot not found in schematic");
-      return;
-    }
-    this.dots.delete(dot.entityId);
-    this.entities.delete(dot.entityId);
 
-    // Remove the dot's drawing
-    if (dot.drawing) {
-      dot.drawing?.remove();
-    }
+  addDot = (dot: Dot) => this.dotMap.insert(dot);
+  removeDot = (dot: Dot): void => this.dotMap.remove(dot);
+  // Remove and re-infer all `Dot`s in the schematic.
+  // FIXME! we never *really* want to do this, it should be done incrementally. But it's a (slow) start.
+  // This is called at commit-time of each `Move`, `Add`, and `Delete` action.
+  updateDots = () => {
+    this.dots.forEach((e) => this.removeDot(e));
+    this.dotMap = inferDots(this);
+    this.dots.forEach((e) => e.draw());
   };
-  // Draw all elements in the schematic.
-  draw = () => {
-    for (let [key, instance] of this.instances) {
-      instance.draw();
-    }
-    for (let [key, port] of this.ports) {
-      port.draw();
-    }
-    for (let [key, wire] of this.wires) {
-      wire.draw();
-    }
-    for (let [key, dot] of this.dots) {
-      dot.draw();
-    }
-  };
+  // Get all of our Dots as an array.
+  get dots(): Array<Dot> {
+    return this.dotMap.toDotList();
+  }
 }
 
 // Ordering comparator for `Point`s, particularly when sorting lists of them.

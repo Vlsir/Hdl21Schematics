@@ -45,6 +45,8 @@ export class MoveInstance extends UiModeHandlerBase {
   // Actual moves and re-draws are performed "live" as the mouse moves.
   commitMove = () => {
     const { editor, entity, from, to } = this;
+    // FIXME: update dots incrementally, instead of re-inferring them all!
+    editor.schematic.updateDots();
     // Notify the changeLog and platform of the change.
     editor.logChange({
       kind: ChangeKind.Move,

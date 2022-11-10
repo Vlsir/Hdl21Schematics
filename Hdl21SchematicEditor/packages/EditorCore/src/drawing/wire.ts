@@ -7,6 +7,7 @@ import { Canvas } from "./canvas";
 import { MousePos } from "../mousepos";
 import { Point } from "../point";
 import { ManhattanSegment, hitTestSegment, calcSegments } from "../manhattan";
+import { Dot, DotParent } from "./dot";
 import { theEditor } from "../editor";
 
 // Wrapper for hit-testing the pointer against drawn wire segements,
@@ -16,7 +17,7 @@ const hitTestDrawnSegment = (seg: ManhattanSegment, pt: Point): boolean => {
   return hitTestSegment(seg, pt, HIT_TEST_WIDTH);
 };
 
-export class Wire implements EntityInterface {
+export class Wire implements EntityInterface, DotParent {
   constructor(public points: Array<Point>) {}
 
   entityKind: EntityKind.Wire = EntityKind.Wire;
@@ -25,6 +26,7 @@ export class Wire implements EntityInterface {
   segments: Array<ManhattanSegment> | null = null;
   entityId: number | null = null; // Numeric unique ID
   canvas: Canvas = theEditor.canvas; // Reference to the drawing canvas. FIXME: the "the" part.
+  dots: Set<Dot> = new Set();
 
   static create(points: Array<Point>): Wire {
     return new Wire(points);
@@ -85,5 +87,8 @@ export class Wire implements EntityInterface {
     if (!this.segments) {
       this.segments = calcSegments(this.points);
     }
+  }
+  removeDot(dot: Dot): void {
+    this.dots.delete(dot);
   }
 }

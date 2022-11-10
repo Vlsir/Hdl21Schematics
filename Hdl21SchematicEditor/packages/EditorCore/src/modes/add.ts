@@ -51,6 +51,8 @@ abstract class AddBase extends UiModeHandlerBase {
   // Add the currently-pending entity to the schematic.
   commit = () => {
     const { editor } = this;
+    // FIXME: update dots incrementally, instead of re-inferring them all!
+    editor.schematic.updateDots();
     const entity = this.entity();
 
     // Add it to to the schematic.

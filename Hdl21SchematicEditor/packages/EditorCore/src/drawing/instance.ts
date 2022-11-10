@@ -15,6 +15,7 @@ import { Rotation, nextRotation } from "../orientation";
 import { Canvas } from "./canvas";
 import { theEditor } from "../editor";
 import { MousePos } from "../mousepos";
+import { Dot, DotParent } from "./dot";
 import { exhaust } from "../errors";
 
 // FIXME! fill these guys in
@@ -172,7 +173,7 @@ interface DrawingData {
 }
 
 // Base Class shared by `Instance` and `SchPort`
-abstract class InstancePortBase implements LabelParent, Placeable {
+abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
   constructor(
     public drawing: Drawing // Drawing data
   ) {}
@@ -182,6 +183,7 @@ abstract class InstancePortBase implements LabelParent, Placeable {
   entityId: number | null = null; // Numeric unique ID
   bbox: Bbox = bbox.empty(); // Bounding Box
   highlighted: boolean = false;
+  dots: Set<Dot> = new Set();
 
   abstract createLabels(): void; // Create all Labels
   abstract drawingData(): DrawingData; // Get data for drawing
@@ -272,6 +274,10 @@ abstract class InstancePortBase implements LabelParent, Placeable {
     }
     this.draw();
   };
+
+  removeDot(dot: Dot): void {
+    this.dots.delete(dot);
+  }
 }
 
 // # Schematic Instance

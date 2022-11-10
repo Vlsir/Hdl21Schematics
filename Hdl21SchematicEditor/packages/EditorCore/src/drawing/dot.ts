@@ -2,40 +2,61 @@ import { Circle } from "two.js/src/shapes/circle";
 
 // Local Imports
 import { Point, point } from "../point";
-import { exhaust } from "../errors";
-import { EntityInterface, Entity, EntityKind } from "./entity";
+import { dotStyle } from "./style";
+import { EntityKind } from "./entity";
 import { Wire } from "./wire";
-import { Instance, SchPort, InstancePort } from "./instance";
+import { Instance, SchPort } from "./instance";
+import { theEditor } from "../editor";
+import { Canvas } from "./canvas";
 
-// # Connection Dot
+// Interface for "Dot Parents",
+// i.e. schematic entities which have dots as children.
+export interface DotParent {
+  removeDot(dot: Dot): void;
+}
+
+// # Connection `Dot`
 //
 // The `Dot` class just looks like a circle in our drawing.
-// But it's got among the most fun behavior.
-// Each `Dot` has one or more `Wire`s and zero or one `Instance`s attached to it.
-// The `update` methods check if the total number of these things has
-// decreased to less than or equal to *one*,
-// and if so, the dot is removed.
+// In our editor it essentially does "reference counting"
+// among things it may be connecting: wires, instances, and ports.
+//
+// Dots keep a set of references to their parents, and their parents
+// keep references to each Dot. When a parent moves or otherwise no longer
+// "uses" the Dot, it removes the Dot from its set of children, and calls
+// the associated `remove` method on the Dot.
+//
+// When a Dot detects that it is only "connecting" a single parent, it
+// essentially "garbage collects" itself, removing itself, from
+// the remaining parent and from the canvas.
+// Note it *does not* remove itself from the `Schematic`.
 //
 export class Dot {
-  constructor(readonly loc: Point, public drawing: Circle) {}
+  constructor(readonly loc: Point, private drawing: Circle) {}
 
   entityKind: EntityKind.Dot = EntityKind.Dot;
   entityId: number | null = null;
 
-  wires: Array<Wire> = [];
-  instance: Instance | null = null;
+  // Data structures of parent entities
+  wires: Set<Wire> = new Set();
+  instances: Set<Instance> = new Set();
+  ports: Set<SchPort> = new Set();
+
   highlighted: boolean = false;
+  canvas: Canvas = theEditor.canvas; // Reference to the drawing canvas. FIXME: the "the" part.
 
   static create(loc: Point): Dot {
     return new Dot(loc, this.createDrawing(loc));
   }
   static createDrawing(loc: Point): Circle {
-    return new Circle(loc.x, loc.y, 4);
+    return new Circle(loc.x, loc.y);
   }
 
   draw = () => {
     this.drawing.remove();
     this.drawing = Dot.createDrawing(this.loc);
+    this.canvas.dotLayer.add(this.drawing);
+    dotStyle(this.drawing);
     if (this.highlighted) {
       this.highlight();
     }
@@ -63,5 +84,31 @@ export class Dot {
   };
   abort = () => {};
 
-  updateInstance = (instance: Instance | null) => {};
+  addInstance = (instance: Instance) => this.instances.add(instance);
+  removeInstance = (instance: Instance) => this.instances.delete(instance);
+  addPort = (port: SchPort) => this.ports.add(port);
+  removePort = (port: SchPort) => this.ports.delete(port);
+  addWire = (wire: Wire) => this.wires.add(wire);
+  removeWire = (wire: Wire) => this.wires.delete(wire);
+
+  // Check if we are connecting anything, and if not, remove ourselves.
+  // Generally should be called after removing a parent.
+  maybeRemove = () => {
+    if (this.refCount() <= 1) {
+      this.remove();
+    }
+  };
+  // Remove this dot from its parents and the canvas.
+  remove = () => {
+    this.parents().forEach((parent) => parent.removeDot(this));
+    this.drawing.remove();
+  };
+  // Combined array of parent entities
+  parents = () => {
+    return [...this.wires, ...this.instances, ...this.ports];
+  };
+  // Calculate our "reference count", i.e. the number of things attached to us.
+  refCount = () => {
+    return this.wires.size + this.instances.size + this.ports.size;
+  };
 }

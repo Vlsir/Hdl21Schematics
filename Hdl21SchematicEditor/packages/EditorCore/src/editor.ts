@@ -235,15 +235,22 @@ export class SchEditor {
     switch (change.kind) {
       case ChangeKind.Add:
         this.schematic.addEntity(change.entity);
+        // FIXME: update dots incrementally, instead of re-inferring them all!
+        this.schematic.updateDots();
         return change.entity.draw();
 
       case ChangeKind.Remove:
-        return this.schematic.removeEntity(change.entity);
+        this.schematic.removeEntity(change.entity);
+        // FIXME: update dots incrementally, instead of re-inferring them all!
+        this.schematic.updateDots();
+        return;
 
       case ChangeKind.Move:
         const { entity, to } = change;
         entity.data.loc = to.loc;
         entity.data.orientation = to.orientation;
+        // FIXME: update dots incrementally, instead of re-inferring them all!
+        this.schematic.updateDots();
         return entity.draw();
 
       case ChangeKind.EditText:
@@ -284,6 +291,8 @@ export class SchEditor {
         // Delete the selected entity
         this.deselect();
         this.schematic.removeEntity(entity);
+        // FIXME: update dots incrementally, instead of re-inferring them all!
+        this.schematic.updateDots();
         this.logChange({
           kind: ChangeKind.Remove,
           entity,
@@ -356,11 +365,8 @@ export class SchEditor {
   // handleClick = e => {}
 
   // Handle mouse-down events. Fully delegated to the mode-handlers.
-  handleMouseDown = (e: MouseEvent) => {
-    console.log(e);
-    console.log(this.uiState.mousePos);
+  handleMouseDown = (_: MouseEvent) =>
     this.uiState.modeHandler.handleMouseDown();
-  };
   // Handle mouse-up events. Fully delegated to the mode-handlers.
   handleMouseUp = (_: MouseEvent) => this.uiState.modeHandler.handleMouseUp();
   // Handle double-click events. Fully delegated to the mode-handlers.
