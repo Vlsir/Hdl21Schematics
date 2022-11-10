@@ -1,8 +1,8 @@
-/*
- * # Hdl21 Schematics Editor
- *
- * Essentially the entirety of the schematic GUI, drawing logic, saving and loading logic.
- */
+//
+// # Hdl21 Schematics Editor
+//
+// Essentially the entirety of the schematic GUI, drawing logic, saving and loading logic.
+//
 
 // Workspace Imports
 import {
@@ -311,35 +311,35 @@ export class SchEditor {
   // Returns the "highest priority" entity that is hit, or `null` if none are hit.
   whatdWeHit(mousePos: MousePos): Entity | null {
     // Check all Instance Labels
-    for (let [key, instance] of this.schematic.instances) {
-      for (let label of instance.labels()) {
+    for (const instance of this.schematic.instances) {
+      for (const label of instance.labels()) {
         if (label.hitTest(mousePos)) {
           return label;
         }
       }
     }
     // Check all Port Labels
-    for (let [key, port] of this.schematic.ports) {
-      for (let label of port.labels()) {
+    for (const port of this.schematic.ports) {
+      for (const label of port.labels()) {
         if (label.hitTest(mousePos)) {
           return label;
         }
       }
     }
     // Check all Instance symbols / bodies
-    for (let [key, instance] of this.schematic.instances) {
+    for (const instance of this.schematic.instances) {
       if (instance.hitTest(mousePos)) {
         return instance;
       }
     }
     // Check all Port symbols / bodies
-    for (let [key, port] of this.schematic.ports) {
+    for (const port of this.schematic.ports) {
       if (port.hitTest(mousePos)) {
         return port;
       }
     }
     // Check all Wires
-    for (let [key, wire] of this.schematic.wires) {
+    for (const wire of this.schematic.wires) {
       if (wire.hitTest(mousePos)) {
         return wire;
       }

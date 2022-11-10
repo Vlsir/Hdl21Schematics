@@ -35,7 +35,6 @@ export class Dot {
   constructor(readonly loc: Point, private drawing: Circle) {}
 
   entityKind: EntityKind.Dot = EntityKind.Dot;
-  entityId: number | null = null;
 
   // Data structures of parent entities
   wires: Set<Wire> = new Set();

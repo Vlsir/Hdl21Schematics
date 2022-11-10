@@ -207,17 +207,17 @@ export class Schematic {
   ) {}
 
   // Internal data stores
-  wires: Map<number, Wire> = new Map();
-  instances: Map<number, Instance> = new Map();
-  ports: Map<Number, SchPort> = new Map();
-  entities: Map<Number, Entity> = new Map();
+  wires: Set<Wire> = new Set();
+  instances: Set<Instance> = new Set();
+  ports: Set<SchPort> = new Set();
   dotMap: DotMap = new DotMap();
+
+  // FIXME: whether to keep the "all entities" set.
+  // Thus far, it hasn't been needed.
+  entities: Set<Entity> = new Set();
 
   // Running count of added instances, for naming.
   num_instances: number = 0;
-  num_ports: number = 0;
-  // Running count of added schematic entities. Serves as their "primary key" in each Map.
-  num_entities: number = 0;
 
   // Create a (drawn) `Schematic` from the abstract data model
   static fromData(editor: SchEditor, schData: schdata.Schematic): Schematic {
@@ -286,31 +286,8 @@ export class Schematic {
     this.wires.forEach((e) => e.draw());
     this.dots.forEach((e) => e.draw());
   };
-  // Add an element to the `entities` mapping. Returns its ID if successful.
-  _insertEntity = (entity: Entity) => {
-    // Set the entity's ID, if it doesn't have one already.
-    // We get re-inserted entities from the undo stack, so we need to check for this.
-    if (!entity.entityId) {
-      entity.entityId = this.num_entities;
-      // Increment the number of entities even if we fail, hopefully breaking out of failure cases.
-      this.num_entities += 1;
-    }
-    const { entityId } = entity;
-
-    if (this.entities.has(entityId)) {
-      console.log(`Entity ${entityId} already exists. Cannot add ${entity}.`);
-      return null;
-    }
-    // Success, add it to the map and return the ID.
-    this.entities.set(entityId, entity);
-    return entityId;
-  };
   // Add an entity to the schematic. Largely dispatches according to the entity's kind.
   addEntity = (entity: Entity): void => {
-    /* Entity => void */
-    // const entityId = this._insertEntity(entity);
-    // if (entityId === null) { return; }
-
     const { entityKind } = entity;
     switch (entityKind) {
       // Delete-able entities
@@ -352,42 +329,28 @@ export class Schematic {
     }
   };
   // Add a port to the schematic.
-  addPort = (port: SchPort) => {
-    /* Port => Number | null */
-    // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(port);
-    // Increment our port count, whether we succeeded or not.
-    this.num_ports += 1;
-    if (entityId !== null) {
-      this.ports.set(entityId, port);
-    }
+  addPort = (port: SchPort): void => {
+    // Add to our internal structures
+    this.entities.add(port);
+    this.ports.add(port);
     // FIXME: need to also add Entities per Port and Label
   };
   removePort = (port: SchPort) => {
-    if (!this.ports.has(port.entityId!)) {
-      console.log("Port not found in schematic");
-      return;
-    }
-    this.ports.delete(port.entityId!);
-    this.entities.delete(port.entityId!);
+    this.ports.delete(port);
+    this.entities.delete(port);
     // FIXME: delete its port and label entities too
-
     // Remove the port's drawing
     port.removeDrawing();
   };
   // Add a wire to the schematic. Returns its ID if successful, or `null` if not.
   addWire = (wire: Wire) => {
-    // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(wire);
-    // And if successful, add it to our `wires` mapping.
-    if (entityId !== null) {
-      this.wires.set(entityId, wire);
-    }
+    this.wires.add(wire);
+    this.entities.add(wire);
   };
   // Remove a wire from the schematic.
   removeWire = (wire: Wire) => {
-    this.wires.delete(wire.entityId!);
-    this.entities.delete(wire.entityId!);
+    this.wires.delete(wire);
+    this.entities.delete(wire);
 
     // Remove the wire's drawing
     if (wire.drawing) {
@@ -395,25 +358,16 @@ export class Schematic {
     }
   };
   // Add an instance to the schematic.
-  addInstance = (instance: Instance) => {
-    /* Instance => Number | null */
-    // Attempt to add it to our `entities` mapping.
-    const entityId = this._insertEntity(instance);
-    // Increment our instance count, whether we succeeded or not.
+  addInstance = (instance: Instance): void => {
+    this.entities.add(instance);
+    this.instances.add(instance);
     this.num_instances += 1;
-    if (entityId !== null) {
-      this.instances.set(entityId, instance);
-    }
     // FIXME: need to also add Entities per Port and Label
   };
-  removeInstance = (instance: Instance) => {
-    if (!this.instances.has(instance.entityId!)) {
-      console.log("Instance not found in schematic");
-      return;
-    }
-    this.instances.delete(instance.entityId!);
-    this.entities.delete(instance.entityId!);
-
+  removeInstance = (instance: Instance): void => {
+    // Remove from our internal structures
+    this.instances.delete(instance);
+    this.entities.delete(instance);
     // Remove the instance's drawing
     instance.removeDrawing();
   };

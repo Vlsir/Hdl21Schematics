@@ -28,7 +28,6 @@ export enum EntityKind {
 //
 export interface EntityInterface {
   entityKind: EntityKind;
-  entityId: number | null;
 
   // Create and add the drawn, graphical representation
   draw(): void;

@@ -21,7 +21,6 @@ import { exhaust } from "../errors";
 // FIXME! fill these guys in
 export class InstancePort implements EntityInterface {
   entityKind: EntityKind.InstancePort = EntityKind.InstancePort;
-  entityId: number | null = null;
   bbox: Bbox = bbox.empty();
   highlighted: boolean = false;
   constructor() {}
@@ -180,7 +179,6 @@ abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
 
   abstract data: schdata.Instance | schdata.Port; // Data from the schematic
 
-  entityId: number | null = null; // Numeric unique ID
   bbox: Bbox = bbox.empty(); // Bounding Box
   highlighted: boolean = false;
   dots: Set<Dot> = new Set();

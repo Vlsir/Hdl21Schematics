@@ -24,7 +24,6 @@ export class Wire implements EntityInterface, DotParent {
   drawing: Path | null = null; // FIXME: get rid of the null case
   highlighted: boolean = false;
   segments: Array<ManhattanSegment> | null = null;
-  entityId: number | null = null; // Numeric unique ID
   canvas: Canvas = theEditor.canvas; // Reference to the drawing canvas. FIXME: the "the" part.
   dots: Set<Dot> = new Set();
 
