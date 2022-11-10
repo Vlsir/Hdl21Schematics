@@ -122,9 +122,9 @@ export const Pmos = add({
     `<circle cx="-50" cy="50" r="8" fill="white" class="hdl21-symbols" />`,
   ],
   ports: [
-    { name: "d", loc: point(0, 0) },
+    { name: "d", loc: point(0, 100) },
     { name: "g", loc: point(-70, 50) },
-    { name: "s", loc: point(0, 100) },
+    { name: "s", loc: point(0, 0) },
     { name: "b", loc: point(20, 50) },
   ],
   nameloc: point(10, 0),

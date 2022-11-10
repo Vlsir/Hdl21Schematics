@@ -122,7 +122,6 @@ function inferDots(sch: Schematic): DotMap {
   const myWires: Array<Wire> = Array.from(sch.wires.values());
   // FIXME: should zero-length wires be allowed? Perhaps with two instances ports at the same location.
 
-  console.log("starting wires");
   // Now for a mouthful!
   // Find every place that a point in a wire intersects another wire.
   for (let myWire of myWires) {

@@ -11,7 +11,7 @@ import * as schdata from "../schematicdata";
 import { Place, Placeable } from "../place";
 import { Direction } from "../direction";
 import { Point, point } from "../point";
-import { Rotation, nextRotation } from "../orientation";
+import { Rotation, nextRotation, Orientation } from "../orientation";
 import { Canvas } from "./canvas";
 import { theEditor } from "../editor";
 import { MousePos } from "../mousepos";
@@ -244,6 +244,9 @@ abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
   abstract updateLabelText: (label: Label) => void;
   addLabelDrawing(textElem: Text): void {
     this.drawing.labelGroup.add(textElem);
+  }
+  get orientation(): Orientation {
+    return this.data.orientation;
   }
 
   // The `Placeable` interface

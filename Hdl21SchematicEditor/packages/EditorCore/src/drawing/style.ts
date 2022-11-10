@@ -75,7 +75,6 @@ export function dotStyle(
 
 // Apply the `hdl21-labels` styling in two.js terms
 export function labelStyle(textElem: Text, highlighted: boolean = false): Text {
-  textElem.alignment = "left";
   textElem.family = "Menlo, Monaco, 'Courier New', monospace";
   textElem.style = "normal";
   textElem.weight = 700; // Typical value for "bold"

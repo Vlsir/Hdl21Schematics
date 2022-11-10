@@ -8,6 +8,7 @@
 
 import * as React from "react";
 import { createRoot } from "react-dom/client";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 
 // Workspace Imports
@@ -40,15 +41,25 @@ export function start(platform: Platform): void {
     componentDidMount = () => theEditor.start(platform);
   }
 
+  const theme = createTheme({
+    typography: {
+      fontFamily: `"Menlo", "Helvetica", "Arial", sans-serif`,
+      fontSize: 14,
+      // fontWeightLight: 300,
+      // fontWeightRegular: 400,
+      // fontWeightMedium: 500,
+    },
+  });
+
   // Have React render our top-level component.
   // Note React 18 warns against rendering directly onto `document.body`, for what we imagine must be good enough reasons.
   // So we create this `root` div first.
   const root = document.body.appendChild(document.createElement("div"));
   createRoot(root).render(
-    <div>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <SchEditorStarter />
       <Panels />
-    </div>
+    </ThemeProvider>
   );
 }

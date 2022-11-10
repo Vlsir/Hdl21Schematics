@@ -7,7 +7,6 @@
 import * as React from "react";
 import { styled, useTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
 import Divider from "@mui/material/Divider";
@@ -18,6 +17,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import SvgIcon from "@mui/material/SvgIcon";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Local Imports
@@ -60,6 +60,7 @@ export function Panels() {
 
 // Property types for the react-based `Panels`
 export interface PanelProps {
+  panelOpen: boolean;
   controlPanel: ControlPanelProps;
   codePrelude: CodePreludeProps;
 }
@@ -70,6 +71,7 @@ export const panelProps = {
   // so that it can be used as a react state, i.e. passed as an initial value to `useState`.
   default: (): PanelProps => {
     return {
+      panelOpen: true,
       controlPanel: { items: [] },
       codePrelude: { codePrelude: "" },
     };
@@ -79,7 +81,7 @@ export const panelProps = {
 // Commonly used for updating `Panels`.
 export type PanelUpdater = (props: PanelProps) => void;
 
-const drawerWidth = 300;
+const drawerWidth = 240;
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
@@ -101,7 +103,10 @@ function RightPanel(props: PanelProps) {
   };
 
   const handleDrawerClose = () => {
-    setOpen(false);
+    theEditor.updatePanels({
+      ...theEditor.uiState.panelProps,
+      panelOpen: false,
+    });
   };
 
   return (
@@ -111,11 +116,12 @@ function RightPanel(props: PanelProps) {
         flexShrink: 0,
         "& .MuiDrawer-paper": {
           width: drawerWidth,
+          boxSizing: "border-box",
         },
       }}
       variant="persistent"
       anchor="right"
-      open={true}
+      open={props.panelOpen}
     >
       <DrawerHeader>
         <IconButton onClick={handleDrawerClose}>
@@ -172,13 +178,39 @@ function ControlPanelList(props: ControlPanelProps) {
         <ListItem key={index} disablePadding onClick={item.onClick}>
           <ListItemButton>
             <ListItemIcon>
-              <AccessTimeIcon />
+              <KeyboardIcon shortcutKey={item.shortcutKey} />
             </ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItemButton>
         </ListItem>
       ))}
     </List>
+  );
+}
+
+function KeyboardIcon(props: { shortcutKey: string }) {
+  return (
+    <SvgIcon>
+      <rect
+        width="24"
+        height="24"
+        rx="8"
+        ry="8"
+        stroke="grey"
+        fill="lightgrey"
+      />
+      <text
+        x="12"
+        y="12"
+        fontFamily="menlo"
+        fontSize="16"
+        textAnchor="middle"
+        alignmentBaseline="middle"
+        stroke="black"
+      >
+        {props.shortcutKey}
+      </text>
+    </SvgIcon>
   );
 }
 
