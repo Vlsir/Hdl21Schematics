@@ -381,7 +381,7 @@ export class SchPort
     const { portsymbol, loc, orientation } = data;
     return {
       symbolSvgLines: portsymbol.svgLines,
-      portLocs: [point(0, 0)], // Include the implicit port at the origin
+      portLocs: [point.new(0, 0)], // Include the implicit port at the origin
       place: { loc, orientation },
     };
   }

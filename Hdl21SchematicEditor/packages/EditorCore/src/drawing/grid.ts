@@ -28,7 +28,7 @@ export function setupGrid(size: Point, canvas: Canvas) {
 
 // Given a `Point`, return the nearest grid point.
 export function nearestOnGrid(loc: Point): Point {
-  return point(
+  return point.new(
     Math.round(loc.x / GRID_SIZE) * GRID_SIZE,
     Math.round(loc.y / GRID_SIZE) * GRID_SIZE
   );
@@ -41,9 +41,9 @@ export function nearestManhattan(loc: Point, relativeTo: Point): Point {
 
   if (Math.abs(dx) > Math.abs(dy)) {
     // Horizontal segment
-    return nearestOnGrid(point(loc.x, relativeTo.y));
+    return nearestOnGrid(point.new(loc.x, relativeTo.y));
   } else {
     // Vertical segment
-    return nearestOnGrid(point(relativeTo.x, loc.y));
+    return nearestOnGrid(point.new(relativeTo.x, loc.y));
   }
 }

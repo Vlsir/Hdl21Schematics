@@ -38,7 +38,7 @@ export class UiState {
     of: "",
     kind: PrimitiveKind.Nmos,
     primitive: primitiveLib.default(),
-    loc: point(0, 0),
+    loc: point.new(0, 0),
     orientation: orientation.default(),
   };
   // The last port added
@@ -46,7 +46,7 @@ export class UiState {
     name: "",
     kind: PortKind.Input,
     portsymbol: portLib.default(),
-    loc: point(0, 0),
+    loc: point.new(0, 0),
     orientation: orientation.default(),
   };
 

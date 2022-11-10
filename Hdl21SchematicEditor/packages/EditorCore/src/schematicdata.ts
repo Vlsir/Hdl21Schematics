@@ -33,7 +33,7 @@ export interface Instance {
 
 export class Schematic {
   name: string = "";
-  size: Point = point(1600, 800);
+  size: Point = point.new(1600, 800);
   prelude: string = "";
   instances: Array<Instance> = [];
   ports: Array<Port> = [];

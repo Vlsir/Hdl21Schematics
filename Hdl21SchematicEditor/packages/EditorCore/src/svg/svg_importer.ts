@@ -53,7 +53,7 @@ export class Importer {
 
     width = this.propToNum(width);
     height = this.propToNum(height);
-    this.schematic.size = point(width, height);
+    this.schematic.size = point.new(width, height);
 
     // Walk its SVG children, adding schematic elements.
     for (const child of svg.children) {
@@ -165,7 +165,7 @@ export class Importer {
     }
     const x = this.propToNum(cx);
     const y = this.propToNum(cy);
-    this.schematic.dots.push(point(x, y));
+    this.schematic.dots.push(point.new(x, y));
   }
 
   // Import an instance
@@ -269,7 +269,7 @@ export class Importer {
     // Get the (x, y) position
     const x = numbers[4];
     const y = numbers[5];
-    const loc = point(x, y);
+    const loc = point.new(x, y);
 
     // And sort out orientation from the first four numbers
     const m = numbers.slice(0, 4);
@@ -309,7 +309,7 @@ export class Importer {
     for (let i = 1; i < pathSplit.length; i += 3) {
       const x = parseInt(pathSplit[i]);
       const y = parseInt(pathSplit[i + 1]);
-      points.push(point(x, y));
+      points.push(point.new(x, y));
     }
 
     // Get the wire name.

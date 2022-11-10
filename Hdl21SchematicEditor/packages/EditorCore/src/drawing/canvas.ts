@@ -56,8 +56,8 @@ export class Canvas {
   // Fails if the canvas is not attached to a DOM element.
   newMousePos(e: { clientX: number; clientY: number }): MousePos {
     const parentBbox = this.parentBbox!; // This here fails if the canvas is not attached to a DOM element.
-    const client = point(e.clientX, e.clientY);
-    const canvas = point(client.x - parentBbox.left, client.y - parentBbox.top);
+    const client = point.new(e.clientX, e.clientY);
+    const canvas = point.new(client.x - parentBbox.left, client.y - parentBbox.top);
     return { client, canvas };
   }
 
@@ -89,7 +89,6 @@ class Stage {
   gridLayer: Group = new Group();
   instanceLayer: Group = new Group();
   wireLayer: Group = new Group();
-  labelLayer: Group = new Group();
   dotLayer: Group = new Group();
 
   // In the custom part of our constructor, set the hierarchical relationship between all these groups:
@@ -98,8 +97,8 @@ class Stage {
     // The order of these call arguments right here sets the background to foreground ordering.
     this.root.add(
       this.gridLayer,
-      this.instanceLayer,
       this.wireLayer,
+      this.instanceLayer,
       this.dotLayer
     );
   }

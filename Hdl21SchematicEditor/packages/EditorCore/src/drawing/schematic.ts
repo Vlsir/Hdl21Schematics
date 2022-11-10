@@ -3,7 +3,7 @@ import { Entity, EntityKind } from "./entity";
 import { Wire } from "./wire";
 import { Instance, SchPort } from "./instance";
 import { Dot } from "./dot";
-import { Point, pointNamespace } from "../point";
+import { Point, point } from "../point";
 import { exhaust } from "../errors";
 import { SchEditor } from "../editor";
 import { ManhattanSegment, hitTestSegment } from "../manhattan";
@@ -129,8 +129,8 @@ function inferDots(sch: Schematic): DotMap {
       for (let myPoint of myWire.points) {
         if (
           // The "don't connect beginning/end of wires" rule
-          !pointNamespace.eq(myPoint, otherWire.points[0]) &&
-          !pointNamespace.eq(
+          !point.eq(myPoint, otherWire.points[0]) &&
+          !point.eq(
             myPoint,
             otherWire.points[otherWire.points.length - 1]
           ) &&
@@ -180,7 +180,7 @@ function inferDots(sch: Schematic): DotMap {
 // Apply the `OrientationMatrix` transformation to `pt`.
 // Computes `pt * mat + loc`.
 function transform(pt: Point, mat: OrientationMatrix, loc: Point): Point {
-  return pointNamespace.new(
+  return point.new(
     mat.a * pt.x + mat.c * pt.y + loc.x,
     mat.b * pt.x + mat.d * pt.y + loc.y
   );
@@ -200,7 +200,7 @@ const hitTestSegmentConnects = (seg: ManhattanSegment, pt: Point): boolean => {
 export class Schematic {
   constructor(
     public editor: SchEditor, // Reference to the parent Editor
-    public size: Point = pointNamespace.new(1600, 800), // Size/ outline
+    public size: Point = point.new(1600, 800), // Size/ outline
     public prelude: string = "", // Code prelude string
     public otherSvgElements: Array<string> = [] // List of other SVG elements, stored as strings. FIXME: kinda?
   ) {}

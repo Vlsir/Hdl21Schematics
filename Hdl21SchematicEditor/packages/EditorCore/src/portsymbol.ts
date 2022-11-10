@@ -62,7 +62,7 @@ export const Input = add({
     `<path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />`,
     `<path d="M -20 0 L 0 0" class="hdl21-symbols" />`,
   ],
-  nameloc: point(-50, -25),
+  nameloc: point.new(-50, -25),
   keyboardShortcut: "i",
   defaultName: "inp",
 });
@@ -73,7 +73,7 @@ export const Output = add({
     `<path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
     `<path d="M 0 0 L 20 0" class="hdl21-symbols" />`,
   ],
-  nameloc: point(20, -25),
+  nameloc: point.new(20, -25),
   keyboardShortcut: "o",
   defaultName: "out",
 });
@@ -84,7 +84,7 @@ export const Inout = add({
     `<path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
     `<path d="M 0 0 L 10 0" class="hdl21-symbols" />`,
   ],
-  nameloc: point(15, -25),
+  nameloc: point.new(15, -25),
   keyboardShortcut: "z",
   defaultName: "io",
 });

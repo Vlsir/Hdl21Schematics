@@ -192,7 +192,7 @@ export class Exporter {
     portsymbol.svgLines.forEach((line) => this.writeLine(line));
 
     // Write its Instance-port circle at its origin.
-    this.writeInstancePort(point(0, 0));
+    this.writeInstancePort(point.new(0, 0));
     // Close the symbol group
     this.indent -= 1;
     this.writeLine(`</g>`);
