@@ -19,6 +19,10 @@ jobs:
       - name: Build & Package VsCode Extension
         run: yarn package
         working-directory: Hdl21SchematicEditor/packages/VsCodePlugin/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: vsix
+          path: Hdl21SchematicEditor/packages/VsCodePlugin/*.vsix
 
   build_app:
     name: Build App
@@ -38,6 +42,12 @@ jobs:
       - name: Make App
         run: yarn make
         working-directory: Hdl21SchematicEditor/packages/EditorApp/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: app
+          path: |
+            Hdl21SchematicEditor/packages/EditorApp/out/*/*.app
+            Hdl21SchematicEditor/packages/EditorApp/out/*/*.exe
     continue-on-error: ${{ matrix.os == 'ubuntu-latest' }}
     # FIXME: haven't sorted this out on Linux, yet
 
