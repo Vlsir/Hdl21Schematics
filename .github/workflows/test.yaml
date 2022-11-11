@@ -46,8 +46,8 @@ jobs:
         with:
           name: app
           path: |
-            Hdl21SchematicEditor/packages/EditorApp/*/*.app
-            Hdl21SchematicEditor/packages/EditorApp/*/*.exe
+            Hdl21SchematicEditor/packages/EditorApp/out/*/*.app
+            Hdl21SchematicEditor/packages/EditorApp/out/*/*.exe
     continue-on-error: ${{ matrix.os == 'ubuntu-latest' }}
     # FIXME: haven't sorted this out on Linux, yet
 
