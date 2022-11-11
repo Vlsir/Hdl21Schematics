@@ -159,11 +159,12 @@ Hdl21 schematics are designed to seamlessly integrate into Python programs using
 
 ```python
 import hdl21schematicimporter
-# Given a schematic file `schematic.sch.svg`, thie "just works":
+
+# Given a schematic file `schematic.sch.svg`, this "just works":
 from . import schematic # <= This is the schematic
 ```
 
-Schematics with `.sch.svg` extensions can be `imported` like any other Python module. The `hdl21schematicimporter` package uses Python's [importlib override machinery](https://docs.python.org/3/library/importlib.html) to load their content.
+Schematics with `.sch.svg` extensions can be `import`ed like any other Python module. The `hdl21schematicimporter` package uses Python's [importlib override machinery](https://docs.python.org/3/library/importlib.html) to load their content.
 
 An example use-case, given a schematic named `inverter.sch.svg`:
 
@@ -180,13 +181,13 @@ class Ring:
   ic = inverter()(inp=c, out=a, VDD=VDD, VSS=VSS)
 ```
 
-For schematic files with extensions other than `.sch.svg`, or those outside the Python source tree, or if (for whatever reason) the `import`-override method seems too spooky, `hdl21schematicimporter.import_schematic` performs the same activity, with a filesystem `Path` to the schematic as its sole argument:
+For schematic files with extensions other than `.sch.svg`, or those outside the Python source tree, or if (for whatever reason) the `import`-override method seems too spooky, `hdl21schematicimporter.import_schematic()` performs the same activity, with a filesystem `Path` to the schematic as its sole argument:
 
 ```python
 def import_schematic(path: Path) -> SimpleNamespace
 ```
 
-Both `import_schematic` and the `import` keyword override return a standard-library `SimpleNamespace` representing the "schematic module". A central attribute of this module is the generator function, which often has the same name as the schematic file. Hence:
+Both `import_schematic` and the `import` keyword override return a standard-library `SimpleNamespace` representing the "schematic module". A central attribute of this module is the generator function, which often has the same name as the schematic file. 
 
 ---
 
@@ -218,7 +219,7 @@ Pre-built editors are downloadable from the artifacts section of each GitHub Act
 ![docs/artifacts.png](./docs/artifacts.png)
 
 - `app` is a zip file containing the desktop apps for each platform.
-- `vsix` is the VsCode Extension, packaged in Microsoft's single-file [VSIX format](code --install-extension myextension.vsix). Upon download, installing requires just:
+- `vsix` is the VsCode Extension, packaged in Microsoft's single-file [VSIX format](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix). Upon download, installing requires just:
 
 ```
 code --install-extension myextension.vsix
