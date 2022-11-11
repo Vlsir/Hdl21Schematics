@@ -131,7 +131,7 @@ from hdl21.primitives import Nmos, Pmos
 
 This minimal prelude imports the `Nmos` and `Pmos` devices from the Hdl21 primitive library.
 
-Schematic preludes are executed as Python code. All of the language's semantics are available, and any module-imports available in the executing environment are available.
+Schematic code-preludes are executed as Python code. All of the language's semantics are available, and any module-imports available in the executing environment are available.
 
 The call signature for an Hdl21 generator function is `def <name>(params: Params) -> h.Module:`. To link their code-sections and picture-sections together, Hdl21 schematics require special treatment for each of this signature's identifiers: `name`, `params`, `Params`, and `h`.
 
@@ -194,7 +194,7 @@ For schematic files with extensions other than `.sch.svg`, or those outside the 
 def import_schematic(path: Path) -> SimpleNamespace
 ```
 
-Both `import_schematic` and the `import` keyword override return a standard-library `SimpleNamespace` representing the "schematic module". A central attribute of this module is the generator function, which often has the same name as the schematic file.
+Both `import_schematic` and the `import` keyword override return a standard-library `SimpleNamespace` representing the "schematic module". A central attribute of this module is the generator function, which often has the same name as the schematic file. The `Params` type and all other identifiers defined or imported by the schematic's code-prelude are also available as attributes in this namespace.
 
 ---
 
@@ -347,16 +347,16 @@ Note that this is also equivalent to a multiplication and addition of the vector
 
 In the schematic Manhattan coordinate system, the vector-location `(e,f)` may be any grid-valid point. The 2x2 matrix `(a,b,c,d)`, however, is highly constrained, to eight possible values which correspond to the eight possible orientations. These eight values are:
 
-| a   | b   | c   | d   | Orientation | Reflection |
-| --- | --- | --- | --- | ----------- | ---------- |
-| 1   | 0   | 0   | 1   | 0°          | No         |
-| 0   | 1   | -1  | 0   | 90°         | No         |
-| -1  | 0   | 0   | -1  | 180°        | No         |
-| 0   | -1  | 1   | 0   | 270°        | No         |
-| 1   | 0   | 0   | -1  | 0°          | Yes        |
-| 0   | 1   | 1   | 0   | 90°         | Yes        |
-| -1  | 0   | 0   | 1   | 180°        | Yes        |
-| 0   | -1  | -1  | 0   | 270°        | Yes        |
+| a   | b   | c   | d   | Rotation | Reflection |
+| --- | --- | --- | --- | -------- | ---------- |
+| 1   | 0   | 0   | 1   | 0°       | No         |
+| 0   | 1   | -1  | 0   | 90°      | No         |
+| -1  | 0   | 0   | -1  | 180°     | No         |
+| 0   | -1  | 1   | 0   | 270°     | No         |
+| 1   | 0   | 0   | -1  | 0°       | Yes        |
+| 0   | 1   | 1   | 0   | 90°      | Yes        |
+| -1  | 0   | 0   | 1   | 180°     | Yes        |
+| 0   | -1  | -1  | 0   | 270°     | Yes        |
 
 Any schematic element with an SVG `matrix` with `(a,b,c,d)` values from outside this set shall generate a `SchematicError`.
 
@@ -403,7 +403,7 @@ An example `Instance`:
 </g>
 ```
 
-The lack of valid values for any of the three child elements makes an instance invalid. The three child elements are required to be stored in the order (symbol, name, of).
+The three child elements are required to be stored in the order (symbol, name, of). The lack of valid values for any of the three child elements shall generate a `SchematicError`. The presence of any additional children shall also generate a `SchematicError`.
 
 ### Primitive Elements
 
@@ -429,7 +429,7 @@ Primitive({
 });
 ```
 
-The SVG schematic primitives largely mirror those of SPICE. Notably each primitive _does not_ dictate that a particular device appear in an ultimate circuit. The `of` string of each `Instance` dictates these choices. The primitive solely dictates its two fields: the pictorial symbol and the port list.
+Notably each primitive _does not_ dictate what device appears in an ultimate circuit or netlist. The `of` string of each `Instance` dictates these choices. The primitive solely dictates its two fields: the pictorial symbol and the port list.
 
 The complete list of elements is defined in [the primitive element library documentation](#the-element-library). The content of the primitive library - particularly the kinds of primitives and their port lists - _is_ part of the schematic schema, and must be adhered to by any schematic importer.
 
