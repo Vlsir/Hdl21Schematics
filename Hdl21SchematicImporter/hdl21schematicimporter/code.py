@@ -11,7 +11,7 @@ from types import SimpleNamespace
 from typing import Type, Optional
 
 # "Friendly" imports
-import hdl21 as h
+import hdl21
 
 # Local imports
 from .circuit import Circuit, PortDir
@@ -53,10 +53,18 @@ class CodeWriter:
     def specs(self) -> GeneratorSpec:
         """Get the attributes we care about from the schematic prelude, by ... aahhhh ... `exec()`ing it."""
 
+        # Set the "pre-prelude": "import hdl21 as h"
+        scope = dict(h=hdl21)
+
         # It's really this simple: execute the prelude, and examine a few fields that it can define.
         prelude = self.circuit.prelude.strip() or copy(DEFAULT_PRELUDE)
-        scope = dict()
         exec(prelude, scope)
+
+        # After executing the prelude, check that `h` still refers to the hdl21 module, or fail
+        h = scope.get("h", None)
+        if h is not hdl21:
+            msg = "Prelude must not redefine the identifier `h`: this must remain the `hdl21` module."
+            self.fail(msg)
 
         # Get the `name` attribute, if defined
         name = scope.get("name", None)
