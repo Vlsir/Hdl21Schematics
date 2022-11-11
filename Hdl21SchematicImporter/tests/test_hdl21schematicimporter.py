@@ -5,7 +5,7 @@ from hdl21schematicimporter import (
     __version__,
     svg_to_circuit,
     circuit_to_code,
-    svg_to_namespace,
+    import_schematic,
 )
 from hdl21schematicimporter.circuit import Circuit
 
@@ -28,8 +28,8 @@ def test_circuit_to_code():
     # print(code)
 
 
-def test_svg_to_namespace():
-    ns = svg_to_namespace("schematic.sch.svg")
+def test_import_schematic():
+    ns = import_schematic("schematic.sch.svg")
     assert isinstance(ns, SimpleNamespace)
     assert isinstance(ns.schematic, h.Generator)
     assert ns.Params is h.HasNoParams

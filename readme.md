@@ -2,9 +2,11 @@
 
 SVG based integrated circuit schematics that seamlessly import and run as [hdl21](https://github.com/dan-fritchman/Hdl21)'s Python-based circuit generators.
 
+_Jump to [Getting Started](#installation)_
+
 ---
 
-[Schematics](https://en.wikipedia.org/wiki/Circuit_diagram) are graphical representations of electronic circuits. In integrated circuit (IC, chip, silicon) design they the *lingua franca* for analog circuits, and often used for transistor-level digital circuits.
+[Schematics](https://en.wikipedia.org/wiki/Circuit_diagram) are graphical representations of electronic circuits. In integrated circuit (IC, chip, silicon) design they the _lingua franca_ for analog circuits, and often used for transistor-level digital circuits.
 
 In short: schematics are two things -
 
@@ -19,7 +21,7 @@ Hdl21 schematics are not _like_ SVGs.
 They are not _exportable to_ or _convertable to_ SVGs.  
 They **are** SVGs. So:
 
-- Each schematic is a _single file_. No dependencies, no "database".
+- Each schematic is a _single file_. No dependencies, no linked "database".
 - Anyone can read them.
 - GitHub can read them.
 - GitLab can read them.
@@ -33,7 +35,7 @@ And the same inverter with [OpenMoji's mind-blown emoji](https://openmoji.org/li
 
 ![inv](./docs/inverter_mind_blown.svg)
 
-This is the first, probably biggest, difference between Hdl21 schematics and any other you've encountered. Instead of defining a custom schematic format and needing custom software to read it, Hdl21 schematics are general-purpose images. Any remotely modern web browser or OS can read them.
+This is the first, probably biggest, difference between Hdl21 schematics and any other you've likely encountered. Instead of defining a custom schematic format and needing custom software to read it, Hdl21 schematics are general-purpose images. Any remotely modern web browser or OS can read them.
 
 Embedding in SVG also allows for rich, arbitrary annotations and metadata, such as:
 
@@ -46,9 +48,9 @@ This structure and metadata, detailed [later in this document](#the-svg-schemati
 
 While _reading_ schematics requires any old computer, _writing_ them is best done with custom software. The primary Hdl21 schematics graphical editor runs in three primary contexts:
 
-- On the web
 - As a standalone desktop application
 - As a VsCode Extension
+- Coming soon: on the web
 
 SVG schematics by convention have a sub-file-extension of `.sch.svg`. The editor application and VsCode Extension use this convention to identify schematics and automatically launch in schematic-edit mode.
 
@@ -84,22 +86,18 @@ This minimal prelude imports the `Nmos` and `Pmos` devices from the Hdl21 primit
 
 Schematic preludes execute as "regular" Python code. All of the language's semantics are available, and any module-imports available in the executing environment are available.
 
-To link their code-sections and picture-sections together, Hdl21 schematics require a few naming conventions:
+To link their code-sections and picture-sections together, Hdl21 schematics require a few naming conventions. The call signature for an Hdl21 generator function is `def <name>(params: Params) -> h.Module:`. Each of this signature's identifiers `name`, `params`, `Params`, and `h` are special in schematics and their code-predlues:
 
-- Each Hdl21 `Generator` has a single typed argument `params`, which is an instance of an Hdl21 `paramclass`.
-  - The name of each schematic-generator's parameter-type is `Params`, with a capital `P`.
-  - If `Params` is not defined in the code prelude, the `Generator` will have no parameters.
-- The name of the _argument_ to the `Generator` function is `params`, with a lower-case `p`.
-  - Any references to the parameters by the content of the schematic - such as `Nmos(params)` above - must use this name.
-- The name of the schematic generator function is either:
-  - If a string-valued `name` attribute is definied in the code-prelude, that name is used for the generator function.
+- The argument type is named `Params` with a capital `P`.
+  - If the identifier `Params` is not defined in the code prelude, the generator will default to having no parameters.
+  - `Params` must be an Hdl21 `paramclass`, or will generate an import-time `TypeError`.
+- The argument value is named `params` with a lower-case `p`.
+- If a string-valued `name` attribute is definied in the code-prelude, that name is used for the generator function.
   - If not, the generator function's name is that of the schematic SVG file.
-- There is a single reserved identifier in the schematic content: `h` must refer to the Hdl21 pacakge.
-  - Think of a "pre-prelude" as running `import hdl21 as h` before the code-prelude.
+- The identifier `h` must refer to the Hdl21 pacakge.
+  - Think of a "pre-prelude" as running `import hdl21 as h` before the schematic's own code-prelude.
   - Overwriting the `h` identifier will produce an import-time Python error.
   - Re-importing `hdl21 as h` is fine, as is importing `hdl21` by any additional names.
-
-The parameter-naming follows Python-style naming conventions; `Params` is a type, and `params` is an instance of that type.
 
 An example code-prelude with a custom `Params` type:
 
@@ -125,7 +123,7 @@ The complete element library:
 Symbols are technology agnostic. They do not correspond to a particular device from a particular PDK. Nor to a particular device-name in an eventual netlist. Symbols solely dictate:
 
 - How the element looks in the "schematic picture"
-- The port list
+- Its port list
 
 Each instance includes two string-valued fields: `name` and `of`.
 
@@ -136,6 +134,7 @@ The `of` string determines the type of device. In Python, the `of` field is exec
 Examples of valid `of`-strings for the NMOS symbol:
 
 ```python
+# In the code prelude:
 from hdl21.prefix import µ, n
 from hdl21.primitives import Nmos
 # Of-string:
@@ -154,6 +153,41 @@ For a schematic to produce a valid Hdl21 generator, the result of evaluating eac
 - An Hdl21 `Instantiable`, and
 - Include the same ports as the symbol
 
+## Importing into Python
+
+Hdl21 schematics are designed to seamlessly integrate into Python programs using Hdl21. They are essentially "graphical Python modules". The `hdl21schematicimporter` Python package makes this as simple as:
+
+```python
+import hdl21schematicimporter
+# Given a schematic file `schematic.sch.svg`, thie "just works":
+from . import schematic # <= This is the schematic
+```
+
+Schematics with `.sch.svg` extensions can be `imported` like any other Python module. The `hdl21schematicimporter` package uses Python's [importlib override machinery](https://docs.python.org/3/library/importlib.html) to load their content.
+
+An example use-case, given a schematic named `inverter.sch.svg`:
+
+```python
+# Example of using a schematic
+import hdl21 as h
+from .inverter import inverter # <= This is the schematic
+
+@h.module
+class Ring:
+  a, b, c, VDD, VSS = h.Signals(5)
+  ia = inverter()(inp=a, out=b, VDD=VDD, VSS=VSS)
+  ib = inverter()(inp=b, out=c, VDD=VDD, VSS=VSS)
+  ic = inverter()(inp=c, out=a, VDD=VDD, VSS=VSS)
+```
+
+For schematic files with extensions other than `.sch.svg`, or those outside the Python source tree, or if (for whatever reason) the `import`-override method seems too spooky, `hdl21schematicimporter.import_schematic` performs the same activity, with a filesystem `Path` to the schematic as its sole argument:
+
+```python
+def import_schematic(path: Path) -> SimpleNamespace
+```
+
+Both `import_schematic` and the `import` keyword override return a standard-library `SimpleNamespace` representing the "schematic module". A central attribute of this module is the generator function, which often has the same name as the schematic file. Hence:
+
 ---
 
 ### On Hierarchy
@@ -169,71 +203,70 @@ The answer is simple: you don't.
 
 ## Installation
 
-Reading SVG schematics requires no special software or installation: if your browser can display SVG, you can read schematics. Double-click on them or open them with the OS-native method of your choice. Voila.
+Reading SVG schematics requires no special software or installation: if your browser can display SVG, you can read schematics. Double-click on them or open them with the OS-native method of your choice. Or borrow grandma's copy of Internet Explorer and open it with that. Voila.
 
-The schematic editor has two "platforms" for installation: its dedicated desktop application, and its VsCode extension.  
-As of this writing both require from-source installation and execution.
+Editing schematics can, in principle, be done with general-purpose SVG editing software. Or even with a general-purpose text editor. This requires diligently sticking to the schematic schema described below. Many an SVG editor will make this very hard to do, particularly with respect to element hierarchy and grouping. The dedicated schematic editor is highly recommended instead.
 
-Prerequisites:
+### Installing the Schematic Editor
 
-- Install the JavaScript package manager [Yarn](https://classic.yarnpkg.com/en/docs/install)
-  - MacOS: [Homebrew](https://brew.sh/) makes this particularly easy: https://formulae.brew.sh/formula/yarn
-  - Debian:
-    - Install `npm` and `node` through `apt`: `sudo apt install nodejs npm`
-    - Update `node` through `npm`: `sudo npm install -g n && sudo n stable`
-  - (FIXME: add any recommendations for other OSes - or just stick with Yarn's docs.)
-- Clone this repository
-  - `git clone git@github.com:Vlsir/Hdl21Schematics.git`
+Hdl21 schematics use [GitHub Actions](https://github.com/Vlsir/Hdl21Schematics/actions) for per-build CI testing. This includes building the editor VsCode Extention, and the desktop app for each supported platform: MacOS, Windows, and Ubuntu Linux (note [this pending issue](https://github.com/Vlsir/Hdl21Schematics/issues/18)).
 
-To start the desktop application:
+Note that GitHub Actions builds each on x86-architecture hardware. Other architectures - notably ARM64-based Macs - can instead be built from source. (And it's not hard!)
+
+Pre-built editors are downloadable from the artifacts section of each GitHub Action run:
+
+![docs/artifacts.png](./docs/artifacts.png)
+
+- `app` is a zip file containing the desktop apps for each platform.
+- `vsix` is the VsCode Extension, packaged in Microsoft's single-file [VSIX format](code --install-extension myextension.vsix). Upon download, installing requires just:
+
+```
+code --install-extension myextension.vsix
+```
+
+## Building from Source
+
+The schematic editor uses a popular web-technologies stack. It is written in [TypeScript](https://www.typescriptlang.org/) and its peripheral components use the [React](https://reactjs.org/) UI framework. The desktop app uses the cross-platform [Electron](https://www.electronjs.org/) framework. All of this is very popular, very well-supported, and very easy to get started with.
+
+- The schematic editor has a sole dependency: the JavaScript package manager [Yarn](https://classic.yarnpkg.com/en/docs/install).
+
+- On MacOS [Homebrew](https://brew.sh/) makes this particularly easy to install: https://formulae.brew.sh/formula/yarn
+- Debian:
+  - Install `npm` and `node` through `apt`: `sudo apt install nodejs npm`
+  - Update `node` through `npm`: `sudo npm install -g n && sudo n stable`
+
+## Building the Desktop App from Source
 
 - `cd Hdl21Schematics/Hdl21SchematicEditor/packages/EditorApp`
 - `yarn` to install dependencies
-- `yarn start` to start the application
+- `yarn make` to build
 
-To start the VsCode plugin: (FIXME! mumble mumble about its debugger etc.)
+This will produce a platform-specific app in the `out` directory.
 
----
+## Building the VsCode Extension from Source
 
-## How This Works
+- `cd Hdl21SchematicEditor/packages/VsCodePlugin/`
+- `yarn` to install dependencies
+- `yarn package` to build
+- `code --install-extension hdl21-schematic-editor-0.0.1.vsix` to install
 
-The combination requires 2.5 - 3 pieces of software:
+## Installing the Python Importer Package
 
-1. **The SVG Schematic Schema**
+The Python schematic-importer package is named `hdl21schematicimporter`. As of this writing it has not been released to PyPi and must be installed from source, which lives in the [Hdl21SchematicImporter/](./Hdl21SchematicImporter/) directory of this repository.
 
-- Dictates the metadata used to indicate schematic content, and the structure of other allowable included SVG content.
-- This may be a dedicated piece of software imported and used by the other two, or may be in the form of specifications for them.
+`hdl21schematicimporter` uses [Poetry](https://python-poetry.org/) and [pyproject.toml](https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/) (both relatively new inventions) for dependency management and packaging. To install it:
 
-2. **The Python Importer**
-
-- Imports an SVG schematic into a Hdl21 `Generator`.
-- Python allows for custom importers, which can be triggered by specific file extensions. Importing a schematic maned `inverter.sch.svg` can therefore be as simple as:
-
-```python
-# Import `inverter.sch.svg` as a Python module with an Hdl21 `Generator`
-from . import inverter
+```
+cd Hdl21SchematicImporter
+poetry install
 ```
 
-3. **The Schematic Editor**
+Or to install it in editable development mode:
 
-- Uses popular web technologies to edit the graphical and code-prelude sections of schematics.
-- Desirably runs in a few different contexts:
-  - A dedicated application, written using the Electron framework.
-  - Probably most valuably as a VS Code plug-in.
-  - Maybe in the browser as well. Where to store and retrieve schematics becomes the primary differentiator, as the other two contexts have access to the designer's file system.
-
-The Electron and VS Code plug-in programming models are fairly similar, and should allow for sharing of the overwhelming majority of the editor codebase. Their differences will be where they interact with their underlying platforms: creating windows, opening files, and the like. Both use a message-passing interprocess mechanism to do so, with separate processes for "main" and "rendering". The latter draws the graphical display and handles user input, but has little underling system access, much like a web browser.
-
-## Status and This Repo
-
-- [Hdl21SchematicEditor](./[Hdl21SchematicEditor]) contains the schematic editor. It is broken in several components, organized as JavaScript packages:
-  - [EditorCore](./Hdl21SchematicEditor/packages/EditorCore/) provides the core editor functionality.
-  - [EditorApp](./Hdl21SchematicEditor/packages/EditorApp/) exposes the editor as a standalone desktop application, using the Electron framework.
-  - [VsCodePlugin](./Hdl21SchematicEditor/packages/VsCodePlugin/) exposes the editor as a VS Code plug-in.
-  - A web-based environment for the editor is also possible, and is TBC.
-- [Hdl21SchematicImporter](./[Hdl21SchematicImporter]) contains the Python importer.
-- A broken-out schema is TBC.
-  - The prototype schema is thus far dictated by the Python and JavaScript implementations of the [editor](./Hdl21SchematicEditor) and [importer](./Hdl21SchematicImporter).
+```
+cd Hdl21SchematicImporter
+pip install -e ".[dev]"
+```
 
 ## The SVG Schematic Schema
 
@@ -372,8 +405,6 @@ The SVG schematic primitives largely mirror those of SPICE. Notably each primiti
 
 FIXME: examples
 
-FIXME: the full primitive library
-
 ### `Wire`
 
 Schematic wires consist of orthogonal Manhattan paths. They are represented by SVG group (`<g>`) elements, principally including an internal `<path>` element. Wire groups are indicated by their use of the `hdl21-wire` SVG class. Each wire group has two child elements:
@@ -466,3 +497,59 @@ Broader FIXMEs:
 - Add the remaining Primitives
 - Add the code prelude!
 
+## Development
+
+To debug the desktop application:
+
+- `cd Hdl21Schematics/Hdl21SchematicEditor/packages/EditorApp`
+- `yarn` to install dependencies
+- `yarn start` to start the application
+
+To debug the VsCode Extension:
+
+- `cd Hdl21Schematics/Hdl21SchematicEditor/packages/VsCodePlugin/`
+- `yarn` to install dependencies
+- `yarn watch` to build the extension and watch for changes
+- `F5` to start the VsCode Extension in debug mode
+
+---
+
+## How This Works
+
+The combination requires 2.5 - 3 pieces of software:
+
+1. **The SVG Schematic Schema**
+
+- Dictates the metadata used to indicate schematic content, and the structure of other allowable included SVG content.
+- This may be a dedicated piece of software imported and used by the other two, or may be in the form of specifications for them.
+
+2. **The Python Importer**
+
+- Imports an SVG schematic into a Hdl21 `Generator`.
+- Python allows for custom importers, which can be triggered by specific file extensions. Importing a schematic maned `inverter.sch.svg` can therefore be as simple as:
+
+```python
+# Import `inverter.sch.svg` as a Python module with an Hdl21 `Generator`
+from . import inverter
+```
+
+3. **The Schematic Editor**
+
+- Uses popular web technologies to edit the graphical and code-prelude sections of schematics.
+- Desirably runs in a few different contexts:
+  - A dedicated application, written using the Electron framework.
+  - Probably most valuably as a VS Code plug-in.
+  - Maybe in the browser as well. Where to store and retrieve schematics becomes the primary differentiator, as the other two contexts have access to the designer's file system.
+
+The Electron and VS Code plug-in programming models are fairly similar, and should allow for sharing of the overwhelming majority of the editor codebase. Their differences will be where they interact with their underlying platforms: creating windows, opening files, and the like. Both use a message-passing interprocess mechanism to do so, with separate processes for "main" and "rendering". The latter draws the graphical display and handles user input, but has little underling system access, much like a web browser.
+
+## Status and This Repo
+
+- [Hdl21SchematicEditor](./[Hdl21SchematicEditor]) contains the schematic editor. It is broken in several components, organized as JavaScript packages:
+  - [EditorCore](./Hdl21SchematicEditor/packages/EditorCore/) provides the core editor functionality.
+  - [EditorApp](./Hdl21SchematicEditor/packages/EditorApp/) exposes the editor as a standalone desktop application, using the Electron framework.
+  - [VsCodePlugin](./Hdl21SchematicEditor/packages/VsCodePlugin/) exposes the editor as a VS Code plug-in.
+  - A web-based environment for the editor is also possible, and is TBC.
+- [Hdl21SchematicImporter](./[Hdl21SchematicImporter]) contains the Python importer.
+- A broken-out schema is TBC.
+  - The prototype schema is thus far dictated by the Python and JavaScript implementations of the [editor](./Hdl21SchematicEditor) and [importer](./Hdl21SchematicImporter).

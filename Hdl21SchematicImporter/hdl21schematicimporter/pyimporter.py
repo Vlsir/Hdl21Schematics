@@ -9,7 +9,7 @@ import importlib
 from pathlib import Path
 
 # Local imports
-from .code import svg_to_namespace
+from .code import import_schematic
 
 
 class SchSvgImporter(importlib.abc.MetaPathFinder):
@@ -24,7 +24,7 @@ class SchSvgImporter(importlib.abc.MetaPathFinder):
     ```
 
     Imports a `SimpleNamespace` representing the SVG schematic,
-    including all attributes collected by `svg_to_namespace`.
+    including all attributes collected by `import_schematic`.
 
     There is one `SchSvgImporter` instance per Python process.
     It is added to the `sys` module's `meta_path` at import time.
@@ -55,7 +55,7 @@ class SchSvgImporter(importlib.abc.MetaPathFinder):
     def create_module(self, _spec: importlib.machinery.ModuleSpec):
         """Create the module object from an SVG schematic, in the form of a `SimpleNamespace`.
         This is the central API method of `MetaPathFinder` used by our Importer."""
-        return svg_to_namespace(self.schpath)
+        return import_schematic(self.schpath)
 
     def exec_module(self, _module):
         # FIXME: this is another API method of `MetaPathFinder`; write up why we don't use it.

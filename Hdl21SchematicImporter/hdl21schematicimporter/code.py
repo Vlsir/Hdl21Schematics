@@ -149,7 +149,7 @@ def circuit_to_code(circuit: Circuit) -> str:
     return CodeWriter(circuit).to_code()
 
 
-def svg_to_namespace(path: Path) -> SimpleNamespace:
+def import_schematic(path: Path) -> SimpleNamespace:
     """
     # SVG to Hdl21 Namespace
 
