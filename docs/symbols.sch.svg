@@ -67,7 +67,7 @@
 .hdl21-port-name,
 .hdl21-wire-name {
   fill: black;
-  font-family: comic sans ms;
+  font-family: "Menlo";
   /* We know, it's just too funny */
   font-size: 16px;
 }

@@ -1,120 +1,197 @@
 # Hdl21 Schematics
 
-(FIXME: Maybe some intro about how & where schematics tend to be useful, and less than useful)
+SVG based integrated circuit schematics that seamlessly import and run as [hdl21](https://github.com/dan-fritchman/Hdl21)'s Python-based circuit generators.
 
-The scheme, in 3 bullet points:
+---
 
-- 1. Schematics are SVGs
-- 2. There are no custom symbols, **and never will be**.
-- 3. Schematics are imported as Hdl `Generator`s
+[Schematics](https://en.wikipedia.org/wiki/Circuit_diagram) are graphical representations of electronic circuits. In integrated circuit (IC, chip, silicon) design they the *lingua franca* for analog circuits, and often used for transistor-level digital circuits.
 
-## 1. Schematics are SVGs
+In short: schematics are two things -
 
-- They are not _like_ SVGs. They are not _exportable to_ SVGs. They _are_ SVGs.
-- So:
-  - Anyone can _read_ their content.
-    - Including services like GitHub, GitLab, and any computer with a web browser.
-  - _Writing_ their content requires some special software.
+1. A Circuit
+2. A Picture
 
-So this inverter is a valid schematic:
+## Hdl21 Schematics are SVG Images
+
+[Scalable Vector Graphics (SVG)](https://developer.mozilla.org/en-US/docs/Web/SVG) is the W3C's open web-standard for two dimensional vector graphics. SVG is an XML-based markup language which all modern browsers natively render, and includes the capacity for semi-custom content structure and metadata.
+
+Hdl21 schematics are not _like_ SVGs.  
+They are not _exportable to_ or _convertable to_ SVGs.  
+They **are** SVGs. So:
+
+- Each schematic is a _single file_. No dependencies, no "database".
+- Anyone can read them.
+- GitHub can read them.
+- GitLab can read them.
+- Grandma's copy of Internet Explorer can read them.
+
+This inverter is a valid schematic:
 
 ![inv](./docs/inverter.svg)
 
-(The Comic Sans is a joke, but man it's a funny one.)
-
-The same inverter with [OpenMoji's mind-blown emoji](https://openmoji.org/library/emoji-1F92F/) is also a valid schematic:
+And the same inverter with [OpenMoji's mind-blown emoji](https://openmoji.org/library/emoji-1F92F/) is also a valid schematic:
 
 ![inv](./docs/inverter_mind_blown.svg)
 
-- SVG is an XML-based schema, and allows for semi-custom metadata attached to each element.
-  - This metadata, plus the structure of the document, is what makes an SVG a schematic.
-- SVG schematics will by convention have a sub-file-extension of `.sch.svg`.
-- This also allows for rich, arbitrary annotations and metadata, such as:
-  - Any other custom vector-graphics, e.g. block diagrams
-  - Layout intent, e.g. how to position and/or route elements
-  - Links to external content, e.g. testbenches, related schematics, etc.
+This is the first, probably biggest, difference between Hdl21 schematics and any other you've encountered. Instead of defining a custom schematic format and needing custom software to read it, Hdl21 schematics are general-purpose images. Any remotely modern web browser or OS can read them.
 
-## 2. There are no custom symbols, **and never will be**.
+Embedding in SVG also allows for rich, arbitrary annotations and metadata, such as:
 
-- Schematics consist solely of instances of _primitive_ devices, similar to those comprising the primitive libraries of SPICE, Hdl21, and VLSIR.
-  - Examples: transistors, resistors, capacitors, voltage sources, ports.
-  - They _do not_ include higher-level devices. Not even relatively low-level devices such as logic gates.
-- The complete set of primitives:
+- Any other custom vector-graphics, e.g. block diagrams
+- Layout intent, e.g. how to position and/or route elements
+- Links to external content, e.g. testbenches, related schematics, etc.
 
-![](./symbols.sch.svg)
+SVG is an XML-based schema and allows for semi-custom strucutre and metadata.
+This structure and metadata, detailed [later in this document](#the-svg-schematic-schema), is what makes an SVG a schematic.
 
-The simple rule is:  
-**If you want to instantiate anything else, write HDL code.**
+While _reading_ schematics requires any old computer, _writing_ them is best done with custom software. The primary Hdl21 schematics graphical editor runs in three primary contexts:
 
-- Primitive symbols _do not_ correspond to a single particular device. They consist solely of:
-  - The (pretty) picture
-  - A named, located set of terminals
-  - Two string-valued fields, `@name` and `@of` -
-    - `@name` is the instance name, as in Verilog, SPICE, Virtuoso, and most other hardware descriptions.
-    - `@of` determines the type of device.
-  - The `@of` field is executed as code. It will often contain parameter values and expressions thereof. To create a valid schematic, the result of evaluating the `@of` field must be -
-    - An Hdl21 `Instantiable`, and
-    - Include the same ports as the symbol
+- On the web
+- As a standalone desktop application
+- As a VsCode Extension
 
-Examples of valid values of `@of` for the NMOS symbol:
+SVG schematics by convention have a sub-file-extension of `.sch.svg`. The editor application and VsCode Extension use this convention to identify schematics and automatically launch in schematic-edit mode.
+
+## Schematics as Circuits: Hdl21 Generators
+
+[Hdl21](https://github.com/dan-fritchman/Hdl21) is a high-productivity analog hardware description library (HDL) embedded in Python. Hdl21's `Generator`s are Python functions which produce circuit `Module`s. Hdl21 schematics are designed to seamlessly import into Hdl21-based Python programs, as a kind of "graphical Python module".
+
+The inverter pictured above (with or without the emoji) roughly translates to the following Python code:
 
 ```python
-hdl21.primitives.Nmos(w=1e-6)
+# A code-prelude, covered shortly, executes here.
+
+@h.generator
+def inverter(params: Params) -> h.Module:
+  inverter = h.Module()
+  inverter.n0 = Nmos(params)(...)
+  inverter.p0 = Pmos(params)(...)
+  return inverter
+
+# Both "..."s are where connections, not covered yet, will go.
 ```
 
-```python
-# Assuming "something" (the code-prelude discussed next) runs something like:
-#from asap7 import nmos as my_asap7_nmos
+Each schematic includes a _code prelude_: a text section which precedes the schematic content. Typically this code-block imports anything the schematic is to use. The prelude is stored in text form as a (non-rendered) SVG element.
 
-my_asap7_nmos(l=7e-9, w=1e-6)
-```
-
-Note: SVG includes a definitions (`<defs>`) section, which in principle can serve as a place to hold the primitive symbol definitions. Doing so would save space in the hypertext content. But we have very quickly found that popular platforms we'd like to have render schematics (ahem, GitHub) do not support the `<defs>` and corresponsing `<use>` elements.
-
-## 3. Schematics are imported as Hdl `Generator`s
-
-- Each schematic includes a "code prelude" - a text section which imports anything the schematic is to use.
-- This prelude is stored in text form as a (non-rendered) SVG element.
-- An example prelude for the inverter above:
+An example prelude:
 
 ```python
-# An example prelude for the inverter schematic
-
-# Import stuff
-import hdl21 as h
+# An example code-prelude
 from hdl21.primitives import Nmos, Pmos
+```
 
-# And define a type for its parameters
+This minimal prelude imports the `Nmos` and `Pmos` devices from the Hdl21 primitive library.
+
+Schematic preludes execute as "regular" Python code. All of the language's semantics are available, and any module-imports available in the executing environment are available.
+
+To link their code-sections and picture-sections together, Hdl21 schematics require a few naming conventions:
+
+- Each Hdl21 `Generator` has a single typed argument `params`, which is an instance of an Hdl21 `paramclass`.
+  - The name of each schematic-generator's parameter-type is `Params`, with a capital `P`.
+  - If `Params` is not defined in the code prelude, the `Generator` will have no parameters.
+- The name of the _argument_ to the `Generator` function is `params`, with a lower-case `p`.
+  - Any references to the parameters by the content of the schematic - such as `Nmos(params)` above - must use this name.
+- The name of the schematic generator function is either:
+  - If a string-valued `name` attribute is definied in the code-prelude, that name is used for the generator function.
+  - If not, the generator function's name is that of the schematic SVG file.
+- There is a single reserved identifier in the schematic content: `h` must refer to the Hdl21 pacakge.
+  - Think of a "pre-prelude" as running `import hdl21 as h` before the code-prelude.
+  - Overwriting the `h` identifier will produce an import-time Python error.
+  - Re-importing `hdl21 as h` is fine, as is importing `hdl21` by any additional names.
+
+The parameter-naming follows Python-style naming conventions; `Params` is a type, and `params` is an instance of that type.
+
+An example code-prelude with a custom `Params` type:
+
+```python
+# An example code-prelude, using devices from PDK-package `mypdk`
+import hdl21 as h
+from mypdk import Nmos, Pmos
+
 @h.paramclass
 class Params:
   w = h.Param(dtype=int, desc="Width")
   l = h.Param(dtype=int, desc="Length")
 ```
 
-The combination maps to something like the following Python code:
+## The Element Library
+
+Schematics consist of instances of primitive elements, ports, and wire connections there-between. The primitive-elements library holds similar content to that of SPICE: transistors, resistors, capacitors, voltage sources, and the like.
+
+The complete element library:
+
+![](./docs/symbols.sch.svg)
+
+Symbols are technology agnostic. They do not correspond to a particular device from a particular PDK. Nor to a particular device-name in an eventual netlist. Symbols solely dictate:
+
+- How the element looks in the "schematic picture"
+- The port list
+
+Each instance includes two string-valued fields: `name` and `of`.
+
+The `name` string sets the instance name. This is a per-instance unique identifier, directly analogous to those in Verilog, SPICE, Virtuoso, and most other hardware description formats. It must be of nonzero length, and for successful Python import it must be a valid Python-language identifier.
+
+The `of` string determines the type of device. In Python, the `of` field is executed as code. It will often contain parameter values and expressions thereof.
+
+Examples of valid `of`-strings for the NMOS symbol:
 
 ```python
-# Everything in the prelude, plus:
+from hdl21.prefix import µ, n
+from hdl21.primitives import Nmos
+# Of-string:
+Nmos(w=1*µ, l=20*n)
 
-@h.generator
-def inverter(params: Params) -> h.Module:
-  inverter = h.Module()
-  inverter.n0 = Nmos(w=params.w, l=params.l)(...)
-  inverter.p0 = Pmos(w=params.w, l=params.l)(...)
-  # Both "..."s are where connections, not covered yet, will go.
-  return inverter
+# In the code prelude:
+from asap7 import nmos as my_asap7_nmos
+# Of-string:
+my_asap7_nmos(l=7e-9, w=1e-6)
 ```
 
-- Schematic preludes execute as "regular Python code".
+This is probably the second biggest difference between Hdl21 schematics and most other schematic systems. There is no backing "database", no "links" to out-of-source libraries. The types of all devices are dictated by code-strings, interpreted by programs ingesting the schematic.
 
-  - All semantics are available
-  - Any imports available in the executing environment are available.
+For a schematic to produce a valid Hdl21 generator, the result of evaluating each instance's `of` field must be:
 
-- There will be some flexibility lost in parameterizing graphical schematics, as compared to arbitrary code. Naming conventions fill most of the gap. They include:
-  - The name of the `Generator` is that of the schematic SVG file.
-  - The name of its parameter-type is `Params`. If nothing by this name is defined, the `Generator` will have no parameters.
-  - The name of the parameter-argument to the `Generator` is `params`, with a lower-case `p`.
-    - The latter two follow Python-style naming conventions; `Params` is a type, and `params` is an instance of that type.
+- An Hdl21 `Instantiable`, and
+- Include the same ports as the symbol
+
+---
+
+### On Hierarchy
+
+The experienced schematic-author may by now be wondering: how does one make _hierarchical_ Hdl21 schematics, with custom subcircuit cells and symbols?
+
+The answer is simple: you don't.  
+**Write HDL code instead.**
+
+### There are no custom symbols. On purpose. **And there never will be.**
+
+---
+
+## Installation
+
+Reading SVG schematics requires no special software or installation: if your browser can display SVG, you can read schematics. Double-click on them or open them with the OS-native method of your choice. Voila.
+
+The schematic editor has two "platforms" for installation: its dedicated desktop application, and its VsCode extension.  
+As of this writing both require from-source installation and execution.
+
+Prerequisites:
+
+- Install the JavaScript package manager [Yarn](https://classic.yarnpkg.com/en/docs/install)
+  - MacOS: [Homebrew](https://brew.sh/) makes this particularly easy: https://formulae.brew.sh/formula/yarn
+  - Debian:
+    - Install `npm` and `node` through `apt`: `sudo apt install nodejs npm`
+    - Update `node` through `npm`: `sudo npm install -g n && sudo n stable`
+  - (FIXME: add any recommendations for other OSes - or just stick with Yarn's docs.)
+- Clone this repository
+  - `git clone git@github.com:Vlsir/Hdl21Schematics.git`
+
+To start the desktop application:
+
+- `cd Hdl21Schematics/Hdl21SchematicEditor/packages/EditorApp`
+- `yarn` to install dependencies
+- `yarn start` to start the application
+
+To start the VsCode plugin: (FIXME! mumble mumble about its debugger etc.)
 
 ---
 
@@ -351,23 +428,33 @@ An example `Port`:
 
 FIXME: naming rules for ports vs wires
 
-### `Dot`
+### Connection `Dot`
 
-Schematic dots indicate connectivity between wires, where connections would otherwise be ambiguous. Prominent examples include "flying" wiring styles which cross over one another.
-
-The inclusion of a `Dot` at any location in a schematic dictates that all `Wire`s passing through that point must be connected.
+Schematic dots indicate connectivity between wires and ports where connections might otherwise be ambiguous. The inclusion of a `Dot` at any location in a schematic implies that all `Wire`s passing through that point are connected. The lack of a `Dot` at an intersection between wires conversely implies that the two _are not_ connected, and instead "fly" over one another.
 
 `Dot`s are represented in SVG by `<circle>` elements centered at the dot location. Dot locations must land on the 10x10 pixel schematic grid. Dot-circles are identified by their use of the `hdl21-dot` SVG class.
 
 An example `Dot`:
 
 ```svg
-<circle cx="-20" cy="40" r="4" class="hdl21-dot" />
+<circle cx="-20" cy="40" class="hdl21-dot" />
 ```
 
-The center location dictating `cx` and `cy` attributes are the sole schema-relevant attributes of a dot-circle. The radius attribute `r` is not part of the schema, and may be any valid SVG value.
+The center location dictating `cx` and `cy` attributes are the sole schema-relevant attributes of a dot-circle. All other attributes such as the radius `r` are not part of the schema, and may be any valid SVG value.
 
-FIXME: example
+While serving as powerful visual aids, `Dot`s _do not_ have semantic meaning in schematics. They are entirely a visual aid. Schematic importers _shall not_ imbue them with meaning, i.e. any valid schematic with any combination of `Dot`s yields an identical circuit with _any other_ combination of `Dot`s.
+
+The primary editor application infers `Dot`s at load time, and uses those stored in SVG as a check. This process includes:
+
+- Running "dot inference" from the schematic's wires, instances, and ports
+- Comparing the inferred dot locations with those stored in the SVG
+- If the two differ, reporting a warning to the user
+
+Differences between the inferred and stored dot locations _do not_ cause the schematic to fail to load. The editor will simply report the difference to the user and display the inferred dots.
+
+---
+
+Note: SVG includes a definitions (`<defs>`) section, which in principle can serve as a place to hold the primitive symbol definitions. Doing so would save space in the hypertext content. But we have very quickly found that popular platforms we'd like to have render schematics (ahem, GitHub) do not support the `<defs>` and corresponsing `<use>` elements.
 
 ---
 
@@ -379,31 +466,3 @@ Broader FIXMEs:
 - Add the remaining Primitives
 - Add the code prelude!
 
----
-
-## Installation
-
-Reading SVG schematics requires no special software or installation: if your browser can display SVG, you can read schematics.
-Double-click on them or open them with the OS-native method of your choice. Voila.
-
-The schematic editor has two "platforms" for installation: its dedicated desktop application, and its VsCode extension.  
-As of this writing both require from-source installation and execution.
-
-Prerequisites:
-
-- Install the JavaScript package manager [Yarn](https://classic.yarnpkg.com/en/docs/install)
-  - MacOS: [Homebrew](https://brew.sh/) makes this particularly easy: https://formulae.brew.sh/formula/yarn
-  - Debian:
-    - Install `npm` and `node` through `apt`: `sudo apt install nodejs npm`
-    - Update `node` through `npm`: `sudo npm install -g n && sudo n stable`
-  - (FIXME: add any recommendations for other OSes - or just stick with Yarn's docs.)
-- Clone this repository
-  - `git clone git@github.com:Vlsir/Hdl21Schematics.git`
-
-To start the desktop application:
-
-- `cd Hdl21Schematics/Hdl21SchematicEditor/packages/EditorApp`
-- `yarn` to install dependencies
-- `yarn start` to start the application
-
-To start the VsCode plugin: (FIXME! mumble mumble about its debugger etc.)
