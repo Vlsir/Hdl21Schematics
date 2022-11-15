@@ -13,7 +13,7 @@ from pydantic.dataclasses import dataclass
 
 
 class PortDir(Enum):
-    """Schematic Signal/ Port Direction
+    """# Signal/ Port Direction
     Including the `INTERNAL` variant for internal Signals"""
 
     INTERNAL = "INTERNAL"
@@ -24,19 +24,24 @@ class PortDir(Enum):
 
 @dataclass
 class Signal:
+    """# Circuit Signal"""
+
     name: str
     portdir: PortDir
 
 
 @dataclass
 class Connection:
+    """# Instance Connection
+    A (port, signal) pair, specified in string names."""
+
     portname: str
     signame: str
 
 
 @dataclass
 class Instance:
-    """Circuit Instance"""
+    """# Circuit Instance"""
 
     name: str  # Instance Name
     of: str  # Instance-Of Code-String
@@ -45,7 +50,11 @@ class Instance:
 
 @dataclass
 class Circuit:
-    name: str
-    prelude: str
-    signals: List[Signal]
-    instances: List[Instance]
+    """# Circuit
+    The circuit-level content of a Schematic. This might alternatively be called a "Module". 
+    Consists of collections of Signals, Instances of circuit elements, and connections there-between."""
+
+    name: str  # Circuit Name
+    prelude: str  # Code Prelude
+    signals: List[Signal]  # Signals
+    instances: List[Instance]  # Instances

@@ -1,14 +1,14 @@
-/*
-# Circuit
+//
+// # Circuit
+//
+// Circuits data model extracted from schematics.
+//
+// Circuit data is often stored as JSON-encoded text embedded in an SVG schematic.
+// Thus it is crucial that the data model here matches that of any paired importer.
+//
 
-Circuits data model extracted from schematics. 
-
-Circuit data is often stored as JSON-encoded text embedded in an SVG schematic. 
-Thus it is crucial that the data model here matches that of any paired importer.
-*/
-
-/* Schematic Signal/ Port Direction
-Including the `INTERNAL` variant for internal Signals*/
+// # Signal/ Port Direction
+// Including the `INTERNAL` variant for internal Signals
 export enum PortDir {
   INTERNAL = "INTERNAL",
   INPUT = "INPUT",
@@ -16,25 +16,29 @@ export enum PortDir {
   INOUT = "INOUT",
 }
 
+// # Circuit Signal
 export interface Signal {
   name: string;
   portdir: PortDir;
 }
 
-/* Connection to an Instance Port */
+// # Instance Connection
+// A (port, signal) pair, specified in string names.
 export interface Connection {
   portname: string; // Port Name
   signame: string; // Connected Signal Name
 }
 
-/* Circuit Instance */
+// # Circuit Instance
 export interface Instance {
   name: string; // Instance Name
   of: string; // Instance-Of Code-String
   conns: Array<Connection>; // Connections
 }
 
-/* Circuit Module */
+// # Circuit
+// The circuit-level content of a Schematic. This might alternatively be called a "Module".
+// Consists of collections of Signals, Instances of circuit elements, and connections there-between.
 export interface Circuit {
   name: string; // Circuit Name
   prelude: string; // Code Prelude
