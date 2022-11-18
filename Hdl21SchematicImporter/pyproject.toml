@@ -2,7 +2,7 @@
 authors = ["Dan Fritchman <dan@fritch.mn>"]
 description = "Hdl21 Schematics Python Importer"
 name = "Hdl21SchematicImporter"
-version = "0.1.0"
+version = "1.0.dev0"
 
 [tool.poetry.dependencies]
 hdl21 = ">=2.0"
