@@ -3,7 +3,12 @@
  */
 
 // Local Imports
-import { SchSvgIds, SchSvgClasses } from "./svgdefs";
+import {
+  SchSvgIds,
+  SchSvgClasses,
+  SvgPortPrefix,
+  SvgElementPrefix,
+} from "./svgdefs";
 import * as schdata from "../schematicdata";
 import { Orientation, matrix } from "../orientation";
 import { toCircuitJson } from "../circuit/extractor";
@@ -151,7 +156,7 @@ export class Exporter {
 
     // Write the symbol group
     this.indent += 1;
-    this.writeLine(`<g class="${primitive.svgTag}">`);
+    this.writeLine(`<g class="${SvgElementPrefix}${primitive.svgTag}">`);
     this.indent += 1;
     // Write its symbol SVG content
     primitive.svgLines.forEach((line) => this.writeLine(line));
@@ -186,7 +191,7 @@ export class Exporter {
     this.indent += 1;
 
     // Write the symbol group
-    this.writeLine(`<g class="${portsymbol.svgTag}">`);
+    this.writeLine(`<g class="${SvgPortPrefix}${portsymbol.svgTag}">`);
     this.indent += 1;
     // Write its symbol SVG content
     portsymbol.svgLines.forEach((line) => this.writeLine(line));

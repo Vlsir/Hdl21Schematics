@@ -7,7 +7,13 @@
 import { parse, ElementNode, TextNode } from "svg-parser";
 
 // Local Imports
-import { SchSvgClasses, SchSvgIds } from "./svgdefs";
+import {
+  SchSvgClasses,
+  SchSvgIds,
+  SvgElementPrefix,
+  SvgPortPrefix,
+  SvgPrimitivePrefix,
+} from "./svgdefs";
 import { point } from "../point";
 import { Place } from "../place";
 import { Schematic } from "../schematicdata";
@@ -188,7 +194,18 @@ export class Importer {
     const [symbolChild, nameChild, ofChild] = svgGroup.children;
 
     // Get the symbol type from the symbol group.
-    const classTag = this.importClassTag(symbolChild);
+    let classTag = this.importClassTag(symbolChild);
+
+    // Peel off the prefix from the class tag.
+    // FIXME: a bit of "schema migration" in renaming `elements` here
+    if (classTag.startsWith(SvgPrimitivePrefix)) {
+      classTag = classTag.substring(SvgPrimitivePrefix.length);
+    } else if (classTag.startsWith(SvgElementPrefix)) {
+      classTag = classTag.substring(SvgElementPrefix.length);
+    } else {
+      throw this.fail(`Unknown symbol type: ${classTag}`);
+    }
+
     const primitive = PrimitiveTags.get(classTag);
     if (!primitive) {
       throw this.fail(`Unknown symbol type: ${classTag}`);
@@ -224,7 +241,18 @@ export class Importer {
     const [symbolChild, nameChild] = svgGroup.children;
 
     // Get the symbol type from the symbol group.
-    const classTag = this.importClassTag(symbolChild);
+    let classTag = this.importClassTag(symbolChild);
+
+    // Peel off the prefix from the class tag.
+    // FIXME: a bit of "schema migration" in renaming `elements` here
+    if (classTag.startsWith(SvgPrimitivePrefix)) {
+      classTag = classTag.substring(SvgPrimitivePrefix.length);
+    } else if (classTag.startsWith(SvgPortPrefix)) {
+      classTag = classTag.substring(SvgPortPrefix.length);
+    } else {
+      throw this.fail(`Unknown port type: ${classTag}`);
+    }
+
     const portsymbol = PortTags.get(classTag);
     if (!portsymbol) {
       throw this.fail(`Unknown symbol type: ${classTag}`);

@@ -30,3 +30,9 @@ export enum SchSvgClasses {
   PORT_NAME = "hdl21-port-name",
   DOT = "hdl21-dot",
 }
+
+// Prefixes for the ID tags of schematic elements
+export const SvgElementPrefix = "hdl21-elements-";
+export const SvgPortPrefix = "hdl21-ports-";
+// FIXME: deprecated, remove in time
+export const SvgPrimitivePrefix = "hdl21::primitives::";

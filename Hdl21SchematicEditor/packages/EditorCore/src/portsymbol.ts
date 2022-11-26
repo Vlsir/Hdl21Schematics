@@ -57,7 +57,7 @@ function add(portsym: PortSymbol) {
 // Create the library of `PortSymbol`s.
 export const Input = add({
   kind: PortKind.Input,
-  svgTag: "hdl21::primitives::input",
+  svgTag: "input",
   svgLines: [
     `<path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />`,
     `<path d="M -20 0 L 0 0" class="hdl21-symbols" />`,
@@ -68,7 +68,7 @@ export const Input = add({
 });
 export const Output = add({
   kind: PortKind.Output,
-  svgTag: "hdl21::primitives::output",
+  svgTag: "output",
   svgLines: [
     `<path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
     `<path d="M 0 0 L 20 0" class="hdl21-symbols" />`,
@@ -79,7 +79,7 @@ export const Output = add({
 });
 export const Inout = add({
   kind: PortKind.Inout,
-  svgTag: "hdl21::primitives::inout",
+  svgTag: "inout",
   svgLines: [
     `<path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
     `<path d="M 0 0 L 10 0" class="hdl21-symbols" />`,

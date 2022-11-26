@@ -1,7 +1,7 @@
 //
 // # Primitives
 //
-// The instantiable primitive elements of a schematic.
+// The instantiable circuit elements of a schematic.
 //
 
 // Local Imports
@@ -79,7 +79,7 @@ function add(prim: Primitive) {
 // Create the library of `Primitive`s.
 export const Nmos = add({
   kind: PrimitiveKind.Nmos,
-  svgTag: "hdl21::primitives::nmos",
+  svgTag: "nmos",
   svgLines: [
     // Main squiggly path
     `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
@@ -106,7 +106,7 @@ export const Nmos = add({
 });
 export const Pmos = add({
   kind: PrimitiveKind.Pmos,
-  svgTag: "hdl21::primitives::pmos",
+  svgTag: "pmos",
   svgLines: [
     // Main squiggly path
     `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
@@ -135,7 +135,7 @@ export const Pmos = add({
 });
 export const Res = add({
   kind: PrimitiveKind.Res,
-  svgTag: "hdl21::primitives::res",
+  svgTag: "res",
   svgLines: [
     // Main squiggly path
     `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
@@ -152,7 +152,7 @@ export const Res = add({
 });
 export const Res3 = add({
   kind: PrimitiveKind.Res3,
-  svgTag: "hdl21::primitives::res3",
+  svgTag: "res3",
   svgLines: [
     // Main squiggly path
     `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
@@ -172,7 +172,7 @@ export const Res3 = add({
 });
 export const Cap = add({
   kind: PrimitiveKind.Cap,
-  svgTag: "hdl21::primitives::cap",
+  svgTag: "cap",
   svgLines: [
     `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
     `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
@@ -191,7 +191,7 @@ export const Cap = add({
 });
 export const Cap3 = add({
   kind: PrimitiveKind.Cap3,
-  svgTag: "hdl21::primitives::cap3",
+  svgTag: "cap3",
   svgLines: [
     // All the parts of the two-terminal cap
     `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
@@ -214,7 +214,7 @@ export const Cap3 = add({
 });
 export const Ind = add({
   kind: PrimitiveKind.Ind,
-  svgTag: "hdl21::primitives::ind",
+  svgTag: "ind",
   svgLines: [
     // FIXME: just a box, until sorting out the curvy stuff
     `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
@@ -233,7 +233,7 @@ export const Ind = add({
 });
 export const Ind3 = add({
   kind: PrimitiveKind.Ind3,
-  svgTag: "hdl21::primitives::ind3",
+  svgTag: "ind3",
   svgLines: [
     // FIXME: just a box, until sorting out the curvy stuff
     `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
@@ -254,7 +254,7 @@ export const Ind3 = add({
 
 export const Vsource = add({
   kind: PrimitiveKind.Vsource,
-  svgTag: "hdl21::primitives::vsource",
+  svgTag: "vsource",
   svgLines: [
     `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
     `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
@@ -275,7 +275,7 @@ export const Vsource = add({
 });
 export const Vsource4 = add({
   kind: PrimitiveKind.Vsource4,
-  svgTag: "hdl21::primitives::vsource4",
+  svgTag: "vsource4",
   svgLines: [
     // All the parts of the two-terminal `vsource`
     `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
@@ -302,7 +302,7 @@ export const Vsource4 = add({
 });
 export const Isource = add({
   kind: PrimitiveKind.Isource,
-  svgTag: "hdl21::primitives::isource",
+  svgTag: "isource",
   svgLines: [
     `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
     `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
@@ -322,7 +322,7 @@ export const Isource = add({
 });
 export const Isource4 = add({
   kind: PrimitiveKind.Isource4,
-  svgTag: "hdl21::primitives::isource4",
+  svgTag: "isource4",
   svgLines: [
     // All the parts of the two-terminal `isource`
     `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
@@ -348,7 +348,7 @@ export const Isource4 = add({
 });
 export const Diode = add({
   kind: PrimitiveKind.Diode,
-  svgTag: "hdl21::primitives::diode",
+  svgTag: "diode",
   svgLines: [
     // The triangle
     `<path d="M 0 70 L -20 35 L 20 35 Z" class="hdl21-symbols" />`,
@@ -370,7 +370,7 @@ export const Diode = add({
 });
 export const Npn = add({
   kind: PrimitiveKind.Npn,
-  svgTag: "hdl21::primitives::npn",
+  svgTag: "npn",
   svgLines: [
     // Main squiggly path
     `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,
@@ -394,7 +394,7 @@ export const Npn = add({
 });
 export const Pnp = add({
   kind: PrimitiveKind.Pnp,
-  svgTag: "hdl21::primitives::pnp",
+  svgTag: "pnp",
   svgLines: [
     // Main squiggly path
     `<path d="M 0 0 L 0 20 L -30 40 L -30 60 L 0 80 L 0 100" class="hdl21-symbols" />`,

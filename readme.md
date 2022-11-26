@@ -58,7 +58,7 @@ SVG schematics by convention have a sub-file-extension of `.sch.svg`. The editor
 
 Schematics consist of:
 
-- Instances of primitive elements,
+- Instances of circuit elements,
 - Ports, and
 - Wire connections there-between
 
@@ -364,7 +364,7 @@ Any schematic element with an SVG `matrix` with `(a,b,c,d)` values from outside 
 
 Each `Schematic` is comprised of collections of four types of elements:
 
-- `Instance`s of primitive elements
+- `Instance`s of circuit elements
 - `Wire`s connecting them
 - `Port` annotations
 - `Dot`s indicating located connections
@@ -431,7 +431,7 @@ Primitive({
 
 Notably each primitive _does not_ dictate what device appears in an ultimate circuit or netlist. The `of` string of each `Instance` dictates these choices. The primitive solely dictates its two fields: the pictorial symbol and the port list.
 
-The complete list of elements is defined in [the primitive element library documentation](#the-element-library). The content of the primitive library - particularly the kinds of primitives and their port lists - _is_ part of the schematic schema, and must be adhered to by any schematic importer.
+The complete list of elements is defined in [the circuit element library documentation](#the-element-library). The content of the primitive library - particularly the kinds of primitives and their port lists - _is_ part of the schematic schema, and must be adhered to by any schematic importer.
 
 ### `Wire`
 
