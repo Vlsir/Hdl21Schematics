@@ -108,7 +108,7 @@
 <!-- Svg Schematic Content -->
 
 <g class="hdl21-instance" transform="matrix(1 0 0 1 300 100)">
-  <g class="hdl21::primitives::pmos">
+  <g class="hdl21-elements-pmos">
     <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
     <path d="M -40 30 L -40 70" class="hdl21-symbols" />
     <path d="M -60 50 L -70 50" class="hdl21-symbols" />
@@ -124,7 +124,7 @@
   <text  x="10" y="80"  class="hdl21-instance-of">Pmos(params)</text>
 </g>
 <g class="hdl21-instance" transform="matrix(1 0 0 1 300 300)">
-  <g class="hdl21::primitives::nmos">
+  <g class="hdl21-elements-nmos">
     <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
     <path d="M -40 30 L -40 70" class="hdl21-symbols" />
     <path d="M -40 50 L -70 50" class="hdl21-symbols" />
@@ -141,7 +141,7 @@
 
 
 <g class="hdl21-port" transform="matrix(1 0 0 1 170 250)">
-  <g class="hdl21::primitives::input">
+  <g class="hdl21-ports-input">
     <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
     <path d="M -20 0 L 0 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
@@ -149,7 +149,7 @@
   <text  x="-50" y="-25"  class="hdl21-port-name">inp</text>
 </g>
 <g class="hdl21-port" transform="matrix(1 0 0 1 340 60)">
-  <g class="hdl21::primitives::inout">
+  <g class="hdl21-ports-inout">
     <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 10 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
@@ -157,7 +157,7 @@
   <text  x="15" y="-25"  class="hdl21-port-name">VDD</text>
 </g>
 <g class="hdl21-port" transform="matrix(1 0 0 1 340 250)">
-  <g class="hdl21::primitives::output">
+  <g class="hdl21-ports-output">
     <path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 20 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
@@ -165,7 +165,7 @@
   <text  x="20" y="-25"  class="hdl21-port-name">out</text>
 </g>
 <g class="hdl21-port" transform="matrix(1 0 0 1 340 450)">
-  <g class="hdl21::primitives::inout">
+  <g class="hdl21-ports-inout">
     <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 10 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />

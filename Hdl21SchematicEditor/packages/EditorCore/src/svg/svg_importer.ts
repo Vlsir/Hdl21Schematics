@@ -12,13 +12,13 @@ import {
   SchSvgIds,
   SvgElementPrefix,
   SvgPortPrefix,
-  SvgPrimitivePrefix,
+  DeprecatedPrefix,
 } from "./svgdefs";
 import { point } from "../point";
 import { Place } from "../place";
 import { Schematic } from "../schematicdata";
 import { matrix, orientation } from "../orientation";
-import { PrimitiveTags } from "../primitive";
+import { ElementTags } from "../element";
 import { PortTags } from "../portsymbol";
 
 // Type alias for the return-type of `ElementNode.children()`
@@ -198,26 +198,26 @@ export class Importer {
 
     // Peel off the prefix from the class tag.
     // FIXME: a bit of "schema migration" in renaming `elements` here
-    if (classTag.startsWith(SvgPrimitivePrefix)) {
-      classTag = classTag.substring(SvgPrimitivePrefix.length);
+    if (classTag.startsWith(DeprecatedPrefix)) {
+      classTag = classTag.substring(DeprecatedPrefix.length);
     } else if (classTag.startsWith(SvgElementPrefix)) {
       classTag = classTag.substring(SvgElementPrefix.length);
     } else {
       throw this.fail(`Unknown symbol type: ${classTag}`);
     }
 
-    const primitive = PrimitiveTags.get(classTag);
-    if (!primitive) {
+    const element = ElementTags.get(classTag);
+    if (!element) {
       throw this.fail(`Unknown symbol type: ${classTag}`);
     }
-    const { kind } = primitive;
+    const { kind } = element;
 
     // Extract the instance name and of-string.
     const name = this.importTextElem(nameChild);
     const of = this.importTextElem(ofChild);
 
     // Create and add the instance
-    const instance = { name, of, kind, primitive, loc, orientation };
+    const instance = { name, of, kind, element, loc, orientation };
     this.schematic.instances.push(instance);
   }
 
@@ -245,8 +245,8 @@ export class Importer {
 
     // Peel off the prefix from the class tag.
     // FIXME: a bit of "schema migration" in renaming `elements` here
-    if (classTag.startsWith(SvgPrimitivePrefix)) {
-      classTag = classTag.substring(SvgPrimitivePrefix.length);
+    if (classTag.startsWith(DeprecatedPrefix)) {
+      classTag = classTag.substring(DeprecatedPrefix.length);
     } else if (classTag.startsWith(SvgPortPrefix)) {
       classTag = classTag.substring(SvgPortPrefix.length);
     } else {

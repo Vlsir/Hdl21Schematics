@@ -36,7 +36,7 @@ export class EditLabel extends UiModeHandlerBase {
   };
 
   // Add or remove a character from a `Label`.
-  // Text editing is thus far pretty primitive.
+  // Text editing is thus far pretty simplistic.
   // The "cursor" is always implicitly at the end of each Label.
   // Backspace removes the last character, and we do what we can to filter down to characters
   // which can be added to Labels - i.e. not "PageDown", "DownArrow" and the like.

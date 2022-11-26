@@ -1,7 +1,7 @@
 import { orientation } from "./orientation";
 import { Instance as InstanceData, Port as PortData } from "./schematicdata";
 import { point } from "./point";
-import { PrimitiveKind, primitiveLib } from "./primitive";
+import { ElementKind, elementLib } from "./element";
 import { PortKind, portLib } from "./portsymbol";
 import { ChangeLog } from "./changes";
 import { SchEditor } from "./editor";
@@ -36,8 +36,8 @@ export class UiState {
   lastInstanceData: InstanceData = {
     name: "",
     of: "",
-    kind: PrimitiveKind.Nmos,
-    primitive: primitiveLib.default(),
+    kind: ElementKind.Nmos,
+    element: elementLib.default(),
     loc: point.new(0, 0),
     orientation: orientation.default(),
   };

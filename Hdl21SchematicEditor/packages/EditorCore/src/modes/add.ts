@@ -6,7 +6,7 @@
 import { Instance, SchPort } from "../drawing";
 import { nearestOnGrid } from "../drawing/grid";
 import { ChangeKind } from "../changes";
-import { Primitive, primitiveLib } from "../primitive";
+import { Element, elementLib } from "../element";
 import { PortSymbol, portLib } from "../portsymbol";
 import { SchEditor } from "../editor";
 import { ControlPanelItem } from "../panels";
@@ -80,13 +80,13 @@ export class AddInstance extends AddBase {
   // Create the provisional `Instance`, using the last one added as a template.
   static start(editor: SchEditor): AddInstance {
     const { lastInstanceData } = editor.uiState;
-    const { primitive, kind } = lastInstanceData;
+    const { element, kind } = lastInstanceData;
 
     const newInstanceData = {
-      name: `${primitive.defaultNamePrefix}${editor.schematic.num_instances}`,
-      of: `${primitive.defaultOf}`,
+      name: `${element.defaultNamePrefix}${editor.schematic.num_instances}`,
+      of: `${element.defaultOf}`,
       kind,
-      primitive,
+      element,
       loc: nearestOnGrid(editor.uiState.mousePos.canvas),
       orientation: structuredClone(lastInstanceData.orientation),
     };
@@ -105,40 +105,40 @@ export class AddInstance extends AddBase {
     return me;
   }
 
-  // Derive our control panel items from the primitive list.
+  // Derive our control panel items from the element list.
   override controlPanelItems = () => {
-    const itemFromPrim = (prim: Primitive): ControlPanelItem => ({
-      text: prim.kind,
+    const itemFromElement = (element: Element): ControlPanelItem => ({
+      text: element.kind,
       icon: null, // FIXME! get some icons
-      shortcutKey: prim.keyboardShortcut,
-      onClick: () => this.changeInstanceKind(prim),
+      shortcutKey: element.keyboardShortcut,
+      onClick: () => this.changeInstanceKind(element),
     });
-    return primitiveLib.list.map(itemFromPrim);
+    return elementLib.list.map(itemFromElement);
   };
 
   // Handle a keystroke, potentially producing a change of kind.
   override handleKey = (e: KeyboardEvent) => {
-    const primitive = primitiveLib.keyboardShortcuts.get(e.key);
-    if (primitive) {
-      return this.changeInstanceKind(primitive);
+    const element = elementLib.keyboardShortcuts.get(e.key);
+    if (element) {
+      return this.changeInstanceKind(element);
     }
   };
 
   // Change the kind of the instance.
-  changeInstanceKind = (primitive: Primitive) => {
+  changeInstanceKind = (element: Element) => {
     const { instance } = this;
 
     // Update the instance data
-    instance.data.kind = primitive.kind;
-    instance.data.primitive = primitive;
-    instance.data.name = primitive.defaultNamePrefix;
-    instance.data.of = primitive.defaultOf;
+    instance.data.kind = element.kind;
+    instance.data.element = element;
+    instance.data.name = element.defaultNamePrefix;
+    instance.data.of = element.defaultOf;
 
     // Update its label data
-    instance.nameLabel!.data.text = primitive.defaultNamePrefix;
-    instance.nameLabel!.data.loc = primitive.nameloc;
-    instance.ofLabel!.data.text = primitive.defaultOf;
-    instance.ofLabel!.data.loc = primitive.ofloc;
+    instance.nameLabel!.data.text = element.defaultNamePrefix;
+    instance.nameLabel!.data.loc = element.nameloc;
+    instance.ofLabel!.data.text = element.defaultOf;
+    instance.ofLabel!.data.loc = element.ofloc;
 
     // Store this as the last instance data for next time
     this.editor.uiState.lastInstanceData = instance.data;
@@ -187,13 +187,13 @@ export class AddPort extends AddBase {
 
   // Derive our control panel items from the port symbols list.
   override controlPanelItems = () => {
-    const itemFromPrim = (portsymbol: PortSymbol): ControlPanelItem => ({
+    const itemFromElement = (portsymbol: PortSymbol): ControlPanelItem => ({
       text: portsymbol.kind,
       icon: null, // FIXME! get some icons
       shortcutKey: portsymbol.keyboardShortcut,
       onClick: () => this.changePortKind(portsymbol),
     });
-    return portLib.list.map(itemFromPrim);
+    return portLib.list.map(itemFromElement);
   };
 
   // Handle a keystroke, potentially producing a change of kind.

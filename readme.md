@@ -62,7 +62,7 @@ Schematics consist of:
 - Ports, and
 - Wire connections there-between
 
-The primitive-elements library holds similar content to that of SPICE: transistors, resistors, capacitors, voltage sources, and the like.
+The element-library holds similar content to that of SPICE: transistors, resistors, capacitors, voltage sources, and the like. It is designed in concert with Hdl21's [primitive element library](https://github.com/dan-fritchman/Hdl21#primitives-and-external-modules).
 
 The complete element library:
 
@@ -129,7 +129,7 @@ An example prelude:
 from hdl21.primitives import Nmos, Pmos
 ```
 
-This minimal prelude imports the `Nmos` and `Pmos` devices from the Hdl21 primitive library.
+This minimal prelude imports the `Nmos` and `Pmos` devices from the Hdl21 primitive-element library.
 
 Schematic code-preludes are executed as Python code. All of the language's semantics are available, and any module-imports available in the executing environment are available.
 
@@ -282,7 +282,7 @@ SVG schematics are commonly interpreted by two categories of programs:
 
 This section serves as the specification for (2). The schema which dictates the content of _schematic circuits_ is dictated through SVG structure and element attributes. While some of this schema also dictates how schematics appear _as pictures_, overlap between the two use-cases is incomplete. Valid schematic importers must adhere to the schema defined herein and no more.
 
-Note the graphical schematic _editor_ is a special case which combines _both_ use-cases. It simultaneously renders schematics as pictures while being drawn and dictates their content as circuits. The graphical editor holds a number of additional pieces of non-schema information about schematics and how they are intended to be rendered as pictures, including their style attributes, design of the primitive symbols, and locations of text annotations. This information _is not_ part of the schematic schema. Any valid SVG value for these attributes is to be treated as valid by schematic importers.
+Note the graphical schematic _editor_ is a special case which combines _both_ use-cases. It simultaneously renders schematics as pictures while being drawn and dictates their content as circuits. The graphical editor holds a number of additional pieces of non-schema information about schematics and how they are intended to be rendered as pictures, including their style attributes, design of the element symbols, and locations of text annotations. This information _is not_ part of the schematic schema. Any valid SVG value for these attributes is to be treated as valid by schematic importers.
 
 ### `Schematic`
 
@@ -377,7 +377,7 @@ Each `Instance` includes:
 
 - A string instance `name`
 - A string `of`, which dictates the type of element to be instantiated
-- A `kind` value from the enumerated `Primitives` list, which serves as pointer to the `Primitive` dictating its pictorial symbol and port list.
+- A `kind` value from the enumerated `Elements` list, which serves as pointer to the `Element` dictating its pictorial symbol and port list.
 - A `location` dictating the position of its origin in schematic coordinates.
 - An `orientation` dictating its reflection and rotation.
 
@@ -395,7 +395,7 @@ An example `Instance`:
 
 ```svg
 <g class="hdl21-instance" transform="matrix(1 0 0 1 X Y)">
-    <g class="hdl21::primitives::nmos">
+    <g class="hdl21-elements-nmos">
         <!-- Content of the symbol-picture -->
     </g>
     <text x="10" y="0" class="hdl21-instance-name">inst_name</text>
@@ -405,20 +405,20 @@ An example `Instance`:
 
 The three child elements are required to be stored in the order (symbol, name, of). The lack of valid values for any of the three child elements shall generate a `SchematicError`. The presence of any additional children shall also generate a `SchematicError`.
 
-### Primitive Elements
+### Circuit Elements
 
-SVG schematics instantiate "primitive" elements from a library of pre-defined symbols. A schematic importer must be aware of this libray's contents, as it dictates much of the schematic's connectivity.
+SVG schematics instantiate circuit elements from a library of pre-defined symbols. A schematic importer must be aware of this libray's contents, as it dictates much of the schematic's connectivity.
 
-The `kind` field of each `Instance` serves as a reference to a `Primitive` type. Each `Primitive` consists of:
+The `kind` field of each `Instance` serves as a reference to a `Element` type. Each `Element` consists of:
 
 - The symbol "picture", and
 - A list of named, located ports
 
-An example `Primitive`, defined in JavaScript syntax:
+An example `Element`, defined in JavaScript syntax:
 
 ```js
-Primitive({
-  kind: PrimitiveKind.Nmos, // The enumerated `kind`
+Element({
+  kind: ElementKind.Nmos, // The enumerated `kind`
   ports: [
     // Its ordered, located port list
     new Port({ name: "d", loc: point(0, 0) }),
@@ -429,9 +429,9 @@ Primitive({
 });
 ```
 
-Notably each primitive _does not_ dictate what device appears in an ultimate circuit or netlist. The `of` string of each `Instance` dictates these choices. The primitive solely dictates its two fields: the pictorial symbol and the port list.
+Notably each element _does not_ dictate what device appears in an ultimate circuit or netlist. The `of` string of each `Instance` dictates these choices. The element solely dictates its two fields: the pictorial symbol and the port list.
 
-The complete list of elements is defined in [the circuit element library documentation](#the-element-library). The content of the primitive library - particularly the kinds of primitives and their port lists - _is_ part of the schematic schema, and must be adhered to by any schematic importer.
+The complete list of elements is defined in [the circuit element library documentation](#the-element-library). The content of the element library - particularly the kinds of elements and their port lists - _is_ part of the schematic schema, and must be adhered to by any schematic importer.
 
 ### `Wire`
 
@@ -514,7 +514,7 @@ Differences between the inferred and stored dot locations are logged and reporte
 
 ---
 
-Note: SVG includes a definitions (`<defs>`) section, which in principle can serve as a place to hold the primitive symbol definitions. Doing so would save space in the hypertext content. But we have very quickly found that popular platforms we'd like to have render schematics (ahem, GitHub) do not support the `<defs>` and corresponsing `<use>` elements.
+Note: SVG includes a definitions (`<defs>`) section, which in principle can serve as a place to hold the element symbol definitions. Doing so would save space in the hypertext content. But we have very quickly found that popular platforms we'd like to have render schematics (ahem, GitHub) do not support the `<defs>` and corresponsing `<use>` elements.
 
 ---
 

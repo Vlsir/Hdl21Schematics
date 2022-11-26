@@ -35,4 +35,4 @@ export enum SchSvgClasses {
 export const SvgElementPrefix = "hdl21-elements-";
 export const SvgPortPrefix = "hdl21-ports-";
 // FIXME: deprecated, remove in time
-export const SvgPrimitivePrefix = "hdl21::primitives::";
+export const DeprecatedPrefix = "hdl21::primitives::";

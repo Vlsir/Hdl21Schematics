@@ -1,5 +1,5 @@
 //
-// # Primitives
+// # Elements
 //
 // The instantiable circuit elements of a schematic.
 //
@@ -7,12 +7,12 @@
 // Local Imports
 import { Point, point } from "./point";
 
-// # Enumerated Primitive Kinds
+// # Enumerated Element Kinds
 //
-// The list of enumerated primitives element types.
-// Values are the Primitive's string name.
+// The list of enumerated elements element types.
+// Values are the Element's string name.
 //
-export enum PrimitiveKind {
+export enum ElementKind {
   Nmos = "Nmos",
   Pmos = "Pmos",
   Res = "Res",
@@ -36,14 +36,14 @@ export interface InstancePort {
   loc: Point;
 }
 
-// # Primitive Element
+// # Element Element
 //
 // The types of things which schematics can instantiate.
-// Primitives include the symbol drawing as an SVG string,
+// Elements include the symbol drawing as an SVG string,
 // plus metadata indicating their port names and locations.
 //
-export interface Primitive {
-  kind: PrimitiveKind;
+export interface Element {
+  kind: ElementKind;
   svgTag: string;
   svgLines: Array<string>;
   ports: Array<InstancePort>;
@@ -54,31 +54,31 @@ export interface Primitive {
   keyboardShortcut: string; // Keyboard key for insertion in the editor
 }
 
-export const PrimitiveList: Array<Primitive> = [];
+export const ElementList: Array<Element> = [];
 
-// Map from enumerated keys to `Primitive` objects.
-export const PrimitiveMap: Map<PrimitiveKind, Primitive> = new Map();
+// Map from enumerated keys to `Element` objects.
+export const ElementMap: Map<ElementKind, Element> = new Map();
 
-// Map from SVG class tags to `Primitive` objects.
-export const PrimitiveTags: Map<string, Primitive> = new Map();
+// Map from SVG class tags to `Element` objects.
+export const ElementTags: Map<string, Element> = new Map();
 
-// Map from (keyboard) key to `Primitive` objects.
-export const PrimitiveKeyboardShortcuts: Map<string, Primitive> = new Map();
+// Map from (keyboard) key to `Element` objects.
+export const ElementKeyboardShortcuts: Map<string, Element> = new Map();
 
-// Add `Primitive`s to the module-scope mappings.
-function add(prim: Primitive) {
-  // for (let prim of prims) {
-  PrimitiveList.push(prim);
-  PrimitiveMap.set(prim.kind, prim);
-  PrimitiveTags.set(prim.svgTag, prim);
-  PrimitiveKeyboardShortcuts.set(prim.keyboardShortcut, prim);
+// Add `Element`s to the module-scope mappings.
+function add(element: Element) {
+
+  ElementList.push(element);
+  ElementMap.set(element.kind, element);
+  ElementTags.set(element.svgTag, element);
+  ElementKeyboardShortcuts.set(element.keyboardShortcut, element);
   // }
-  return prim;
+  return element;
 }
 
-// Create the library of `Primitive`s.
+// Create the library of `Element`s.
 export const Nmos = add({
-  kind: PrimitiveKind.Nmos,
+  kind: ElementKind.Nmos,
   svgTag: "nmos",
   svgLines: [
     // Main squiggly path
@@ -105,7 +105,7 @@ export const Nmos = add({
   keyboardShortcut: "n",
 });
 export const Pmos = add({
-  kind: PrimitiveKind.Pmos,
+  kind: ElementKind.Pmos,
   svgTag: "pmos",
   svgLines: [
     // Main squiggly path
@@ -134,7 +134,7 @@ export const Pmos = add({
   keyboardShortcut: "p",
 });
 export const Res = add({
-  kind: PrimitiveKind.Res,
+  kind: ElementKind.Res,
   svgTag: "res",
   svgLines: [
     // Main squiggly path
@@ -151,7 +151,7 @@ export const Res = add({
   keyboardShortcut: "r",
 });
 export const Res3 = add({
-  kind: PrimitiveKind.Res3,
+  kind: ElementKind.Res3,
   svgTag: "res3",
   svgLines: [
     // Main squiggly path
@@ -171,7 +171,7 @@ export const Res3 = add({
   keyboardShortcut: "R",
 });
 export const Cap = add({
-  kind: PrimitiveKind.Cap,
+  kind: ElementKind.Cap,
   svgTag: "cap",
   svgLines: [
     `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
@@ -190,7 +190,7 @@ export const Cap = add({
   keyboardShortcut: "c",
 });
 export const Cap3 = add({
-  kind: PrimitiveKind.Cap3,
+  kind: ElementKind.Cap3,
   svgTag: "cap3",
   svgLines: [
     // All the parts of the two-terminal cap
@@ -213,7 +213,7 @@ export const Cap3 = add({
   keyboardShortcut: "C",
 });
 export const Ind = add({
-  kind: PrimitiveKind.Ind,
+  kind: ElementKind.Ind,
   svgTag: "ind",
   svgLines: [
     // FIXME: just a box, until sorting out the curvy stuff
@@ -232,7 +232,7 @@ export const Ind = add({
   keyboardShortcut: "l",
 });
 export const Ind3 = add({
-  kind: PrimitiveKind.Ind3,
+  kind: ElementKind.Ind3,
   svgTag: "ind3",
   svgLines: [
     // FIXME: just a box, until sorting out the curvy stuff
@@ -253,7 +253,7 @@ export const Ind3 = add({
 });
 
 export const Vsource = add({
-  kind: PrimitiveKind.Vsource,
+  kind: ElementKind.Vsource,
   svgTag: "vsource",
   svgLines: [
     `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
@@ -274,7 +274,7 @@ export const Vsource = add({
   keyboardShortcut: "v",
 });
 export const Vsource4 = add({
-  kind: PrimitiveKind.Vsource4,
+  kind: ElementKind.Vsource4,
   svgTag: "vsource4",
   svgLines: [
     // All the parts of the two-terminal `vsource`
@@ -301,7 +301,7 @@ export const Vsource4 = add({
   keyboardShortcut: "V",
 });
 export const Isource = add({
-  kind: PrimitiveKind.Isource,
+  kind: ElementKind.Isource,
   svgTag: "isource",
   svgLines: [
     `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
@@ -321,7 +321,7 @@ export const Isource = add({
   keyboardShortcut: "i",
 });
 export const Isource4 = add({
-  kind: PrimitiveKind.Isource4,
+  kind: ElementKind.Isource4,
   svgTag: "isource4",
   svgLines: [
     // All the parts of the two-terminal `isource`
@@ -347,7 +347,7 @@ export const Isource4 = add({
   keyboardShortcut: "I",
 });
 export const Diode = add({
-  kind: PrimitiveKind.Diode,
+  kind: ElementKind.Diode,
   svgTag: "diode",
   svgLines: [
     // The triangle
@@ -369,7 +369,7 @@ export const Diode = add({
   keyboardShortcut: "d",
 });
 export const Npn = add({
-  kind: PrimitiveKind.Npn,
+  kind: ElementKind.Npn,
   svgTag: "npn",
   svgLines: [
     // Main squiggly path
@@ -393,7 +393,7 @@ export const Npn = add({
   keyboardShortcut: "q",
 });
 export const Pnp = add({
-  kind: PrimitiveKind.Pnp,
+  kind: ElementKind.Pnp,
   svgTag: "pnp",
   svgLines: [
     // Main squiggly path
@@ -417,8 +417,8 @@ export const Pnp = add({
   keyboardShortcut: "Q",
 });
 
-// The collection of primitives as a JS object
-export const primitives = {
+// The collection of elements as a JS object
+export const elements = {
   Nmos,
   Pmos,
   Res,
@@ -436,20 +436,20 @@ export const primitives = {
   Pnp,
 };
 
-// Get a `Primitive` definition by its `PrimitiveKind`.
+// Get a `Element` definition by its `ElementKind`.
 // This exclamation-mark non-null assertion is valid so long as
-// we ensure that every valid `PrimitiveKind` is in the map.
-export function get(kind: PrimitiveKind): Primitive {
-  return PrimitiveMap.get(kind)!;
+// we ensure that every valid `ElementKind` is in the map.
+export function get(kind: ElementKind): Element {
+  return ElementMap.get(kind)!;
 }
 
-export const primitiveLib = {
-  PrimitiveKind,
-  primitives,
-  list: PrimitiveList,
-  kinds: PrimitiveMap,
-  tags: PrimitiveTags,
-  keyboardShortcuts: PrimitiveKeyboardShortcuts,
+export const elementLib = {
+  ElementKind,
+  elements,
+  list: ElementList,
+  kinds: ElementMap,
+  tags: ElementTags,
+  keyboardShortcuts: ElementKeyboardShortcuts,
   get,
-  default: () => get(PrimitiveKind.Nmos),
+  default: () => get(ElementKind.Nmos),
 };

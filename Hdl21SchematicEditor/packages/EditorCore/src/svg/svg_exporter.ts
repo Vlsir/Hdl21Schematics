@@ -145,7 +145,7 @@ export class Exporter {
 
   // Create the SVG `<g>` group for an `Instance`.
   writeInstance(inst: schdata.Instance) {
-    const { primitive } = inst;
+    const { element } = inst;
     // FIXME: return errors for unnamed stuff, rather than defaulting them
     const name = inst.name || "unnamed"; // FIXME
     const of = inst.of || "unknown"; // FIXME
@@ -156,21 +156,21 @@ export class Exporter {
 
     // Write the symbol group
     this.indent += 1;
-    this.writeLine(`<g class="${SvgElementPrefix}${primitive.svgTag}">`);
+    this.writeLine(`<g class="${SvgElementPrefix}${element.svgTag}">`);
     this.indent += 1;
     // Write its symbol SVG content
-    primitive.svgLines.forEach((line) => this.writeLine(line));
+    element.svgLines.forEach((line) => this.writeLine(line));
     // Write each of its Instance ports
-    primitive.ports.forEach((port) => this.writeInstancePort(port.loc));
+    element.ports.forEach((port) => this.writeInstancePort(port.loc));
     this.indent -= 1;
     this.writeLine(`</g>`);
 
     // Write the name and of strings
-    const nameloc = this.formatLoc(primitive.nameloc);
+    const nameloc = this.formatLoc(element.nameloc);
     this.writeLine(
       `<text ${nameloc} class="${SchSvgClasses.INSTANCE_NAME}">${name}</text>`
     );
-    const ofloc = this.formatLoc(primitive.ofloc);
+    const ofloc = this.formatLoc(element.ofloc);
     this.writeLine(
       `<text ${ofloc} class="${SchSvgClasses.INSTANCE_OF}">${of}</text>`
     );

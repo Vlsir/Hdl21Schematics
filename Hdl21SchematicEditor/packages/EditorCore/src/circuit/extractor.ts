@@ -206,13 +206,13 @@ class SchematicToCircuitConverter {
   collect_instances = (): Result<null, string> => {
     // Add each instance
     for (let sch_instance of this.sch.instances) {
-      const { primitive } = sch_instance;
+      const { element } = sch_instance;
       let conns: Array<Connection> = [];
-      for (let prim_port of primitive.ports) {
-        // Transform the primitive-referenced port location to the instance's location
+      for (let elementPort of element.ports) {
+        // Transform the element-referenced port location to the instance's location
         const mat = matrix.fromOrientation(sch_instance.orientation);
         const instance_port_loc = transform(
-          prim_port.loc,
+          elementPort.loc,
           mat,
           sch_instance.loc
         );
@@ -220,11 +220,11 @@ class SchematicToCircuitConverter {
         const intersecting_signal =
           this.intersectingConvSignal(instance_port_loc);
         if (!intersecting_signal) {
-          const msg = `Port ${prim_port.name} on Instance ${sch_instance} does not intersect with any existing signal`;
+          const msg = `Port ${elementPort.name} on Instance ${sch_instance} does not intersect with any existing signal`;
           return this.fail(msg);
         }
         conns.push({
-          portname: prim_port.name,
+          portname: elementPort.name,
           signame: intersecting_signal.signal.name,
         });
       }

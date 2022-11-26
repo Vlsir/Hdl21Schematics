@@ -162,8 +162,8 @@ function inferDots(sch: Schematic): DotMap {
   for (let drawing_instance of sch.instances.values()) {
     const instData = drawing_instance.data;
     const mat = matrix.fromOrientation(instData.orientation);
-    for (let prim_port of instData.primitive.ports) {
-      const instance_port_loc = transform(prim_port.loc, mat, instData.loc);
+    for (let elementPort of instData.element.ports) {
+      const instance_port_loc = transform(elementPort.loc, mat, instData.loc);
       for (let myWire of myWires) {
         if (wireIntersectsPoint(myWire, instance_port_loc)) {
           const myDot = dotMap.at(instance_port_loc);

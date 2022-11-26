@@ -307,20 +307,20 @@ export class Instance extends InstancePortBase implements EntityInterface {
   }
   override drawingData(): DrawingData {
     const { data } = this;
-    const { primitive, loc, orientation } = data;
+    const { element, loc, orientation } = data;
     return {
-      symbolSvgLines: primitive.svgLines,
-      portLocs: primitive.ports.map((p) => p.loc),
+      symbolSvgLines: element.svgLines,
+      portLocs: element.ports.map((p) => p.loc),
       place: { loc, orientation },
     };
   }
   override createLabels = () => {
-    const { primitive } = this.data;
+    const { element } = this.data;
     // Create and add the instance-name Label
     this.nameLabel = Label.create({
       text: this.data.name,
       kind: LabelKind.Name,
-      loc: primitive.nameloc,
+      loc: element.nameloc,
       parent: this,
     });
     this.drawing.labelGroup.add(this.nameLabel.drawing);
@@ -329,7 +329,7 @@ export class Instance extends InstancePortBase implements EntityInterface {
     this.ofLabel = Label.create({
       text: this.data.of,
       kind: LabelKind.Of,
-      loc: primitive.ofloc,
+      loc: element.ofloc,
       parent: this,
     });
     this.drawing.labelGroup.add(this.ofLabel.drawing);
