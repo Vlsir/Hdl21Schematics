@@ -139,6 +139,7 @@ export class SchEditor {
         // Load schematic content from the file.
         // FIXME: error handling via Result
         try {
+          this.canvas.clear();
           const schData = Importer.import(msg.body);
           const schematic = Schematic.fromData(this, schData);
           return this.loadSchematic(schematic);

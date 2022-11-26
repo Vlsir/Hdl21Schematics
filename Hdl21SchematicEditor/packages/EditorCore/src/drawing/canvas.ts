@@ -38,6 +38,7 @@ export class Canvas {
 
   // Clear everything from the canvas, and recreate our groups and layers.
   clear() {
+    this.stage.root.remove();
     this.two.clear();
     this.stage = new Stage();
     this.two.add(this.stage.root);
