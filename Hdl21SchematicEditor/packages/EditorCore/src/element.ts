@@ -5,6 +5,7 @@
 //
 
 // Local Imports
+import { Inventory2Rounded } from "@mui/icons-material";
 import { Point, point } from "./point";
 
 // # Enumerated Element Kinds
@@ -67,7 +68,6 @@ export const ElementKeyboardShortcuts: Map<string, Element> = new Map();
 
 // Add `Element`s to the module-scope mappings.
 function add(element: Element) {
-
   ElementList.push(element);
   ElementMap.set(element.kind, element);
   ElementTags.set(element.svgTag, element);
@@ -216,8 +216,7 @@ export const Ind = add({
   kind: ElementKind.Ind,
   svgTag: "ind",
   svgLines: [
-    // FIXME: just a box, until sorting out the curvy stuff
-    `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
+    `<path d="M 0 20 C 36 20, 36 40, 0 40 C 36 40, 36 60, 0 60 C 36 60, 36 80, 0 80" class="hdl21-symbols"/>`,
     `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
     `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
   ],
@@ -235,10 +234,10 @@ export const Ind3 = add({
   kind: ElementKind.Ind3,
   svgTag: "ind3",
   svgLines: [
-    // FIXME: just a box, until sorting out the curvy stuff
-    `<rect x="-15" y="20" width="30" height="60" class="hdl21-symbols" />`,
-    `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
-    `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+    // The shapes from the two-terminal inductor
+    ...Ind.svgLines,
+    // Plus the bulk connection
+    `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
   ],
   ports: [
     { name: "p", loc: point.new(0, 0) },
