@@ -19,7 +19,7 @@ import { Place } from "../place";
 import { Schematic } from "../schematicdata";
 import { matrix, orientation } from "../orientation";
 import { ElementTags } from "../element";
-import { PortTags } from "../portsymbol";
+import { PortTags } from "../portElement";
 
 // Type alias for the return-type of `ElementNode.children()`
 type Child = ElementNode | TextNode | string;
@@ -253,17 +253,17 @@ export class Importer {
       throw this.fail(`Unknown port type: ${classTag}`);
     }
 
-    const portsymbol = PortTags.get(classTag);
-    if (!portsymbol) {
+    const portElement = PortTags.get(classTag);
+    if (!portElement) {
       throw this.fail(`Unknown symbol type: ${classTag}`);
     }
-    const { kind } = portsymbol;
+    const { kind } = portElement;
 
     // Get the port name.
     const name = this.importTextElem(nameChild);
 
     // Create the Port and add it to the schematic.
-    const port = { name, kind, portsymbol, loc, orientation };
+    const port = { name, kind, portElement, loc, orientation };
     this.schematic.ports.push(port);
   }
 

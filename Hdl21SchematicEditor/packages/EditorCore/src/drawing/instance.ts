@@ -378,21 +378,21 @@ export class SchPort
   }
   override drawingData(): DrawingData {
     const { data } = this;
-    const { portsymbol, loc, orientation } = data;
+    const { portElement, loc, orientation } = data;
     return {
-      symbolSvgLines: portsymbol.svgLines,
+      symbolSvgLines: portElement.svgLines,
       portLocs: [point.new(0, 0)], // Include the implicit port at the origin
       place: { loc, orientation },
     };
   }
   override createLabels = () => {
-    const { portsymbol } = this.data;
+    const { portElement } = this.data;
 
     // Create and add the name Label
     this.nameLabel = Label.create({
       text: this.data.name,
       kind: LabelKind.Name,
-      loc: portsymbol.nameloc,
+      loc: portElement.nameloc,
       parent: this,
     });
     this.drawing.labelGroup.add(this.nameLabel.drawing);

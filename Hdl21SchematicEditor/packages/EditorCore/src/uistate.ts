@@ -2,7 +2,7 @@ import { orientation } from "./orientation";
 import { Instance as InstanceData, Port as PortData } from "./schematicdata";
 import { point } from "./point";
 import { ElementKind, elementLib } from "./element";
-import { PortKind, portLib } from "./portsymbol";
+import { PortKind, portLib } from "./portElement";
 import { ChangeLog } from "./changes";
 import { SchEditor } from "./editor";
 import { UiModes, UiModeHandler, ModeHandlers } from "./modes";
@@ -45,7 +45,7 @@ export class UiState {
   lastPortData: PortData = {
     name: "",
     kind: PortKind.Input,
-    portsymbol: portLib.default(),
+    portElement: portLib.default(),
     loc: point.new(0, 0),
     orientation: orientation.default(),
   };

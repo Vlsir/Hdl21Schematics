@@ -7,7 +7,7 @@ import { Instance, SchPort } from "../drawing";
 import { nearestOnGrid } from "../drawing/grid";
 import { ChangeKind } from "../changes";
 import { Element, elementLib } from "../element";
-import { PortSymbol, portLib } from "../portsymbol";
+import { PortElement, portLib } from "../portElement";
 import { SchEditor } from "../editor";
 import { ControlPanelItem } from "../panels";
 import { UiModes, UiModeHandlerBase } from "./base";
@@ -162,11 +162,11 @@ export class AddPort extends AddBase {
   static start(editor: SchEditor) {
     // Create the provisional `Port`, using the last one added as a template.
     const { lastPortData } = editor.uiState;
-    const { kind, portsymbol } = lastPortData;
+    const { kind, portElement } = lastPortData;
     const newPortData = {
-      name: `${portsymbol.defaultName}`,
+      name: `${portElement.defaultName}`,
       kind,
-      portsymbol,
+      portElement,
       loc: nearestOnGrid(editor.uiState.mousePos.canvas),
       orientation: structuredClone(lastPortData.orientation),
     };
@@ -187,36 +187,36 @@ export class AddPort extends AddBase {
 
   // Derive our control panel items from the port symbols list.
   override controlPanelItems = () => {
-    const itemFromElement = (portsymbol: PortSymbol): ControlPanelItem => ({
-      text: portsymbol.kind,
+    const itemFromElement = (portElement: PortElement): ControlPanelItem => ({
+      text: portElement.kind,
       icon: null, // FIXME! get some icons
-      shortcutKey: portsymbol.keyboardShortcut,
-      onClick: () => this.changePortKind(portsymbol),
+      shortcutKey: portElement.keyboardShortcut,
+      onClick: () => this.changePortKind(portElement),
     });
     return portLib.list.map(itemFromElement);
   };
 
   // Handle a keystroke, potentially producing a change of kind.
   override handleKey = (e: KeyboardEvent) => {
-    const portsymbol = portLib.keyboardShortcuts.get(e.key);
-    if (portsymbol) {
+    const portElement = portLib.keyboardShortcuts.get(e.key);
+    if (portElement) {
       // We hit a shortcut key and have a valid new type
-      return this.changePortKind(portsymbol);
+      return this.changePortKind(portElement);
     }
   };
 
   // Change the `PortKind` of the in-progress `Port`.
-  changePortKind = (portsymbol: PortSymbol) => {
+  changePortKind = (portElement: PortElement) => {
     const { editor, port } = this;
 
     // Update the port data
-    port.data.kind = portsymbol.kind;
-    port.data.portsymbol = portsymbol;
-    port.data.name = portsymbol.defaultName;
+    port.data.kind = portElement.kind;
+    port.data.portElement = portElement;
+    port.data.name = portElement.defaultName;
 
     // Update its Label data
-    port.nameLabel!.data.text = portsymbol.defaultName;
-    port.nameLabel!.data.loc = portsymbol.nameloc;
+    port.nameLabel!.data.text = portElement.defaultName;
+    port.nameLabel!.data.loc = portElement.nameloc;
 
     // Store this as the last port data for next time
     editor.uiState.lastPortData = port.data;

@@ -25,7 +25,7 @@ export enum PortKind {
 // Ports include the symbol drawing as an SVG string,
 // plus metadata indicating their port names and locations.
 //
-export interface PortSymbol {
+export interface PortElement {
   kind: PortKind; // Enumerated port type
   svgTag: string; // SVG tag
   svgLines: Array<string>; // SVG symbol text
@@ -34,27 +34,27 @@ export interface PortSymbol {
   defaultName: string; // Initial, default name when created
 }
 
-export const PortList: Array<PortSymbol> = [];
+export const PortList: Array<PortElement> = [];
 
-// Map from enumerated keys to `PortSymbol` objects.
-export const PortMap: Map<PortKind, PortSymbol> = new Map();
+// Map from enumerated keys to `PortElement` objects.
+export const PortMap: Map<PortKind, PortElement> = new Map();
 
-// Map from SVG class tags to `PortSymbol` objects.
-export const PortTags: Map<string, PortSymbol> = new Map();
+// Map from SVG class tags to `PortElement` objects.
+export const PortTags: Map<string, PortElement> = new Map();
 
-// Map from (keyboard) key to `PortSymbol` objects.
-export const PortKeyboardShortcuts: Map<string, PortSymbol> = new Map();
+// Map from (keyboard) key to `PortElement` objects.
+export const PortKeyboardShortcuts: Map<string, PortElement> = new Map();
 
-// Add `PortSymbol`s to the module-scope mappings.
-function add(portsym: PortSymbol) {
-  PortList.push(portsym);
-  PortMap.set(portsym.kind, portsym);
-  PortTags.set(portsym.svgTag, portsym);
-  PortKeyboardShortcuts.set(portsym.keyboardShortcut, portsym);
-  return portsym;
+// Add `PortElement`s to the module-scope mappings.
+function add(portElement: PortElement) {
+  PortList.push(portElement);
+  PortMap.set(portElement.kind, portElement);
+  PortTags.set(portElement.svgTag, portElement);
+  PortKeyboardShortcuts.set(portElement.keyboardShortcut, portElement);
+  return portElement;
 }
 
-// Create the library of `PortSymbol`s.
+// Create the library of `PortElement`s.
 export const Input = add({
   kind: PortKind.Input,
   svgTag: "input",
@@ -90,23 +90,23 @@ export const Inout = add({
 });
 
 // The collection of port symbols as a JS object
-export const portsymbols = {
+export const portElements = {
   Input,
   Output,
   Inout,
 };
 
-// Get a `PortSymbol` definition by its `PortKind`.
+// Get a `PortElement` definition by its `PortKind`.
 // This exclamation-mark non-null assertion is valid so long as
 // we ensure that every valid `kind` is in the map.
-export function get(kind: PortKind): PortSymbol {
+export function get(kind: PortKind): PortElement {
   return PortMap.get(kind)!;
 }
 
 // Export the module-scope mappings as a single object.
 export const portLib = {
   PortKind,
-  portsymbols,
+  portElements,
   list: PortList,
   kinds: PortMap,
   tags: PortTags,

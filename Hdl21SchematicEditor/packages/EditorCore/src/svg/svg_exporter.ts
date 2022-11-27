@@ -181,7 +181,7 @@ export class Exporter {
   }
   // Create the SVG `<g>` group for a `Port`.
   writePort(port: schdata.Port) {
-    const { portsymbol } = port;
+    const { portElement } = port;
     // FIXME: return errors for unnamed stuff, rather than defaulting them
     const name = port.name || "unnamed"; // FIXME
     const orientationMatrix = this.formatOrientation(port.orientation);
@@ -191,10 +191,10 @@ export class Exporter {
     this.indent += 1;
 
     // Write the symbol group
-    this.writeLine(`<g class="${SvgPortPrefix}${portsymbol.svgTag}">`);
+    this.writeLine(`<g class="${SvgPortPrefix}${portElement.svgTag}">`);
     this.indent += 1;
     // Write its symbol SVG content
-    portsymbol.svgLines.forEach((line) => this.writeLine(line));
+    portElement.svgLines.forEach((line) => this.writeLine(line));
 
     // Write its Instance-port circle at its origin.
     this.writeInstancePort(point.new(0, 0));
@@ -203,7 +203,7 @@ export class Exporter {
     this.writeLine(`</g>`);
 
     // Write the port name
-    const loc = this.formatLoc(portsymbol.nameloc);
+    const loc = this.formatLoc(portElement.nameloc);
     this.writeLine(
       `<text ${loc} class="${SchSvgClasses.PORT_NAME}">${name}</text>`
     );

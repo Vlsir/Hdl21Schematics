@@ -11,7 +11,7 @@ import { Circuit, Instance, Signal, Connection, PortDir } from "./circuit";
 import { Point, point } from "../point";
 import { Schematic, Wire } from "../schematicdata";
 import { OrientationMatrix, matrix } from "../orientation";
-import { PortKind } from "../portsymbol";
+import { PortKind } from "../portElement";
 import { exhaust } from "../errors";
 import { calcSegments, ManhattanSegment, hitTestSegment } from "../manhattan";
 
@@ -173,13 +173,13 @@ class SchematicToCircuitConverter {
     /* Collect port-annotation objects and update their connected Signals. */
 
     for (let port_instance of this.sch.ports) {
-      // Transform the portsymbol-referenced port location to the instance's location
+      // Transform the portElement-referenced port location to the instance's location
       const mat = matrix.fromOrientation(port_instance.orientation);
       
       // FIXME: this seems (at the time of this writing) to be just making the identity transform on `port_instance.loc`
       // Check this, test it, remove it if so. 
       const instance_port_loc = transform(
-        point.new(0, 0), // Each PortSymbol's "instance port location" is implicitly its origin.
+        point.new(0, 0), // Each PortElement's "instance port location" is implicitly its origin.
         mat,
         port_instance.loc
       );
