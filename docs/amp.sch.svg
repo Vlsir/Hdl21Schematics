@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="1600" height="800" xmlns="http://www.w3.org/2000/svg">
+
+<style id="hdl21-schematic-style">
+
+/* Styling for Symbol and Wire Elements */
+.hdl21-symbols {
+  fill: none;
+  stroke: black;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 10px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-instance-port {
+  fill: white;
+  stroke: black;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-dot {
+  fill: blue;
+  stroke: blue;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-wire {
+  fill: none;
+  stroke: blue;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 10px;
+  stroke-dashoffset: 0px;
+}
+
+/* Styling for Text Labels */
+.hdl21-labels,
+.hdl21-instance-name,
+.hdl21-instance-of,
+.hdl21-port-name,
+.hdl21-wire-name {
+  fill: black;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Dark Mode Color Overrides */
+@media (prefers-color-scheme:dark) {
+    svg {
+        background-color: #1e1e1e;
+    }
+    .hdl21-dot {
+        fill: #87d3f8;
+        stroke: #87d3f8;
+    }
+    .hdl21-wire {
+        stroke: #87d3f8;
+    }
+    .hdl21-symbols {
+        stroke: lightgrey;
+    }
+    .hdl21-labels,
+    .hdl21-port-name,
+    .hdl21-instance-name,
+    .hdl21-instance-of,
+    .hdl21-wire-name {
+        fill: lightgrey;
+    }
+}
+</style>
+<defs id="hdl21-schematic-defs">
+  <g id="hdl21-schematic-prelude">
+  <text>import hdl21 as h </text>
+  <text>from hdl21.primitives import *</text>
+  </g>
+  <text id="hdl21-schematic-circuit">
+    {"name":"","prelude":"import hdl21 as h \nfrom hdl21.primitives import *","signals":[{"name":"1","portdir":"INTERNAL"},{"name":"inp","portdir":"INPUT"},{"name":"VDD","portdir":"INOUT"},{"name":"outp","portdir":"OUTPUT"},{"name":"VSS","portdir":"INOUT"},{"name":"ibias","portdir":"INPUT"},{"name":"inn","portdir":"INPUT"},{"name":"outn","portdir":"OUTPUT"}],"instances":[{"name":"nip","of":"Nmos()","conns":[{"portname":"d","signame":"outn"},{"portname":"g","signame":"inp"},{"portname":"s","signame":"1"},{"portname":"b","signame":"1"}]},{"name":"nin","of":"Nmos()","conns":[{"portname":"d","signame":"outp"},{"portname":"g","signame":"inn"},{"portname":"s","signame":"1"},{"portname":"b","signame":"1"}]},{"name":"ni","of":"Nmos()","conns":[{"portname":"d","signame":"1"},{"portname":"g","signame":"ibias"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]},{"name":"nd","of":"Nmos()","conns":[{"portname":"d","signame":"ibias"},{"portname":"g","signame":"ibias"},{"portname":"s","signame":"VSS"},{"portname":"b","signame":"VSS"}]},{"name":"rlp","of":"Res(1*K)","conns":[{"portname":"p","signame":"VDD"},{"portname":"n","signame":"outp"}]},{"name":"rln","of":"Res(1*K)","conns":[{"portname":"p","signame":"VDD"},{"portname":"n","signame":"outn"}]}]}
+  </text>
+
+    <!-- Grid Background -->
+    <pattern id="hdl21-grid-minor" width="10" height="10" patternUnits="userSpaceOnUse">
+        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="hdl21-grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
+        <rect width="100" height="100" fill="url(#hdl21-grid-minor)"/>
+        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+    </pattern>
+</defs>
+
+<rect id="hdl21-schematic-background" width="100%" height="100%" fill="url(#hdl21-grid-major)" stroke="gray" stroke-width="1"/>
+
+<!-- Svg Schematic Content -->
+
+<g class="hdl21-instance" transform="matrix(1 0 0 1 300 300)">
+  <g class="hdl21-elements-nmos">
+    <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
+    <path d="M -40 30 L -40 70" class="hdl21-symbols" />
+    <path d="M -40 50 L -70 50" class="hdl21-symbols" />
+    <path d="M 0 50 L 20 50" class="hdl21-symbols" />
+    <path d="M -10 60 L -10 80 L 5 70 Z" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+    <circle cx="-70" cy="50" r="4" class="hdl21-instance-port" />
+    <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
+    <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="10" y="20"  class="hdl21-instance-name">nip</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Nmos()</text>
+</g>
+<g class="hdl21-instance" transform="matrix(-1 0 0 1 500 300)">
+  <g class="hdl21-elements-nmos">
+    <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
+    <path d="M -40 30 L -40 70" class="hdl21-symbols" />
+    <path d="M -40 50 L -70 50" class="hdl21-symbols" />
+    <path d="M 0 50 L 20 50" class="hdl21-symbols" />
+    <path d="M -10 60 L -10 80 L 5 70 Z" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+    <circle cx="-70" cy="50" r="4" class="hdl21-instance-port" />
+    <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
+    <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="10" y="20"  class="hdl21-instance-name">nin</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Nmos()</text>
+</g>
+<g class="hdl21-instance" transform="matrix(1 0 0 1 400 500)">
+  <g class="hdl21-elements-nmos">
+    <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
+    <path d="M -40 30 L -40 70" class="hdl21-symbols" />
+    <path d="M -40 50 L -70 50" class="hdl21-symbols" />
+    <path d="M 0 50 L 20 50" class="hdl21-symbols" />
+    <path d="M -10 60 L -10 80 L 5 70 Z" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+    <circle cx="-70" cy="50" r="4" class="hdl21-instance-port" />
+    <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
+    <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="10" y="20"  class="hdl21-instance-name">ni</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Nmos()</text>
+</g>
+<g class="hdl21-instance" transform="matrix(-1 0 0 1 160 500)">
+  <g class="hdl21-elements-nmos">
+    <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
+    <path d="M -40 30 L -40 70" class="hdl21-symbols" />
+    <path d="M -40 50 L -70 50" class="hdl21-symbols" />
+    <path d="M 0 50 L 20 50" class="hdl21-symbols" />
+    <path d="M -10 60 L -10 80 L 5 70 Z" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+    <circle cx="-70" cy="50" r="4" class="hdl21-instance-port" />
+    <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
+    <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="10" y="20"  class="hdl21-instance-name">nd</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Nmos()</text>
+</g>
+<g class="hdl21-instance" transform="matrix(-1 0 0 1 500 100)">
+  <g class="hdl21-elements-res">
+    <path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+    <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="10" y="0"  class="hdl21-instance-name">rlp</text>
+  <text  x="10" y="90"  class="hdl21-instance-of">Res(1*K)</text>
+</g>
+<g class="hdl21-instance" transform="matrix(1 0 0 1 300 100)">
+  <g class="hdl21-elements-res">
+    <path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+    <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="10" y="0"  class="hdl21-instance-name">rln</text>
+  <text  x="10" y="90"  class="hdl21-instance-of">Res(1*K)</text>
+</g>
+
+
+<g class="hdl21-port" transform="matrix(1 0 0 1 200 350)">
+  <g class="hdl21-ports-input">
+    <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
+    <path d="M -20 0 L 0 0" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="-50" y="-25"  class="hdl21-port-name">inp</text>
+</g>
+<g class="hdl21-port" transform="matrix(-1 0 0 1 200 60)">
+  <g class="hdl21-ports-inout">
+    <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
+    <path d="M 0 0 L 10 0" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="15" y="-25"  class="hdl21-port-name">VDD</text>
+</g>
+<g class="hdl21-port" transform="matrix(1 0 0 1 530 250)">
+  <g class="hdl21-ports-output">
+    <path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
+    <path d="M 0 0 L 20 0" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="20" y="-25"  class="hdl21-port-name">outp</text>
+</g>
+<g class="hdl21-port" transform="matrix(-1 0 0 1 90 640)">
+  <g class="hdl21-ports-inout">
+    <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
+    <path d="M 0 0 L 10 0" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="15" y="-25"  class="hdl21-port-name">VSS</text>
+</g>
+<g class="hdl21-port" transform="matrix(1 0 0 1 90 440)">
+  <g class="hdl21-ports-input">
+    <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
+    <path d="M -20 0 L 0 0" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="-50" y="-25"  class="hdl21-port-name">ibias</text>
+</g>
+<g class="hdl21-port" transform="matrix(-1 0 0 1 600 350)">
+  <g class="hdl21-ports-input">
+    <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
+    <path d="M -20 0 L 0 0" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="-50" y="-25"  class="hdl21-port-name">inn</text>
+</g>
+<g class="hdl21-port" transform="matrix(-1 0 0 1 270 250)">
+  <g class="hdl21-ports-output">
+    <path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
+    <path d="M 0 0 L 20 0" class="hdl21-symbols" />
+    <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
+  </g>
+  <text  x="20" y="-25"  class="hdl21-port-name">outn</text>
+</g>
+
+
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 300 300 L 300 200 L 300 200" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 300 400 L 320 400 L 320 350 L 320 350" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 300 400 L 300 450 L 500 450 L 500 400 L 500 400" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 480 350 L 480 400 L 500 400 L 500 400" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 90 640 L 400 640 L 400 600 L 400 600" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 160 600 L 160 640 L 160 640" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 230 550 L 330 550 L 330 550" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 400 500 L 400 450 L 400 450" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 200 350 L 230 350 L 230 350" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 500 100 L 500 60 L 200 60 L 200 60" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 300 100 L 300 60 L 300 60" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 500 300 L 500 200 L 500 200" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 90 440 L 160 440 L 160 500 L 160 500" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 160 440 L 250 440 L 250 550 L 250 550" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 140 550 L 140 600 L 160 600 L 160 600" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 420 550 L 420 600 L 400 600 L 400 600" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 600 350 L 570 350 L 570 350" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 530 250 L 500 250 L 500 250" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 270 250 L 300 250 L 300 250" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+
+
+<circle cx="160" cy="640" r="6" class="hdl21-dot" />
+<circle cx="160" cy="440" r="6" class="hdl21-dot" />
+<circle cx="160" cy="500" r="6" class="hdl21-dot" />
+<circle cx="160" cy="600" r="6" class="hdl21-dot" />
+<circle cx="400" cy="450" r="6" class="hdl21-dot" />
+<circle cx="400" cy="500" r="6" class="hdl21-dot" />
+<circle cx="400" cy="600" r="6" class="hdl21-dot" />
+<circle cx="300" cy="60" r="6" class="hdl21-dot" />
+<circle cx="300" cy="250" r="6" class="hdl21-dot" />
+<circle cx="300" cy="300" r="6" class="hdl21-dot" />
+<circle cx="300" cy="400" r="6" class="hdl21-dot" />
+<circle cx="300" cy="100" r="6" class="hdl21-dot" />
+<circle cx="300" cy="200" r="6" class="hdl21-dot" />
+<circle cx="250" cy="550" r="6" class="hdl21-dot" />
+<circle cx="500" cy="250" r="6" class="hdl21-dot" />
+<circle cx="500" cy="300" r="6" class="hdl21-dot" />
+<circle cx="500" cy="400" r="6" class="hdl21-dot" />
+<circle cx="500" cy="100" r="6" class="hdl21-dot" />
+<circle cx="500" cy="200" r="6" class="hdl21-dot" />
+<circle cx="200" cy="350" r="6" class="hdl21-dot" />
+<circle cx="200" cy="60" r="6" class="hdl21-dot" />
+<circle cx="530" cy="250" r="6" class="hdl21-dot" />
+<circle cx="90" cy="640" r="6" class="hdl21-dot" />
+<circle cx="90" cy="440" r="6" class="hdl21-dot" />
+<circle cx="600" cy="350" r="6" class="hdl21-dot" />
+<circle cx="270" cy="250" r="6" class="hdl21-dot" />
+<circle cx="230" cy="350" r="6" class="hdl21-dot" />
+<circle cx="230" cy="550" r="6" class="hdl21-dot" />
+<circle cx="320" cy="350" r="6" class="hdl21-dot" />
+<circle cx="570" cy="350" r="6" class="hdl21-dot" />
+<circle cx="480" cy="350" r="6" class="hdl21-dot" />
+<circle cx="330" cy="550" r="6" class="hdl21-dot" />
+<circle cx="420" cy="550" r="6" class="hdl21-dot" />
+<circle cx="140" cy="550" r="6" class="hdl21-dot" />
+
+
+</svg>
