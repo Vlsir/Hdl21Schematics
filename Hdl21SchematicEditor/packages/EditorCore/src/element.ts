@@ -156,7 +156,7 @@ export const Res3 = add({
   svgLines: [
     // All of the two-terminal edition
     ...Res.svgLines,
-    // Bulk connection
+    // Plus the bulk connection
     `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
   ],
   ports: [
@@ -276,14 +276,14 @@ export const Vsource4 = add({
     // All of the two-terminal edition
     ...Vsource.svgLines,
     // Control terminal connections
-    `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
-    `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
+    `<path d="M -40 30 L -25 30" class="hdl21-symbols" />`,
+    `<path d="M -40 70 L -25 70" class="hdl21-symbols" />`,
   ],
   ports: [
     { name: "p", loc: point.new(0, 0) },
     { name: "n", loc: point.new(0, 100) },
-    { name: "cp", loc: point.new(-40, 25) },
-    { name: "cn", loc: point.new(-40, 75) },
+    { name: "cp", loc: point.new(-40, 30) },
+    { name: "cn", loc: point.new(-40, 70) },
   ],
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
@@ -318,14 +318,14 @@ export const Isource4 = add({
     // All of the two-terminal edition
     ...Isource.svgLines,
     // Control terminal connections
-    `<path d="M -40 25 L -20 25" class="hdl21-symbols" />`,
-    `<path d="M -40 75 L -20 75" class="hdl21-symbols" />`,
+    `<path d="M -40 30 L -25 30" class="hdl21-symbols" />`,
+    `<path d="M -40 70 L -25 70" class="hdl21-symbols" />`,
   ],
   ports: [
     { name: "p", loc: point.new(0, 0) },
     { name: "n", loc: point.new(0, 100) },
-    { name: "cp", loc: point.new(-40, 25) },
-    { name: "cn", loc: point.new(-40, 75) },
+    { name: "cp", loc: point.new(-40, 30) },
+    { name: "cn", loc: point.new(-40, 70) },
   ],
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
