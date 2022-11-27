@@ -119,7 +119,14 @@ export class SchEditor {
   // Send the schematic's SVG content to the platform for saving.
   sendSaveFile = () => {
     const schData = this.schematic.toData();
-    const svgContent = Exporter.export(schData);
+    let svgContent: string;
+    try {
+      svgContent = Exporter.export(schData);
+    } catch (e) {
+      console.log("Exporter failed");
+      console.log(e);
+      return;
+    }
     return this.platform.sendMessage({
       kind: MessageKind.SaveFile,
       body: svgContent,

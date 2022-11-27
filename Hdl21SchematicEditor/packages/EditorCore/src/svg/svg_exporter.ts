@@ -145,10 +145,18 @@ export class Exporter {
 
   // Create the SVG `<g>` group for an `Instance`.
   writeInstance(inst: schdata.Instance) {
-    const { element } = inst;
-    // FIXME: return errors for unnamed stuff, rather than defaulting them
-    const name = inst.name || "unnamed"; // FIXME
-    const of = inst.of || "unknown"; // FIXME
+    const { name, of, element } = inst;
+    if (!name.length) {
+      throw this.fail(
+        `Instance name for ${inst} must be a nonzero length string`
+      );
+    }
+    if (!of.length) {
+      throw this.fail(
+        `Instance 'of' field for ${inst} must be a nonzero length string`
+      );
+    }
+
     const orientationMatrix = this.formatOrientation(inst.orientation);
     this.writeLine(
       `<g class="${SchSvgClasses.INSTANCE}" transform="matrix(${orientationMatrix} ${inst.loc.x} ${inst.loc.y})">`
@@ -181,9 +189,13 @@ export class Exporter {
   }
   // Create the SVG `<g>` group for a `Port`.
   writePort(port: schdata.Port) {
-    const { portElement } = port;
-    // FIXME: return errors for unnamed stuff, rather than defaulting them
-    const name = port.name || "unnamed"; // FIXME
+    const { name, portElement } = port;
+    if (!name.length) {
+      throw this.fail(
+        `Instance name for ${port} must be a nonzero length string`
+      );
+    }
+
     const orientationMatrix = this.formatOrientation(port.orientation);
     this.writeLine(
       `<g class="${SchSvgClasses.PORT}" transform="matrix(${orientationMatrix} ${port.loc.x} ${port.loc.y})">`
@@ -228,8 +240,11 @@ export class Exporter {
     }
     path += `" />`;
     this.writeLine(path);
+
+    // FIXME/ TBC: wire names
+    const name = ""; // wire.name;
     this.writeLine(
-      `<text visibility="hidden" class="${SchSvgClasses.WIRE_NAME}">FIXME</text>`
+      `<text visibility="hidden" class="${SchSvgClasses.WIRE_NAME}">${name}</text>`
     );
 
     // Close the wire group
@@ -263,6 +278,10 @@ export class Exporter {
   formatOrientation(orientation: Orientation): string {
     const mat = matrix.fromOrientation(orientation);
     return `${mat.a} ${mat.b} ${mat.c} ${mat.d}`;
+  }
+  // Error handling helper
+  fail(msg: string): Error {
+    return new Error(msg);
   }
 }
 

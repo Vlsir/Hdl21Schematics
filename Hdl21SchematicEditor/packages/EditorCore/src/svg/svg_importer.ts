@@ -370,13 +370,20 @@ export class Importer {
   }
 
   // Helper function for a repeated construct:
+  //
   // A `Child` which is an `ElementNode`, and has a single child which is a `TextNode`,
   // and we ultimately just want the text value in that `TextNode`.
   // This is how most e.g. `Instance.name` and most other string-valued structured content works.
+  //
+  // Returns the empty string if the element has no children,
+  // generally indicating an empty inner text element.
   importTextElem(child: Child): string {
     const elem = this.expectElement(child);
-    if (elem.tagName !== "text" || !elem.children) {
+    if (elem.tagName !== "text") {
       throw this.fail(`Could not extract string from ${child}`);
+    }
+    if (!elem.children.length) {
+      return ""; // Empty string/ no text child
     }
     const textNode = this.expectTextNode(elem.children[0]);
     const { value } = textNode;

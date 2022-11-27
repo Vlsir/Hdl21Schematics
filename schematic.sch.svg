@@ -176,35 +176,35 @@
 
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 300 100 L 320 100 L 320 150 L 320 150" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 300 300 L 300 200 L 300 200" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 340 250 L 300 250 L 300 250" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 230 150 L 200 150 L 200 350 L 230 350 L 230 350" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 200 250 L 170 250 L 170 250" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 340 450 L 300 450 L 300 400 L 300 400" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 300 400 L 320 400 L 320 350 L 320 350" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 340 60 L 300 60 L 300 100 L 300 100" />
-  <text visibility="hidden" class="hdl21-wire-name">FIXME</text>
+  <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 
 
