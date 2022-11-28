@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="1600" height="800" xmlns="http://www.w3.org/2000/svg">
+
+<style id="hdl21-schematic-style">
+
+/* Styling for Symbol and Wire Elements */
+.hdl21-symbols {
+  fill: none;
+  stroke: black;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 10px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-instance-port {
+  fill: white;
+  stroke: black;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-dot {
+  fill: blue;
+  stroke: blue;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4px;
+  stroke-dashoffset: 0px;
+}
+
+.hdl21-wire {
+  fill: none;
+  stroke: blue;
+  stroke-opacity: 1;
+  stroke-miterlimit: 0;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 10px;
+  stroke-dashoffset: 0px;
+}
+
+/* Styling for Text Labels */
+.hdl21-labels,
+.hdl21-instance-name,
+.hdl21-instance-of,
+.hdl21-port-name,
+.hdl21-wire-name {
+  fill: black;
+  font-family: Menlo, Monaco, 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Dark Mode Color Overrides */
+@media (prefers-color-scheme:dark) {
+    svg {
+        background-color: #1e1e1e;
+    }
+    .hdl21-dot {
+        fill: #87d3f8;
+        stroke: #87d3f8;
+    }
+    .hdl21-wire {
+        stroke: #87d3f8;
+    }
+    .hdl21-symbols {
+        stroke: lightgrey;
+    }
+    .hdl21-labels,
+    .hdl21-port-name,
+    .hdl21-instance-name,
+    .hdl21-instance-of,
+    .hdl21-wire-name {
+        fill: lightgrey;
+    }
+}
+</style>
+<defs id="hdl21-schematic-defs">
+  <g id="hdl21-schematic-prelude">
+  <text>import hdl21 as h </text>
+  <text>from hdl21.primitives import *</text>
+  </g>
+  <text id="hdl21-schematic-circuit">
+    {"name":"","prelude":"import hdl21 as h \nfrom hdl21.primitives import *","signals":[],"instances":[]}
+  </text>
+
+    <!-- Grid Background -->
+    <pattern id="hdl21-grid-minor" width="10" height="10" patternUnits="userSpaceOnUse">
+        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="hdl21-grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
+        <rect width="100" height="100" fill="url(#hdl21-grid-minor)"/>
+        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+    </pattern>
+</defs>
+
+<rect id="hdl21-schematic-background" width="100%" height="100%" fill="url(#hdl21-grid-major)" stroke="gray" stroke-width="1"/>
+
+<!-- Svg Schematic Content -->
+
+
+
+
+
+
+
+
+
+</svg>
