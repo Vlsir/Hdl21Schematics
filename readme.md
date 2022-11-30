@@ -27,13 +27,13 @@ They **are** SVGs. So:
 - GitLab can read them.
 - Grandma's copy of Internet Explorer can read them.
 
-[This inverter](./docs/inverter.svg) is a valid schematic:
+[This inverter](./docs/inverter.sch.svg) is a valid schematic:
 
-![inv](./docs/inverter.svg)
+![inv](./docs/inverter.sch.svg)
 
-And [the same inverter](./docs/inverter_mind_blown.svg) with [OpenMoji's mind-blown emoji](https://openmoji.org/library/emoji-1F92F/) is also a valid schematic:
+And [the same inverter](./docs/inverter_mind_blown.sch.svg) with [OpenMoji's mind-blown emoji](https://openmoji.org/library/emoji-1F92F/) is also a valid schematic:
 
-![inv](./docs/inverter_mind_blown.svg)
+![inv](./docs/inverter_mind_blown.sch.svg)
 
 This is the first, probably biggest, difference between Hdl21 schematics and any other you've likely encountered. Instead of defining a custom schematic format and needing custom software to read it, Hdl21 schematics are general-purpose images. Any remotely modern web browser or OS can read them.
 
