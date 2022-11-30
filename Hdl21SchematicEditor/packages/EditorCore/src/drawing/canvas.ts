@@ -3,8 +3,8 @@ import { Group } from "two.js/src/group";
 
 // Local Imports
 import { MousePos } from "../mousepos";
-import { point } from "../point";
-import { bbox, Bbox } from "./bbox";
+import { Point, point } from "../point";
+import { bbox } from "./bbox";
 import { THE_SECRET_CANVAS_ID } from "../secret";
 import { SchEditor } from "../editor";
 
@@ -15,7 +15,8 @@ export class Canvas {
 
   // Our parent DOM element, set during `attach`.
   parentDomElement: HTMLElement | null = null;
-  parentBbox: Bbox | null = null;
+  // Our parent's location, in *page* coordinates.
+  parentOriginInPage: Point | null = null;
 
   // The Two.js "draw-er", canvas, whatever they call it.
   // Attached to `parentDomElement` during `attach`.
@@ -51,15 +52,23 @@ export class Canvas {
     const e = document.getElementById(THE_SECRET_CANVAS_ID)!;
     this.two.appendTo(e);
     this.parentDomElement = e;
-    this.parentBbox = bbox.get(e);
+    const parentBbox = bbox.get(e);
+    // Note this also assumes that out `parent` is not *within* any internally-scrollable elements 
+    // within the page, i.e. that `window.{scrollX, scrollY}` indicates the total scroll offset. 
+    // Embedding it within sub-scrolling things would require crawling up them, and accumulating their positions. 
+    this.parentOriginInPage = point.new(
+      parentBbox.left + window.scrollX,
+      parentBbox.top + window.scrollY
+    );
   };
-  // Create a new mouse-position from a `MouseEvent`, or anything else with {clientX, clientY} properties.
+
+  // Create a new mouse-position from a `MouseEvent`, or anything else with {pageX, pageY} properties.
   // Fails if the canvas is not attached to a DOM element.
-  newMousePos(e: { clientX: number; clientY: number }): MousePos {
-    const parentBbox = this.parentBbox!; // This here fails if the canvas is not attached to a DOM element.
-    const client = point.new(e.clientX, e.clientY);
-    const canvas = point.new(client.x - parentBbox.left, client.y - parentBbox.top);
-    return { client, canvas };
+  newMousePos(e: { pageX: number; pageY: number }): MousePos {
+    const parentLoc = this.parentOriginInPage!; // This here fails if the canvas is not attached to a DOM element.
+    const page = point.new(e.pageX, e.pageY);
+    const canvas = point.new(page.x - parentLoc.x, page.y - parentLoc.y);
+    return { page, canvas };
   }
 
   // Forwarded properties from `stage`.
