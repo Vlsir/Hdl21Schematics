@@ -86,11 +86,15 @@
 </style>
 <defs id="hdl21-schematic-defs">
   <g id="hdl21-schematic-prelude">
-  <text>import hdl21 as h </text>
-  <text>from hdl21.primitives import *</text>
+  <text>from hdl21.primitives import Pmos, Res</text>
+  <text>from hdl21.prefix import µ, n, K</text>
+  <text></text>
+  <text>Pbias = Pmos(w=1*µ, l=10*µ)</text>
+  <text>Pcasc = Pmos(w=100*n, l=100*n)</text>
+  <text>Rbias = Res(r=10*K)</text>
   </g>
   <text id="hdl21-schematic-circuit">
-    {"name":"","prelude":"import hdl21 as h \nfrom hdl21.primitives import *","signals":[{"name":"1","portdir":"INTERNAL"},{"name":"2","portdir":"INTERNAL"},{"name":"3","portdir":"INTERNAL"},{"name":"4","portdir":"INTERNAL"},{"name":"VDD","portdir":"INOUT"},{"name":"iout","portdir":"OUTPUT"},{"name":"iin","portdir":"INPUT"}],"instances":[{"name":"p0","of":"Pmos()","conns":[{"portname":"d","signame":"2"},{"portname":"g","signame":"3"},{"portname":"s","signame":"1"},{"portname":"b","signame":"1"}]},{"name":"p","of":"Pmos()","conns":[{"portname":"d","signame":"3"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"2"},{"portname":"b","signame":"1"}]},{"name":"p4","of":"Pmos()","conns":[{"portname":"d","signame":"4"},{"portname":"g","signame":"3"},{"portname":"s","signame":"VDD"},{"portname":"b","signame":"VDD"}]},{"name":"p5","of":"Pmos()","conns":[{"portname":"d","signame":"iout"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"4"},{"portname":"b","signame":"VDD"}]},{"name":"r","of":"Res()","conns":[{"portname":"p","signame":"iin"},{"portname":"n","signame":"3"}]}]}
+    {"name":"","prelude":"from hdl21.primitives import Pmos, Res\nfrom hdl21.prefix import µ, n, K\n\nPbias = Pmos(w=1*µ, l=10*µ)\nPcasc = Pmos(w=100*n, l=100*n)\nRbias = Res(r=10*K)","signals":[{"name":"1","portdir":"INTERNAL"},{"name":"2","portdir":"INTERNAL"},{"name":"3","portdir":"INTERNAL"},{"name":"4","portdir":"INTERNAL"},{"name":"7","portdir":"INTERNAL"},{"name":"VDD","portdir":"INOUT"},{"name":"iout","portdir":"OUTPUT"},{"name":"iin","portdir":"INPUT"}],"instances":[{"name":"pb0","of":"Pbias","conns":[{"portname":"d","signame":"2"},{"portname":"g","signame":"3"},{"portname":"s","signame":"1"},{"portname":"b","signame":"1"}]},{"name":"pc0","of":"Pcasc","conns":[{"portname":"d","signame":"3"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"2"},{"portname":"b","signame":"2"}]},{"name":"pb1","of":"Pbias","conns":[{"portname":"d","signame":"4"},{"portname":"g","signame":"3"},{"portname":"s","signame":"VDD"},{"portname":"b","signame":"VDD"}]},{"name":"pc1","of":"Pcasc","conns":[{"portname":"d","signame":"iout"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"4"},{"portname":"b","signame":"7"}]},{"name":"r","of":"Rbias","conns":[{"portname":"p","signame":"iin"},{"portname":"n","signame":"3"}]}]}
   </text>
 
     <!-- Grid Background -->
@@ -120,8 +124,8 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">p0</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pmos()</text>
+  <text  x="10" y="20"  class="hdl21-instance-name">pb0</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Pbias</text>
 </g>
 <g class="hdl21-instance" transform="matrix(-1 0 0 1 300 250)">
   <g class="hdl21-elements-pmos">
@@ -136,8 +140,8 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">p</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pmos()</text>
+  <text  x="10" y="20"  class="hdl21-instance-name">pc0</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Pcasc</text>
 </g>
 <g class="hdl21-instance" transform="matrix(1 0 0 1 600 100)">
   <g class="hdl21-elements-pmos">
@@ -152,8 +156,8 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">p4</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pmos()</text>
+  <text  x="10" y="20"  class="hdl21-instance-name">pb1</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Pbias</text>
 </g>
 <g class="hdl21-instance" transform="matrix(1 0 0 1 600 250)">
   <g class="hdl21-elements-pmos">
@@ -168,8 +172,8 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">p5</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pmos()</text>
+  <text  x="10" y="20"  class="hdl21-instance-name">pc1</text>
+  <text  x="10" y="80"  class="hdl21-instance-of">Pcasc</text>
 </g>
 <g class="hdl21-instance" transform="matrix(-1 0 0 -1 300 500)">
   <g class="hdl21-elements-res">
@@ -178,7 +182,7 @@
     <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
   </g>
   <text  x="10" y="0"  class="hdl21-instance-name">r</text>
-  <text  x="10" y="90"  class="hdl21-instance-of">Res()</text>
+  <text  x="10" y="90"  class="hdl21-instance-of">Rbias</text>
 </g>
 
 
@@ -221,10 +225,6 @@
   <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
-  <path class="hdl21-wire" d="M 280 300 L 280 150 L 280 150" />
-  <text visibility="hidden" class="hdl21-wire-name"></text>
-</g>
-<g class="hdl21-wire">
   <path class="hdl21-wire" d="M 300 400 L 300 350 L 300 350" />
   <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
@@ -234,10 +234,6 @@
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 620 150 L 620 100 L 600 100 L 600 100" />
-  <text visibility="hidden" class="hdl21-wire-name"></text>
-</g>
-<g class="hdl21-wire">
-  <path class="hdl21-wire" d="M 620 150 L 620 300 L 620 300" />
   <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 <g class="hdl21-wire">
@@ -270,6 +266,14 @@
 </g>
 <g class="hdl21-wire">
   <path class="hdl21-wire" d="M 300 500 L 300 530 L 300 530" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 280 300 L 280 250 L 300 250 L 300 250" />
+  <text visibility="hidden" class="hdl21-wire-name"></text>
+</g>
+<g class="hdl21-wire">
+  <path class="hdl21-wire" d="M 610 250 L 620 250 L 620 300 L 620 300" />
   <text visibility="hidden" class="hdl21-wire-name"></text>
 </g>
 
