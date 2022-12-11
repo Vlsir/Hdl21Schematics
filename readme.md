@@ -8,7 +8,7 @@ _Jump to [Installation](#installation)_ | _[Development](#dev-quickstart)_
 
 [Schematics](https://en.wikipedia.org/wiki/Circuit_diagram) are graphical representations of electronic circuits. In integrated circuit (IC, silicon, chip) design they the _lingua franca_ for analog circuits, and also commonly used for transistor-level digital circuits.
 
-In short: schematics are two things -
+In short: a schematic is two things -
 
 1. A Circuit
 2. A Picture
@@ -19,7 +19,8 @@ In short: schematics are two things -
 
 Hdl21 schematics are not _like_ SVGs.  
 They are not _exportable to_ or _convertable to_ SVGs.  
-They **are** SVGs. So:
+They **are** SVGs.  
+So:
 
 - Each schematic is a _single file_. No dependencies, no linked "database".
 - Anyone can read them.
@@ -215,24 +216,19 @@ Reading SVG schematics requires no special software or installation: if your web
 
 Editing schematics can, in principle, be done with general-purpose SVG editing software. [InkScape](https://inkscape.org) and [Boxy SVG](https://boxy-svg.com) are popular examples. Or even with a general-purpose text editor. This requires diligently sticking to the [schematic schema](#the-svg-schematic-schema) described below. Many an SVG editor will make this very hard to do, particularly with respect to element hierarchy and grouping. The dedicated schematic editor is highly recommended instead.
 
-### Installing the Schematic Editor
+### Installing the Python Importer Package
 
-Hdl21 schematics use [GitHub Actions](https://github.com/Vlsir/Hdl21Schematics/actions) for per-build CI testing. This includes building the editor VsCode Extension and the desktop app for each supported platform: MacOS, Windows, and Ubuntu Linux (note [this pending issue](https://github.com/Vlsir/Hdl21Schematics/issues/18)).
-
-Note that GitHub Actions builds each on x86-architecture hardware. Other architectures - notably ARM64-based Macs - can instead be built from source. (And it's not hard!)
-
-Pre-built editors are downloadable from the artifacts section of each GitHub Action run:
-
-![artifacts](./docs/artifacts.png)
-
-- `app` is a zip file containing the desktop apps for each platform.
-- `vsix` is the VsCode Extension, packaged in Microsoft's single-file [VSIX format](https://code.visualstudio.com/docs/editor/extension-marketplace#_install-from-a-vsix). Upon download, installing requires just:
+The Python schematic-importer package is named `hdl21schematicimporter`. It is distributed via PyPi at [pypi.org/project/hdl21schematicimporter](https://pypi.org/project/hdl21schematicimporter/). To install the Python importer: 
 
 ```
-code --install-extension myextension.vsix
+pip install hdl21schematicimporter
 ```
 
-## Building from Source
+To install the Python importer from source, see the [development quickstart](#dev-quickstart).
+
+
+### Building & Installing the Schematic Editor GUI 
+### (from source, don't worry, we promise it's not hard)
 
 The schematic editor uses a popular web-technologies stack. It is written in [TypeScript](https://www.typescriptlang.org/) and its peripheral components use the [React](https://reactjs.org/) UI framework. The desktop app uses the cross-platform [Electron](https://www.electronjs.org/) framework. All of this is very popular, very well-supported, and very easy to get started with.
 
@@ -243,7 +239,7 @@ The schematic editor has a sole dependency: the JavaScript package manager [Yarn
   - Install `npm` and `node` through `apt`: `sudo apt install nodejs npm`
   - Update `node` through `npm`: `sudo npm install -g n && sudo n stable`
 
-## Building the Desktop App from Source
+### Building the Desktop App from Source
 
 - `cd Hdl21Schematics/Hdl21SchematicEditor/packages/EditorApp`
 - `yarn` to install dependencies
@@ -251,25 +247,16 @@ The schematic editor has a sole dependency: the JavaScript package manager [Yarn
 
 This will produce a platform-specific app in the `out` directory.
 
-## Building the VsCode Extension from Source
+### Building the VsCode Extension from Source
 
 - `cd Hdl21SchematicEditor/packages/VsCodePlugin/`
 - `yarn` to install dependencies
 - `yarn package` to build
 - `code --install-extension hdl21-schematic-editor-0.0.1.vsix` to install
 
-## Installing the Python Importer Package
-
-The Python schematic-importer package is named `hdl21schematicimporter`. As of this writing it has not been released to PyPi and must be installed from source, which lives in the [Hdl21SchematicImporter/](./Hdl21SchematicImporter/) directory of this repository.
-
-`hdl21schematicimporter` uses [Poetry](https://python-poetry.org/) and [pyproject.toml](https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/) (both relatively new inventions) for dependency management and packaging.
-
-To install it the Python importer:
-
-- `cd Hdl21SchematicImporter`
-- `poetry install`
-
 For development-mode installations see the [development quickstart](#dev-quickstart).
+
+### Coming Soon: Installing the GUI from Pre-Packaged Bundles
 
 ---
 
@@ -290,7 +277,7 @@ Note the graphical schematic _editor_ is a special case which combines _both_ us
 
 Each `Schematic` is represented by an SVG element beginning with `<svg>` and ending with `</svg>`, commonly stored in a file with the `.sch.svg` extension.
 
-Many popular SVG renderers expect `?xml` prelude definitions and `xmlns` (namespace) attributes to properly render SVG. SVG schematics therefore begin and end with:
+Many popular SVG renderers expect `?xml` prelude definitions and `xmlns` (XML namespace) attributes to properly render SVG. SVG schematics therefore begin and end with:
 
 ```svg
 <?xml version="1.0" encoding="utf-8"?>
@@ -328,7 +315,7 @@ All schematic coordinates are stored in SVG pixel values. Schematics elements ar
 
 #### Orientation
 
-All schematic elements operate on a "Manhattan style" orthogonal grid. Orient-able elements such as `Instance`s and `Port`s are similarly allowed rotation solely in 90 degree increments. Such elements may thus be oriented in a total of _eight_ distinct orientations: four 90 degree rotations, with an optional vertical reflection. Reflection and rotation of these elements are both applied about their origin locations.
+All schematic elements operate on a "Manhattan style" orthogonal grid. Orient-able elements such as `Instance`s and `Port`s are similarly allowed rotation solely in 90 degree increments. Such elements may thus be oriented in a total of _eight_ distinct orientations: four 90 degree rotations, with an optional vertical reflection. Reflection and rotation of these elements are both applied about their origin locations. Note rotation and reflection are not commutative. If both a reflection and a nonzero rotation are applied to an element, the reflection is applied first.
 
 These orientations are translated to and from SVG `transform` attributes. SVG schematics use the `matrix` transform to capture the combination of orientation and location. SVG `matrix` transforms are [specified in six values](https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/transform#matrix) defining a 3x3 matrix. Transforming by `matrix(a,b,c,d,e,f)` is equivalent to multiplying a vector `(x, y, 1)` by the matrix:
 
@@ -444,7 +431,7 @@ An example `Wire`:
 
 ```svg
 <g class="hdl21-wire">
-    <path class="hdl21-wire" d="M 170 150 L 200 150 L 200 350 L 190 350 L 170 350" />
+    <path class="hdl21-wire" d="M 100 150 L 100 350 L 200 350" />
     <text class="hdl21-wire-name">net1</text>
 </g>
 ```
@@ -479,7 +466,7 @@ An example `Port`:
 
 ```svg
 <g class="hdl21-port" transform="matrix(1 0 0 1 X Y)">
-    <g class="hdl21::ports::input">
+    <g class="hdl21-ports-input">
         <!-- Content of the symbol -->
     </g>
     <text x="10" y="-15" class="hdl21-port-name">portname</text>
