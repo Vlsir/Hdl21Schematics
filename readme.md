@@ -545,3 +545,4 @@ To dev-install the Python importer:
 - [PlatformInterface](./Hdl21SchematicEditor/packages/PlatformInterface/) defines the interface between `EditorCore` and its underlying "platforms", i.e. the other packages.
 - A web-based "platform" is also possible, [and is TBC](https://github.com/Vlsir/Hdl21Schematics/issues/10).
 - A command-line utility for schematic checking, exporting, schema migration, and the like is also possible, [and is TBC](https://github.com/Vlsir/Hdl21Schematics/issues/21).
+
