@@ -48,8 +48,8 @@ jobs:
           path: |
             Hdl21SchematicEditor/packages/EditorApp/out/*/*.app
             Hdl21SchematicEditor/packages/EditorApp/out/*/*.exe
-    continue-on-error: ${{ matrix.os == 'ubuntu-latest' }}
-    # FIXME: haven't sorted this out on Linux, yet
+            Hdl21SchematicEditor/packages/EditorApp/out/*/*.deb
+            Hdl21SchematicEditor/packages/EditorApp/out/*/*.rpm
 
   python_importer_tests:
     name: Python Importer Test Suite
