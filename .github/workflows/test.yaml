@@ -46,10 +46,10 @@ jobs:
         with:
           name: app
           path: |
-            Hdl21SchematicEditor/packages/EditorApp/out/*/*.app
-            Hdl21SchematicEditor/packages/EditorApp/out/*/*.exe
-            Hdl21SchematicEditor/packages/EditorApp/out/*/*.deb
-            Hdl21SchematicEditor/packages/EditorApp/out/*/*.rpm
+            Hdl21SchematicEditor/packages/EditorApp/out/make/*/*/*.app
+            Hdl21SchematicEditor/packages/EditorApp/out/make/*/*/*.exe
+            Hdl21SchematicEditor/packages/EditorApp/out/make/*/*/*.deb
+            Hdl21SchematicEditor/packages/EditorApp/out/make/*/*/*.rpm
 
   python_importer_tests:
     name: Python Importer Test Suite
