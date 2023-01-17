@@ -5,7 +5,7 @@
 //
 
 import * as React from "react";
-import { styled, useTheme } from "@mui/material/styles";
+import { styled, useTheme, createTheme } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
@@ -22,6 +22,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Local Imports
 import { theEditor } from "./editor";
+import { ThemeProvider } from "@emotion/react";
 
 // # Panels
 //
@@ -33,8 +34,17 @@ import { theEditor } from "./editor";
 export function Panels() {
   // Track the system-level color-theme preference via `useMediaQuery`.
   // Note the SchEditor has its own tracking of this.
-  // FIXME! actually react to this!
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
+  const theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: prefersDarkMode ? 'dark' : 'light',
+        },
+      }),
+    [prefersDarkMode],
+  );
 
   // Create the `Panels` react state, and give the parent `SchEditor` a way to update it.
   //
@@ -52,9 +62,11 @@ export function Panels() {
 
   // While this is called Panel*s* (plural), thus far there is only one, the right side, which gets all the props.
   return (
-    <React.Fragment>
-      <RightPanel {...state} />
-    </React.Fragment>
+    <ThemeProvider theme = {theme}>
+      <React.Fragment>
+        <RightPanel {...state} />
+      </React.Fragment>
+    </ThemeProvider>
   );
 }
 
