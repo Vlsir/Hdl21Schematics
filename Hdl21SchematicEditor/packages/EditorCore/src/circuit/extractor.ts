@@ -1,8 +1,8 @@
-/*
-# Circuit Extractor 
-
-Converts a `Schematic` to the `Circuit` it represents.
-*/
+//
+// # Circuit Extractor
+//
+// Converts a `Schematic` to the `Circuit` it represents.
+//
 
 import { Ok, Err, Result } from "ts-results";
 
@@ -10,7 +10,7 @@ import { Ok, Err, Result } from "ts-results";
 import { Circuit, Instance, Signal, Connection, PortDir } from "./circuit";
 import { Point, point } from "../point";
 import { Schematic, Wire } from "../schematicdata";
-import { OrientationMatrix, matrix } from "../orientation";
+import { OrientationMatrix, matrix } from "../matrix";
 import { PortKind } from "../portElement";
 import { exhaust } from "../errors";
 import { calcSegments, ManhattanSegment, hitTestSegment } from "../manhattan";
@@ -175,9 +175,9 @@ class SchematicToCircuitConverter {
     for (let port_instance of this.sch.ports) {
       // Transform the portElement-referenced port location to the instance's location
       const mat = matrix.fromOrientation(port_instance.orientation);
-      
+
       // FIXME: this seems (at the time of this writing) to be just making the identity transform on `port_instance.loc`
-      // Check this, test it, remove it if so. 
+      // Check this, test it, remove it if so.
       const instance_port_loc = transform(
         point.new(0, 0), // Each PortElement's "instance port location" is implicitly its origin.
         mat,

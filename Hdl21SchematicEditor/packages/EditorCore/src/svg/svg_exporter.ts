@@ -1,6 +1,6 @@
-/*
- * # SVG Exporter
- */
+//
+// # SVG Exporter
+//
 
 // Local Imports
 import {
@@ -10,10 +10,12 @@ import {
   SvgElementPrefix,
 } from "./svgdefs";
 import * as schdata from "../schematicdata";
-import { Orientation, matrix } from "../orientation";
+import { matrix } from "../matrix";
+import { reflect } from "../reflect";
 import { toCircuitJson } from "../circuit/extractor";
 import { Point, point } from "../point";
 import { Place } from "../place";
+import { TextOrientation, labelOrientation, TextAlign } from "../text";
 
 // # Schematic to SVG Encoder/ Exporter
 //
@@ -157,10 +159,12 @@ export class Exporter {
       );
     }
 
-    const orientationMatrix = this.formatOrientation(inst.orientation);
-    this.writeLine(
-      `<g class="${SchSvgClasses.INSTANCE}" transform="matrix(${orientationMatrix} ${inst.loc.x} ${inst.loc.y})">`
-    );
+    // Write its `Place` as an SVG matrix-transform
+    const transform = this.formatPlace({
+      loc: inst.loc,
+      orientation: inst.orientation,
+    });
+    this.writeLine(`<g class="${SchSvgClasses.INSTANCE}" ${transform} >`);
 
     // Write the symbol group
     this.indent += 1;
@@ -173,15 +177,23 @@ export class Exporter {
     this.indent -= 1;
     this.writeLine(`</g>`);
 
-    // Write the name and of strings
-    const nameloc = this.formatLoc(element.nameloc);
-    this.writeLine(
-      `<text ${nameloc} class="${SchSvgClasses.INSTANCE_NAME}">${name}</text>`
-    );
-    const ofloc = this.formatLoc(element.ofloc);
-    this.writeLine(
-      `<text ${ofloc} class="${SchSvgClasses.INSTANCE_OF}">${of}</text>`
-    );
+    // Write the instance-name label
+    const nameLabel = {
+      text: name,
+      loc: element.nameloc,
+      className: SchSvgClasses.INSTANCE_NAME,
+      orient: labelOrientation(inst.orientation),
+    };
+    this.writeLabel(nameLabel);
+
+    // Write the instance-of label
+    const ofLabel = {
+      text: of,
+      loc: element.ofloc,
+      className: SchSvgClasses.INSTANCE_OF,
+      orient: labelOrientation(inst.orientation),
+    };
+    this.writeLabel(ofLabel);
 
     // Close the instance group
     this.indent -= 1;
@@ -196,10 +208,11 @@ export class Exporter {
       );
     }
 
-    const orientationMatrix = this.formatOrientation(port.orientation);
-    this.writeLine(
-      `<g class="${SchSvgClasses.PORT}" transform="matrix(${orientationMatrix} ${port.loc.x} ${port.loc.y})">`
-    );
+    const transform = this.formatPlace({
+      loc: port.loc,
+      orientation: port.orientation,
+    });
+    this.writeLine(`<g class="${SchSvgClasses.PORT}" ${transform} >`);
     this.indent += 1;
 
     // Write the symbol group
@@ -215,14 +228,28 @@ export class Exporter {
     this.writeLine(`</g>`);
 
     // Write the port name
-    const loc = this.formatLoc(portElement.nameloc);
-    this.writeLine(
-      `<text ${loc} class="${SchSvgClasses.PORT_NAME}">${name}</text>`
-    );
+    const nameLabel = {
+      text: name,
+      loc: portElement.nameloc,
+      className: SchSvgClasses.PORT_NAME,
+      orient: labelOrientation(port.orientation),
+    };
+    this.writeLabel(nameLabel);
 
     // Close the instance group
     this.indent -= 1;
     this.writeLine(`</g>`);
+  }
+  // Write an SVG text label.
+  writeLabel(label: SvgTextLabel) {
+    const { text, loc, className, orient } = label;
+    const anchor = orient.alignment === TextAlign.Left ? "start" : "end";
+    const orientation = reflect.toOrientation(orient.reflect);
+    const place = { orientation, loc };
+    const transform = this.formatPlace(place);
+    this.writeLine(
+      `<text class="${className}" text-anchor="${anchor}" ${transform} >${text}</text>`
+    );
   }
   // Create the SVG `<g>` element for a `Wire`, including its path and wire-name.
   writeWire(wire: schdata.Wire) {
@@ -268,21 +295,20 @@ export class Exporter {
   formatPlace(place: Place): string {
     const { loc, orientation } = place;
     const mat = matrix.fromOrientation(orientation);
-    return `transform="matrix(${mat.a} ${mat.b} ${mat.c} ${mat.d} ${loc.x} ${loc.y})">`;
-  }
-  // Produce the SVG `x` and `y` attributes for a `Point` location.
-  formatLoc(loc: Point): string {
-    return ` x="${loc.x}" y="${loc.y}" `;
-  }
-  // Produce the SVG `transform` matrix string for an `Orientation`.
-  formatOrientation(orientation: Orientation): string {
-    const mat = matrix.fromOrientation(orientation);
-    return `${mat.a} ${mat.b} ${mat.c} ${mat.d}`;
+    return `transform="matrix(${mat.a} ${mat.b} ${mat.c} ${mat.d} ${loc.x} ${loc.y})"`;
   }
   // Error handling helper
   fail(msg: string): Error {
     return new Error(msg);
   }
+}
+
+// # SVG Text Label Element
+interface SvgTextLabel {
+  text: string; // The text to write
+  loc: Point; // Location
+  className: SchSvgClasses; // SVG class
+  orient: TextOrientation; // Text orientation & alignment
 }
 
 // The schematic SVG / CSS style classes.

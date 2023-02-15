@@ -2,13 +2,13 @@ import { Text } from "two.js/src/text";
 import { Vector } from "two.js/src/vector";
 
 // Local Imports
-import { exhaust } from "../errors";
-import { Orientation, Rotation } from "../orientation";
+import { Orientation } from "../orientation";
 import { MousePos } from "../mousepos";
 import { Bbox, bbox } from "./bbox";
 import { labelStyle } from "./style";
 import { EntityInterface, EntityKind } from "./entity";
 import { Point } from "../point";
+import { TextOrientation, labelOrientation } from "../text";
 
 export enum LabelKind {
   Name = "Name",
@@ -23,6 +23,32 @@ export interface LabelParent {
   orientation: Orientation;
 }
 
+// Two.js-format orientation
+// These are fields of the `two.Text` class, declared as an interface type here.
+export interface TwoOrientation {
+  alignment: "left" | "right";
+  rotation: number;
+  scale: Vector;
+}
+
+// Convert a `TextOrientation` to the two.js equivalent
+function toTwoOrientation(orientation: TextOrientation): TwoOrientation {
+  const { alignment, reflect } = orientation;
+  const scale = new Vector(reflect.horiz ? -1 : 1, reflect.vert ? -1 : 1);
+  return { alignment, scale, rotation: 0 };
+}
+
+// Calculate and apply an appropriate orientation to a `two.Text`
+function orientText(textElem: Text, parent: Orientation, _kind: LabelKind) {
+  // Calculate the orientation
+  const twoOrient = toTwoOrientation(labelOrientation(parent));
+  // And apply it to the `Text`
+  textElem.alignment = twoOrient.alignment;
+  textElem.rotation = twoOrient.rotation;
+  textElem.scale = twoOrient.scale;
+}
+
+// # Text Label Data
 export interface LabelData {
   text: string;
   loc: Point;
@@ -30,72 +56,7 @@ export interface LabelData {
   parent: LabelParent;
 }
 
-interface TwoOrientation {
-  alignment: "left" | "right";
-  rotation: number;
-  scale: Vector;
-}
-
-// Get the target orientation of a Label from its parent's orientation
-function labelOrientation(
-  parent: Orientation,
-  kind: LabelKind
-): TwoOrientation {
-  const { rotation, reflected } = parent;
-  let alignment: "left" | "right";
-  if (!reflected) {
-    switch (rotation) {
-      case Rotation.R0:
-        return { alignment: "left", rotation: 0, scale: new Vector(1, 1) };
-      case Rotation.R180:
-        return {
-          alignment: "right",
-          rotation: 0,
-          scale: new Vector(-1, -1),
-        };
-      case Rotation.R90:
-        alignment = kind === LabelKind.Name ? "right" : "left";
-        return { alignment, rotation: Math.PI / 2, scale: new Vector(1, 1) };
-      case Rotation.R270:
-        alignment = kind === LabelKind.Name ? "left" : "right";
-        return { alignment, rotation: -Math.PI / 2, scale: new Vector(1, 1) };
-      default:
-        throw exhaust(rotation); // Exhaustiveness check
-    }
-  } else {
-    switch (rotation) {
-      case Rotation.R0:
-        return { alignment: "left", rotation: 0, scale: new Vector(1, -1) };
-      case Rotation.R180:
-        return {
-          alignment: "right",
-          rotation: 0,
-          scale: new Vector(-1, 1),
-        };
-      case Rotation.R90:
-        alignment = kind === LabelKind.Name ? "right" : "left";
-        return { alignment, rotation: Math.PI / 2, scale: new Vector(-1, 1) };
-      case Rotation.R270:
-        alignment = kind === LabelKind.Name ? "left" : "right";
-        return { alignment, rotation: -Math.PI / 2, scale: new Vector(-1, 1) };
-      default:
-        throw exhaust(rotation); // Exhaustiveness check
-    }
-  }
-}
-
-// Calculate and apply an appropraite orientation to a `Text`
-function orientText(textElem: Text, parent: Orientation, kind: LabelKind) {
-  // Calculate the orientation
-  const twoOrient = labelOrientation(parent, kind);
-  // And apply it to the `Text`
-  textElem.alignment = twoOrient.alignment;
-  textElem.rotation = twoOrient.rotation;
-  textElem.scale = twoOrient.scale;
-}
-
 // # Text Label
-//
 export class Label implements EntityInterface {
   constructor(public data: LabelData, public drawing: Text) {}
   entityKind: EntityKind.Label = EntityKind.Label;

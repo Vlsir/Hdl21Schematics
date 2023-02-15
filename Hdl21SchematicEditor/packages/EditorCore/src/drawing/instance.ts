@@ -1,3 +1,7 @@
+//
+// # Instance (and Schematic-Port) Drawings
+//
+
 import { Text } from "two.js/src/text";
 import { Group } from "two.js/src/group";
 import { Vector } from "two.js/src/vector";
@@ -11,91 +15,13 @@ import * as schdata from "../schematicdata";
 import { Place, Placeable } from "../place";
 import { Direction } from "../direction";
 import { Point, point } from "../point";
-import { Rotation, nextRotation, Orientation } from "../orientation";
+import { Orientation } from "../orientation";
+import { Rotation, rotation } from "../rotation";
 import { Canvas } from "./canvas";
 import { theEditor } from "../editor";
 import { MousePos } from "../mousepos";
 import { Dot, DotParent } from "./dot";
 import { exhaust } from "../errors";
-
-// FIXME! fill these guys in
-export class InstancePort implements EntityInterface {
-  entityKind: EntityKind.InstancePort = EntityKind.InstancePort;
-  bbox: Bbox = bbox.empty();
-  highlighted: boolean = false;
-  constructor() {}
-
-  // Create and add the drawn, graphical representation
-  draw() {}
-  // Update styling to indicate highlighted-ness
-  highlight() {}
-  // Update styling to indicate the lack of highlighted-ness
-  unhighlight() {}
-  // Boolean indication of whether `point` is inside the instance.
-  hitTest(mousePos: MousePos) {
-    return false;
-  }
-  // Abort an in-progress instance.
-  abort() {}
-}
-
-// Recursively traverse a node with a list of `children`, applying `fn` to each node.
-// Typing of this largely evades us, as the `children` array is of the `any` type.
-const traverseAndApply = (node: any, fn: (node: any) => void): void => {
-  fn(node);
-  if (node.children) {
-    for (let child of node.children) {
-      traverseAndApply(child, fn);
-    }
-  }
-};
-
-// Apply rotation. Note two.js applies rotation *clockwise*,
-// hence the negation of 90 and 270 degrees.
-const radianRotation = (rotation: Rotation): number => {
-  switch (rotation) {
-    case Rotation.R0:
-      return 0;
-    case Rotation.R90:
-      return -Math.PI / 2;
-    case Rotation.R180:
-      return Math.PI;
-    case Rotation.R270:
-      return Math.PI / 2;
-    default:
-      throw exhaust(rotation);
-  }
-};
-
-function svgSymbolDrawing(svgLines: Array<string>): Group {
-  // Load the symbol as a two `Group`, wrapping the content in <svg> elements.
-  let symbolSvgStr = "<svg>" + svgLines.join() + "</svg>";
-  const symbol = theEditor.canvas.two.load(symbolSvgStr, doNothing);
-  traverseAndApply(symbol, symbolStyle);
-  return symbol;
-}
-
-function svgInstancePortDrawing(loc: Point): Group {
-  // FIXME: this can probably become a native `Two.Circle` instead.
-  const svgStr =
-    "<svg>" +
-    `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="hdl21-instance-port" />` +
-    "</svg>";
-  const group = theEditor.canvas.two.load(svgStr, doNothing);
-  traverseAndApply(group, instacePortStyle);
-  return group;
-}
-
-// Apply placement, rotation, and reflection to `group`.
-function placeDrawingGroup(group: Group, place: Place) {
-  // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
-  group.scale = 1;
-  if (place.orientation.reflected) {
-    group.scale = new Vector(1, -1);
-  }
-  group.rotation = radianRotation(place.orientation.rotation);
-  group.translation.set(place.loc.x, place.loc.y);
-}
 
 // Shared Drawing Object, used by both `Instance` and `Port`
 //
@@ -260,7 +186,7 @@ abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
     console.log("FIXME! Placeable.move");
   };
   rotate = () => {
-    this.data.orientation.rotation = nextRotation(
+    this.data.orientation.rotation = rotation.next(
       this.data.orientation.rotation
     );
     this.draw();
@@ -269,8 +195,8 @@ abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
     // Always flip vertically. Horizontal flips are comprised of a vertical flip and two rotations.
     this.data.orientation.reflected = !this.data.orientation.reflected;
     if (dir === Direction.Horiz) {
-      this.data.orientation.rotation = nextRotation(
-        nextRotation(this.data.orientation.rotation)
+      this.data.orientation.rotation = rotation.next(
+        rotation.next(this.data.orientation.rotation)
       );
     }
     this.draw();
@@ -407,6 +333,85 @@ export class SchPort
   };
   // Get references to our child `Label`s.
   labels = (): Array<Label> => [this.nameLabel!];
+}
+
+// FIXME! fill these guys in
+export class InstancePort implements EntityInterface {
+  entityKind: EntityKind.InstancePort = EntityKind.InstancePort;
+  bbox: Bbox = bbox.empty();
+  highlighted: boolean = false;
+  constructor() {}
+
+  // Create and add the drawn, graphical representation
+  draw() {}
+  // Update styling to indicate highlighted-ness
+  highlight() {}
+  // Update styling to indicate the lack of highlighted-ness
+  unhighlight() {}
+  // Boolean indication of whether `point` is inside the instance.
+  hitTest(mousePos: MousePos) {
+    return false;
+  }
+  // Abort an in-progress instance.
+  abort() {}
+}
+
+// Recursively traverse a node with a list of `children`, applying `fn` to each node.
+// Typing of this largely evades us, as the `children` array is of the `any` type.
+const traverseAndApply = (node: any, fn: (node: any) => void): void => {
+  fn(node);
+  if (node.children) {
+    for (let child of node.children) {
+      traverseAndApply(child, fn);
+    }
+  }
+};
+
+// Apply rotation. Note two.js applies rotation *clockwise*,
+// hence the negation of 90 and 270 degrees.
+const radianRotation = (rotation: Rotation): number => {
+  switch (rotation) {
+    case Rotation.R0:
+      return 0;
+    case Rotation.R90:
+      return -Math.PI / 2;
+    case Rotation.R180:
+      return Math.PI;
+    case Rotation.R270:
+      return Math.PI / 2;
+    default:
+      throw exhaust(rotation);
+  }
+};
+
+function svgSymbolDrawing(svgLines: Array<string>): Group {
+  // Load the symbol as a two `Group`, wrapping the content in <svg> elements.
+  let symbolSvgStr = "<svg>" + svgLines.join() + "</svg>";
+  const symbol = theEditor.canvas.two.load(symbolSvgStr, doNothing);
+  traverseAndApply(symbol, symbolStyle);
+  return symbol;
+}
+
+function svgInstancePortDrawing(loc: Point): Group {
+  // FIXME: this can probably become a native `Two.Circle` instead.
+  const svgStr =
+    "<svg>" +
+    `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="hdl21-instance-port" />` +
+    "</svg>";
+  const group = theEditor.canvas.two.load(svgStr, doNothing);
+  traverseAndApply(group, instacePortStyle);
+  return group;
+}
+
+// Apply placement, rotation, and reflection to `group`.
+function placeDrawingGroup(group: Group, place: Place) {
+  // Apply our vertical flip if necessary, via a two-dimensional `scale`-ing.
+  group.scale = 1;
+  if (place.orientation.reflected) {
+    group.scale = new Vector(1, -1);
+  }
+  group.rotation = radianRotation(place.orientation.rotation);
+  group.translation.set(place.loc.x, place.loc.y);
 }
 
 // A do-nothing callback function, used in a few places that insist on calling back.

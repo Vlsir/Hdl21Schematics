@@ -107,7 +107,7 @@
 
 <!-- Svg Schematic Content -->
 
-<g class="hdl21-instance" transform="matrix(1 0 0 1 550 100)">
+<g class="hdl21-instance" transform="matrix(1 0 0 1 550 100)" >
   <g class="hdl21-elements-ind3">
     <path d="M 0 20 C 36 20, 36 40, 0 40 C 36 40, 36 60, 0 60 C 36 60, 36 80, 0 80" class="hdl21-symbols"/>
     <path d="M 0 0 L 0 20" class="hdl21-symbols" />
@@ -117,10 +117,10 @@
     <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
     <circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="0"  class="hdl21-instance-name">l</text>
-  <text  x="10" y="90"  class="hdl21-instance-of">Ind3()</text>
+  <text class="hdl21-instance-name" text-anchor="start" transform="matrix(1 0 0 1 10 0)" >l</text>
+  <text class="hdl21-instance-of" text-anchor="start" transform="matrix(1 0 0 1 10 90)" >Ind3()</text>
 </g>
-<g class="hdl21-instance" transform="matrix(1 0 0 1 300 100)">
+<g class="hdl21-instance" transform="matrix(1 0 0 1 300 100)" >
   <g class="hdl21-elements-isource4">
     <circle cx="0" cy="50" r="30" class="hdl21-symbols" />
     <path d="M 0 0 L 0 20" class="hdl21-symbols" />
@@ -134,10 +134,10 @@
     <circle cx="-40" cy="30" r="4" class="hdl21-instance-port" />
     <circle cx="-40" cy="70" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="0"  class="hdl21-instance-name">i</text>
-  <text  x="10" y="90"  class="hdl21-instance-of">Vccs()</text>
+  <text class="hdl21-instance-name" text-anchor="start" transform="matrix(1 0 0 1 10 0)" >i</text>
+  <text class="hdl21-instance-of" text-anchor="start" transform="matrix(1 0 0 1 10 90)" >Vccs()</text>
 </g>
-<g class="hdl21-instance" transform="matrix(1 0 0 1 700 100)">
+<g class="hdl21-instance" transform="matrix(1 0 0 1 700 100)" >
   <g class="hdl21-elements-cap3">
     <path d="M 0 0 L 0 40" class="hdl21-symbols" />
     <path d="M -20 40 L 20 40" class="hdl21-symbols" />
@@ -148,10 +148,10 @@
     <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
     <circle cx="-40" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="0"  class="hdl21-instance-name">c</text>
-  <text  x="10" y="90"  class="hdl21-instance-of">Cap3()</text>
+  <text class="hdl21-instance-name" text-anchor="start" transform="matrix(1 0 0 1 10 0)" >c</text>
+  <text class="hdl21-instance-of" text-anchor="start" transform="matrix(1 0 0 1 10 90)" >Cap3()</text>
 </g>
-<g class="hdl21-instance" transform="matrix(1 0 0 1 400 100)">
+<g class="hdl21-instance" transform="matrix(1 0 0 1 400 100)" >
   <g class="hdl21-elements-res3">
     <path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />
     <path d="M -5 50 L -20 50" class="hdl21-symbols" />
@@ -159,34 +159,34 @@
     <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
     <circle cx="-20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="0"  class="hdl21-instance-name">r</text>
-  <text  x="10" y="90"  class="hdl21-instance-of">Res3()</text>
+  <text class="hdl21-instance-name" text-anchor="start" transform="matrix(1 0 0 1 10 0)" >r</text>
+  <text class="hdl21-instance-of" text-anchor="start" transform="matrix(1 0 0 1 10 90)" >Res3()</text>
 </g>
 
 
-<g class="hdl21-port" transform="matrix(1 0 0 1 750 60)">
+<g class="hdl21-port" transform="matrix(1 0 0 1 750 60)" >
   <g class="hdl21-ports-output">
     <path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 20 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="20" y="-25"  class="hdl21-port-name">out</text>
+  <text class="hdl21-port-name" text-anchor="start" transform="matrix(1 0 0 1 20 -25)" >out</text>
 </g>
-<g class="hdl21-port" transform="matrix(-1 0 0 1 220 240)">
+<g class="hdl21-port" transform="matrix(-1 0 0 1 220 240)" >
   <g class="hdl21-ports-inout">
     <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 10 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="15" y="-25"  class="hdl21-port-name">VSS</text>
+  <text class="hdl21-port-name" text-anchor="end" transform="matrix(-1 0 0 1 15 -25)" >VSS</text>
 </g>
-<g class="hdl21-port" transform="matrix(1 0 0 1 230 130)">
+<g class="hdl21-port" transform="matrix(1 0 0 1 230 130)" >
   <g class="hdl21-ports-input">
     <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
     <path d="M -20 0 L 0 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="-50" y="-25"  class="hdl21-port-name">inp</text>
+  <text class="hdl21-port-name" text-anchor="start" transform="matrix(1 0 0 1 -50 -25)" >inp</text>
 </g>
 
 

@@ -88,13 +88,12 @@
   <g id="hdl21-schematic-prelude">
   <text>from hdl21.primitives import Pmos, Res</text>
   <text>from hdl21.prefix import µ, n, K</text>
-  <text></text>
   <text>Pbias = Pmos(w=1*µ, l=10*µ)</text>
   <text>Pcasc = Pmos(w=100*n, l=100*n)</text>
   <text>Rbias = Res(r=10*K)</text>
   </g>
   <text id="hdl21-schematic-circuit">
-    {"name":"","prelude":"from hdl21.primitives import Pmos, Res\nfrom hdl21.prefix import µ, n, K\n\nPbias = Pmos(w=1*µ, l=10*µ)\nPcasc = Pmos(w=100*n, l=100*n)\nRbias = Res(r=10*K)","signals":[{"name":"1","portdir":"INTERNAL"},{"name":"2","portdir":"INTERNAL"},{"name":"3","portdir":"INTERNAL"},{"name":"4","portdir":"INTERNAL"},{"name":"7","portdir":"INTERNAL"},{"name":"VDD","portdir":"INOUT"},{"name":"iout","portdir":"OUTPUT"},{"name":"iin","portdir":"INPUT"}],"instances":[{"name":"pb0","of":"Pbias","conns":[{"portname":"d","signame":"2"},{"portname":"g","signame":"3"},{"portname":"s","signame":"1"},{"portname":"b","signame":"1"}]},{"name":"pc0","of":"Pcasc","conns":[{"portname":"d","signame":"3"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"2"},{"portname":"b","signame":"2"}]},{"name":"pb1","of":"Pbias","conns":[{"portname":"d","signame":"4"},{"portname":"g","signame":"3"},{"portname":"s","signame":"VDD"},{"portname":"b","signame":"VDD"}]},{"name":"pc1","of":"Pcasc","conns":[{"portname":"d","signame":"iout"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"4"},{"portname":"b","signame":"7"}]},{"name":"r","of":"Rbias","conns":[{"portname":"p","signame":"iin"},{"portname":"n","signame":"3"}]}]}
+    {"name":"","prelude":"from hdl21.primitives import Pmos, Res\nfrom hdl21.prefix import µ, n, K\nPbias = Pmos(w=1*µ, l=10*µ)\nPcasc = Pmos(w=100*n, l=100*n)\nRbias = Res(r=10*K)","signals":[{"name":"1","portdir":"INTERNAL"},{"name":"2","portdir":"INTERNAL"},{"name":"3","portdir":"INTERNAL"},{"name":"4","portdir":"INTERNAL"},{"name":"7","portdir":"INTERNAL"},{"name":"VDD","portdir":"INOUT"},{"name":"iout","portdir":"OUTPUT"},{"name":"iin","portdir":"INPUT"}],"instances":[{"name":"pb0","of":"Pbias","conns":[{"portname":"d","signame":"2"},{"portname":"g","signame":"3"},{"portname":"s","signame":"1"},{"portname":"b","signame":"1"}]},{"name":"pc0","of":"Pcasc","conns":[{"portname":"d","signame":"3"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"2"},{"portname":"b","signame":"2"}]},{"name":"pb1","of":"Pbias","conns":[{"portname":"d","signame":"4"},{"portname":"g","signame":"3"},{"portname":"s","signame":"VDD"},{"portname":"b","signame":"VDD"}]},{"name":"pc1","of":"Pcasc","conns":[{"portname":"d","signame":"iout"},{"portname":"g","signame":"iin"},{"portname":"s","signame":"4"},{"portname":"b","signame":"7"}]},{"name":"r","of":"Rbias","conns":[{"portname":"p","signame":"iin"},{"portname":"n","signame":"3"}]}]}
   </text>
 
     <!-- Grid Background -->
@@ -111,7 +110,7 @@
 
 <!-- Svg Schematic Content -->
 
-<g class="hdl21-instance" transform="matrix(-1 0 0 1 300 100)">
+<g class="hdl21-instance" transform="matrix(-1 0 0 1 300 100)" >
   <g class="hdl21-elements-pmos">
     <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
     <path d="M -40 30 L -40 70" class="hdl21-symbols" />
@@ -124,10 +123,10 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">pb0</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pbias</text>
+  <text class="hdl21-instance-name" text-anchor="end" transform="matrix(-1 0 0 1 10 20)" >pb0</text>
+  <text class="hdl21-instance-of" text-anchor="end" transform="matrix(-1 0 0 1 10 80)" >Pbias</text>
 </g>
-<g class="hdl21-instance" transform="matrix(-1 0 0 1 300 250)">
+<g class="hdl21-instance" transform="matrix(-1 0 0 1 300 250)" >
   <g class="hdl21-elements-pmos">
     <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
     <path d="M -40 30 L -40 70" class="hdl21-symbols" />
@@ -140,10 +139,10 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">pc0</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pcasc</text>
+  <text class="hdl21-instance-name" text-anchor="end" transform="matrix(-1 0 0 1 10 20)" >pc0</text>
+  <text class="hdl21-instance-of" text-anchor="end" transform="matrix(-1 0 0 1 10 80)" >Pcasc</text>
 </g>
-<g class="hdl21-instance" transform="matrix(1 0 0 1 600 100)">
+<g class="hdl21-instance" transform="matrix(1 0 0 1 600 100)" >
   <g class="hdl21-elements-pmos">
     <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
     <path d="M -40 30 L -40 70" class="hdl21-symbols" />
@@ -156,10 +155,10 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">pb1</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pbias</text>
+  <text class="hdl21-instance-name" text-anchor="start" transform="matrix(1 0 0 1 10 20)" >pb1</text>
+  <text class="hdl21-instance-of" text-anchor="start" transform="matrix(1 0 0 1 10 80)" >Pbias</text>
 </g>
-<g class="hdl21-instance" transform="matrix(1 0 0 1 600 250)">
+<g class="hdl21-instance" transform="matrix(1 0 0 1 600 250)" >
   <g class="hdl21-elements-pmos">
     <path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />
     <path d="M -40 30 L -40 70" class="hdl21-symbols" />
@@ -172,43 +171,43 @@
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="20" cy="50" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="20"  class="hdl21-instance-name">pc1</text>
-  <text  x="10" y="80"  class="hdl21-instance-of">Pcasc</text>
+  <text class="hdl21-instance-name" text-anchor="start" transform="matrix(1 0 0 1 10 20)" >pc1</text>
+  <text class="hdl21-instance-of" text-anchor="start" transform="matrix(1 0 0 1 10 80)" >Pcasc</text>
 </g>
-<g class="hdl21-instance" transform="matrix(-1 0 0 -1 300 500)">
+<g class="hdl21-instance" transform="matrix(-1 0 0 -1 300 500)" >
   <g class="hdl21-elements-res">
     <path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
     <circle cx="0" cy="100" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="10" y="0"  class="hdl21-instance-name">r</text>
-  <text  x="10" y="90"  class="hdl21-instance-of">Rbias</text>
+  <text class="hdl21-instance-name" text-anchor="end" transform="matrix(-1 0 0 -1 10 0)" >r</text>
+  <text class="hdl21-instance-of" text-anchor="end" transform="matrix(-1 0 0 -1 10 90)" >Rbias</text>
 </g>
 
 
-<g class="hdl21-port" transform="matrix(-1 0 0 1 200 80)">
+<g class="hdl21-port" transform="matrix(-1 0 0 1 200 80)" >
   <g class="hdl21-ports-inout">
     <path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 10 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="15" y="-25"  class="hdl21-port-name">VDD</text>
+  <text class="hdl21-port-name" text-anchor="end" transform="matrix(-1 0 0 1 15 -25)" >VDD</text>
 </g>
-<g class="hdl21-port" transform="matrix(0 -1 1 0 600 400)">
+<g class="hdl21-port" transform="matrix(0 1 1 0 600 400)" >
   <g class="hdl21-ports-output">
     <path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />
     <path d="M 0 0 L 20 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="20" y="-25"  class="hdl21-port-name">iout</text>
+  <text class="hdl21-port-name" text-anchor="end" transform="matrix(-1 0 0 1 20 -25)" >iout</text>
 </g>
-<g class="hdl21-port" transform="matrix(1 0 0 1 200 530)">
+<g class="hdl21-port" transform="matrix(1 0 0 1 200 530)" >
   <g class="hdl21-ports-input">
     <path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />
     <path d="M -20 0 L 0 0" class="hdl21-symbols" />
     <circle cx="0" cy="0" r="4" class="hdl21-instance-port" />
   </g>
-  <text  x="-50" y="-25"  class="hdl21-port-name">iin</text>
+  <text class="hdl21-port-name" text-anchor="start" transform="matrix(1 0 0 1 -50 -25)" >iin</text>
 </g>
 
 

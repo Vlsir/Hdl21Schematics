@@ -7,7 +7,7 @@ import { Point, point } from "../point";
 import { exhaust } from "../errors";
 import { SchEditor } from "../editor";
 import { ManhattanSegment, hitTestSegment } from "../manhattan";
-import { OrientationMatrix, matrix } from "../orientation";
+import { OrientationMatrix, matrix } from "../matrix";
 import * as schdata from "../schematicdata";
 
 class DotMap {

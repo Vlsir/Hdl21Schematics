@@ -17,13 +17,15 @@ import {
 import { point } from "../point";
 import { Place } from "../place";
 import { Schematic } from "../schematicdata";
-import { matrix, orientation } from "../orientation";
+import { orientation } from "../orientation";
+import { matrix } from "../matrix";
 import { ElementTags } from "../element";
 import { PortTags } from "../portElement";
 
 // Type alias for the return-type of `ElementNode.children()`
 type Child = ElementNode | TextNode | string;
 
+// Wrapper type around non-schematic ("other") SVG elements
 export interface OtherSvgElement {
   child: Child;
 }
