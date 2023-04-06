@@ -19,6 +19,9 @@
             "path": "../EditorCore"
         },
         {
+            "path": "../SchematicsCore"
+        },
+        {
             "path": "../PlatformInterface"
         }
     ]

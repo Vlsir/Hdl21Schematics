@@ -21,6 +21,9 @@
       "path": "./packages/PlatformInterface"
     },
     {
+      "path": "./packages/SchematicsCore"
+    },
+    {
       "path": "./packages/EditorCore"
     },
     {

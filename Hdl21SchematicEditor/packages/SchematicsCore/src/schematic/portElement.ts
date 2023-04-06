@@ -99,7 +99,7 @@ export const portElements = {
 // Get a `PortElement` definition by its `PortKind`.
 // This exclamation-mark non-null assertion is valid so long as
 // we ensure that every valid `kind` is in the map.
-export function get(kind: PortKind): PortElement {
+function get(kind: PortKind): PortElement {
   return PortMap.get(kind)!;
 }
 

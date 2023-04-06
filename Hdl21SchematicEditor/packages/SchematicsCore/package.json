@@ -1,0 +1,16 @@
+{
+  "name": "SchematicsCore",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Hdl21 Schematics Core",
+  "main": "src/index",
+  "license": "MIT",
+  "dependencies": {
+    "@types/svg-parser": "^2.0.3",
+    "svg-parser": "^2.0.4",
+    "ts-results": "^3.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.8.2"
+  }
+}

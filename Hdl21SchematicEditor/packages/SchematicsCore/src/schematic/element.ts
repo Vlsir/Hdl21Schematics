@@ -5,7 +5,6 @@
 //
 
 // Local Imports
-import { Inventory2Rounded } from "@mui/icons-material";
 import { Point, point } from "./point";
 
 // # Enumerated Element Kinds
@@ -428,7 +427,7 @@ export const elements = {
 // Get a `Element` definition by its `ElementKind`.
 // This exclamation-mark non-null assertion is valid so long as
 // we ensure that every valid `ElementKind` is in the map.
-export function get(kind: ElementKind): Element {
+function get(kind: ElementKind): Element {
   return ElementMap.get(kind)!;
 }
 

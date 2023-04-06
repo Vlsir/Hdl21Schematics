@@ -3,26 +3,17 @@
   "compilerOptions": {
     "outDir": "out",
     "lib": [
-      "es2020",
-      "dom"
+      "es2020"
     ],
   },
   "exclude": [
     "out",
-    "dist",
-    ".webpack",
     "node_modules",
   ],
   "include": [
     "src",
   ],
   "references": [
-    {
-      "path": "../EditorCore"
-    },
-    {
-      "path": "../SchematicsCore"
-    },
     {
       "path": "../PlatformInterface"
     }
