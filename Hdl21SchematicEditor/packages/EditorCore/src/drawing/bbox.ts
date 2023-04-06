@@ -5,7 +5,7 @@
 // This is a thin wrapper around the objects returned from the `getBoundingClientRect` browser API method.
 //
 
-import { Point } from "../point";
+import { Point } from "SchematicsCore";
 
 // # Bbox
 // Rectangular Bounding Box
@@ -16,7 +16,7 @@ export interface Bbox {
   right: number;
 }
 
-// Interface for objects that have a `getBoundingClientRect` method. 
+// Interface for objects that have a `getBoundingClientRect` method.
 // Two.js does not have a type for this, so we define our own.
 export interface HasBbox {
   getBoundingClientRect: () => any;

@@ -2,26 +2,32 @@
 // # Instance (and Schematic-Port) Drawings
 //
 
+// NPM Imports
 import { Text } from "two.js/src/text";
 import { Group } from "two.js/src/group";
 import { Vector } from "two.js/src/vector";
 
 // Local Imports
+import {
+  schdata,
+  Place,
+  Placeable,
+  Direction,
+  Point,
+  point,
+  Orientation,
+  Rotation,
+  rotation,
+  exhaust,
+} from "SchematicsCore";
 import { Bbox, bbox } from "./bbox";
 import { Label, LabelKind, LabelParent } from "./label";
 import { EntityKind, EntityInterface } from "./entity";
 import { symbolStyle, instacePortStyle } from "./style";
-import * as schdata from "../schematicdata";
-import { Place, Placeable } from "../place";
-import { Direction } from "../direction";
-import { Point, point } from "../point";
-import { Orientation } from "../orientation";
-import { Rotation, rotation } from "../rotation";
 import { Canvas } from "./canvas";
 import { theEditor } from "../editor";
 import { MousePos } from "../mousepos";
 import { Dot, DotParent } from "./dot";
-import { exhaust } from "../errors";
 
 // Shared Drawing Object, used by both `Instance` and `Port`
 //

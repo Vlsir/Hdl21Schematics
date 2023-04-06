@@ -4,7 +4,8 @@
 // Enumerated rotations in increments of 90 degrees
 //
 
-import { exhaust } from "./errors";
+// Local Imports
+import { exhaust } from "../errors";
 
 // Enumerated Rotations
 // in increments of 90 degrees

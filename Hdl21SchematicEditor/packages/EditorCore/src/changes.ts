@@ -4,9 +4,9 @@
  * The undo-redo queue and its member types.
  */
 
+// Local Imports
+import { Place, exhaust } from "SchematicsCore";
 import { Label, SchPort, Instance, Entity } from "./drawing";
-import { Place } from "./place";
-import { exhaust } from "./errors";
 
 // Enumerate Kinds of Changes
 // Each `Change` variant has a `kind` field that is one of these values.

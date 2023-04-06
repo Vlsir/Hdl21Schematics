@@ -1,9 +1,14 @@
+// 
+// # Schematic Editor Canvas
+// 
+
+// NPM Imports
 import Two from "two.js";
 import { Group } from "two.js/src/group";
 
 // Local Imports
+import { Point, point } from "SchematicsCore";
 import { MousePos } from "../mousepos";
-import { Point, point } from "../point";
 import { bbox } from "./bbox";
 import { THE_SECRET_CANVAS_ID } from "../secret";
 import { SchEditor } from "../editor";
@@ -53,9 +58,9 @@ export class Canvas {
     this.two.appendTo(e);
     this.parentDomElement = e;
     const parentBbox = bbox.get(e);
-    // Note this also assumes that out `parent` is not *within* any internally-scrollable elements 
-    // within the page, i.e. that `window.{scrollX, scrollY}` indicates the total scroll offset. 
-    // Embedding it within sub-scrolling things would require crawling up them, and accumulating their positions. 
+    // Note this also assumes that out `parent` is not *within* any internally-scrollable elements
+    // within the page, i.e. that `window.{scrollX, scrollY}` indicates the total scroll offset.
+    // Embedding it within sub-scrolling things would require crawling up them, and accumulating their positions.
     this.parentOriginInPage = point.new(
       parentBbox.left + window.scrollX,
       parentBbox.top + window.scrollY

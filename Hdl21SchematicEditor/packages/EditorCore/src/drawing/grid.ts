@@ -3,7 +3,7 @@ import { Line } from "two.js/src/shapes/line";
 // Local Imports
 import { Canvas } from "./canvas";
 import { gridLineStyle } from "./style";
-import { Point, point } from "../point";
+import { Point, point } from "SchematicsCore";
 
 export const GRID_SIZE = 10;
 export const GRID_MAJOR_SIZE = 100;

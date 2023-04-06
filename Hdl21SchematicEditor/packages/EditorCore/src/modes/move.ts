@@ -2,11 +2,11 @@
  * # Move Mode Handler
  */
 
+// Local Imports
+import { Direction, Place } from "SchematicsCore";
 import { Instance, SchPort } from "../drawing";
 import { nearestOnGrid } from "../drawing/grid";
-import { Direction } from "../direction";
 import { Keys } from "../keys";
-import { Place } from "../place";
 import { ChangeKind } from "../changes";
 import { SchEditor } from "../editor";
 import { UiModes, UiModeHandlerBase } from "./base";

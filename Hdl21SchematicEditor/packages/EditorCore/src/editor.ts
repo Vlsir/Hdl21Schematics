@@ -13,12 +13,11 @@ import {
 } from "PlatformInterface";
 
 // Local Imports
+import { exhaust, Direction, SvgImporter, SvgExporter } from "SchematicsCore";
+
 import { PanelProps, PanelUpdater } from "./panels";
 import { Keys } from "./keys";
-import { exhaust } from "./errors";
 import { Change, ChangeKind } from "./changes";
-import { Direction } from "./direction";
-import { Importer, Exporter } from "./svg";
 import { UiState } from "./uistate";
 import { UiModes, ModeHandlers } from "./modes";
 import { MousePos } from "./mousepos";
@@ -121,9 +120,9 @@ export class SchEditor {
     const schData = this.schematic.toData();
     let svgContent: string;
     try {
-      svgContent = Exporter.export(schData);
+      svgContent = SvgExporter.export(schData);
     } catch (e) {
-      console.log("Exporter failed");
+      console.log("SVG Exporter failed");
       console.log(e);
       return;
     }
@@ -147,7 +146,7 @@ export class SchEditor {
         // FIXME: error handling via Result
         try {
           this.canvas.clear();
-          const schData = Importer.import(msg.body);
+          const schData = SvgImporter.import(msg.body);
           const schematic = Schematic.fromData(this, schData);
           return this.loadSchematic(schematic);
         } catch (e) {

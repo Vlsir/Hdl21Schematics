@@ -1,12 +1,21 @@
+// 
+// # Wire Drawings
+// 
+
+// NPM Imports
 import { Path } from "two.js/src/path";
 
 // Local Imports
+import {
+  Point,
+  ManhattanSegment,
+  hitTestSegment,
+  calcSegments,
+} from "SchematicsCore";
 import { EntityInterface, EntityKind } from "./entity";
 import { wireStyle } from "./style";
 import { Canvas } from "./canvas";
 import { MousePos } from "../mousepos";
-import { Point } from "../point";
-import { ManhattanSegment, hitTestSegment, calcSegments } from "../manhattan";
 import { Dot, DotParent } from "./dot";
 import { theEditor } from "../editor";
 

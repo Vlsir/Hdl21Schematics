@@ -3,7 +3,7 @@
 //
 
 // Local Imports
-import { exhaust } from "./errors";
+import { exhaust } from "../errors";
 import { Rotation } from "./rotation";
 import { Orientation, orientation } from "./orientation";
 

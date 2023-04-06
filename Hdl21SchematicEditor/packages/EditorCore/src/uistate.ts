@@ -1,8 +1,14 @@
-import { orientation } from "./orientation";
-import { Instance as InstanceData, Port as PortData } from "./schematicdata";
-import { point } from "./point";
-import { ElementKind, elementLib } from "./element";
-import { PortKind, portLib } from "./portElement";
+import {
+  orientation,
+  Instance as InstanceData,
+  Port as PortData,
+  point,
+  ElementKind,
+  elementLib,
+  PortKind,
+  portLib,
+} from "SchematicsCore";
+
 import { ChangeLog } from "./changes";
 import { SchEditor } from "./editor";
 import { UiModes, UiModeHandler, ModeHandlers } from "./modes";

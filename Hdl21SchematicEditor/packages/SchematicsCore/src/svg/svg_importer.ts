@@ -14,13 +14,15 @@ import {
   SvgPortPrefix,
   DeprecatedPrefix,
 } from "./svgdefs";
-import { point } from "../point";
-import { Place } from "../place";
-import { Schematic } from "../schematicdata";
-import { orientation } from "../orientation";
-import { matrix } from "../matrix";
-import { ElementTags } from "../element";
-import { PortTags } from "../portElement";
+import {
+  point,
+  Place,
+  Schematic,
+  orientation,
+  matrix,
+  ElementTags,
+  PortTags,
+} from "../schematic";
 
 // Type alias for the return-type of `ElementNode.children()`
 type Child = ElementNode | TextNode | string;

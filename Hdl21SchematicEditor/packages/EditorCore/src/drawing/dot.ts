@@ -1,7 +1,7 @@
 import { Circle } from "two.js/src/shapes/circle";
 
 // Local Imports
-import { Point, point } from "../point";
+import { Point } from "SchematicsCore";
 import { dotStyle } from "./style";
 import { EntityKind } from "./entity";
 import { Wire } from "./wire";

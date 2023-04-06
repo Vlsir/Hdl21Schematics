@@ -2,11 +2,12 @@
  * # Idle Mode Handler
  */
 
+// Local Imports
+import { Direction, exhaust } from "SchematicsCore";
+
 import { EntityKind } from "../drawing";
-import { Direction } from "../direction";
 import { Keys } from "../keys";
 import { SchEditor } from "../editor";
-import { exhaust } from "../errors";
 import { ControlPanelItem } from "../panels";
 
 import { UiModes, UiModeHandlerBase } from "./base";

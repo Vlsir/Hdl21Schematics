@@ -9,13 +9,21 @@ import {
   SvgPortPrefix,
   SvgElementPrefix,
 } from "./svgdefs";
-import * as schdata from "../schematicdata";
-import { matrix } from "../matrix";
-import { reflect } from "../reflect";
-import { toCircuitJson } from "../circuit/extractor";
-import { Point, point } from "../point";
-import { Place } from "../place";
-import { TextOrientation, labelOrientation, TextAlign } from "../text";
+import { toCircuitJson } from "../circuit";
+import {
+  Schematic,
+  Instance,
+  Port,
+  Wire,
+  matrix,
+  reflect,
+  Point,
+  point,
+  Place,
+  TextOrientation,
+  labelOrientation,
+  TextAlign,
+} from "../schematic";
 
 // # Schematic to SVG Encoder/ Exporter
 //
@@ -24,7 +32,7 @@ import { TextOrientation, labelOrientation, TextAlign } from "../text";
 //
 export class Exporter {
   // Sole constructor argument: the source Schematic
-  constructor(readonly schematic: schdata.Schematic) {}
+  constructor(readonly schematic: Schematic) {}
 
   // Output SVG text
   svg: string = "";
@@ -34,7 +42,7 @@ export class Exporter {
   indent: number = 0;
 
   // Serialize a schematic to an SVG string.
-  static export(schematic: schdata.Schematic): string {
+  static export(schematic: Schematic): string {
     const exporter = new Exporter(schematic);
     exporter.exportSchematicSvg();
     return exporter.svg;
@@ -146,7 +154,7 @@ export class Exporter {
   }
 
   // Create the SVG `<g>` group for an `Instance`.
-  writeInstance(inst: schdata.Instance) {
+  writeInstance(inst: Instance) {
     const { name, of, element } = inst;
     if (!name.length) {
       throw this.fail(
@@ -200,7 +208,7 @@ export class Exporter {
     this.writeLine(`</g>`);
   }
   // Create the SVG `<g>` group for a `Port`.
-  writePort(port: schdata.Port) {
+  writePort(port: Port) {
     const { name, portElement } = port;
     if (!name.length) {
       throw this.fail(
@@ -252,7 +260,7 @@ export class Exporter {
     );
   }
   // Create the SVG `<g>` element for a `Wire`, including its path and wire-name.
-  writeWire(wire: schdata.Wire) {
+  writeWire(wire: Wire) {
     if (!wire.points) {
       return;
     }

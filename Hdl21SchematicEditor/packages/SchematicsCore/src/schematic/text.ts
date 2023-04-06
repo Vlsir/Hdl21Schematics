@@ -4,7 +4,8 @@
 // Really mostly sub-data about the orientation and justification of text labels.
 //
 
-import { exhaust } from "./errors";
+// Local Imports
+import { exhaust } from "../errors";
 import { Orientation } from "./orientation";
 import { Rotation } from "./rotation";
 import { Reflect } from "./reflect";

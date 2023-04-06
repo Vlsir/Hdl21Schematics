@@ -1,4 +1,9 @@
-import { Point, point } from "./point";
+//
+// # Mouse Position
+//
+
+// Local Imports
+import { Point, point } from "SchematicsCore";
 
 // # Mouse Position
 //

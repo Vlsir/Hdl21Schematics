@@ -8,12 +8,19 @@ import { Ok, Err, Result } from "ts-results";
 
 // Local imports
 import { Circuit, Instance, Signal, Connection, PortDir } from "./circuit";
-import { Point, point } from "../point";
-import { Schematic, Wire } from "../schematicdata";
-import { OrientationMatrix, matrix } from "../matrix";
-import { PortKind } from "../portElement";
+import {
+  Point,
+  point,
+  Schematic,
+  Wire,
+  OrientationMatrix,
+  matrix,
+  PortKind,
+  calcSegments,
+  ManhattanSegment,
+  hitTestSegment,
+} from "../schematic";
 import { exhaust } from "../errors";
-import { calcSegments, ManhattanSegment, hitTestSegment } from "../manhattan";
 
 // Extract the `Circuit` from a `Schematic`.
 // Returns an `Err` if the schematic cannot be converted to a valid `Circuit`.

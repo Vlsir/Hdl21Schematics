@@ -1,14 +1,22 @@
+//
+// # Label Drawings
+//
+
+// NPM Imports
 import { Text } from "two.js/src/text";
 import { Vector } from "two.js/src/vector";
 
 // Local Imports
-import { Orientation } from "../orientation";
+import {
+  Orientation,
+  Point,
+  TextOrientation,
+  labelOrientation,
+} from "SchematicsCore";
 import { MousePos } from "../mousepos";
 import { Bbox, bbox } from "./bbox";
 import { labelStyle } from "./style";
 import { EntityInterface, EntityKind } from "./entity";
-import { Point } from "../point";
-import { TextOrientation, labelOrientation } from "../text";
 
 export enum LabelKind {
   Name = "Name",

@@ -3,11 +3,10 @@
  */
 
 // Local Imports
+import { Element, elementLib, PortElement, portLib } from "SchematicsCore";
 import { Instance, SchPort } from "../drawing";
 import { nearestOnGrid } from "../drawing/grid";
 import { ChangeKind } from "../changes";
-import { Element, elementLib } from "../element";
-import { PortElement, portLib } from "../portElement";
 import { SchEditor } from "../editor";
 import { ControlPanelItem } from "../panels";
 import { UiModes, UiModeHandlerBase } from "./base";

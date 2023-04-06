@@ -1,14 +1,23 @@
+//
+// # Schematic Drawing
+//
+
 // Local Imports
+import {
+  schdata,
+  Point,
+  point,
+  exhaust,
+  ManhattanSegment,
+  hitTestSegment,
+  OrientationMatrix,
+  matrix,
+} from "SchematicsCore";
 import { Entity, EntityKind } from "./entity";
 import { Wire } from "./wire";
 import { Instance, SchPort } from "./instance";
 import { Dot } from "./dot";
-import { Point, point } from "../point";
-import { exhaust } from "../errors";
 import { SchEditor } from "../editor";
-import { ManhattanSegment, hitTestSegment } from "../manhattan";
-import { OrientationMatrix, matrix } from "../matrix";
-import * as schdata from "../schematicdata";
 
 class DotMap {
   // x as the major/ outer key
@@ -130,10 +139,7 @@ function inferDots(sch: Schematic): DotMap {
         if (
           // The "don't connect beginning/end of wires" rule
           !point.eq(myPoint, otherWire.points[0]) &&
-          !point.eq(
-            myPoint,
-            otherWire.points[otherWire.points.length - 1]
-          ) &&
+          !point.eq(myPoint, otherWire.points[otherWire.points.length - 1]) &&
           wireIntersectsPoint(otherWire, myPoint)
         ) {
           // Add a dot here, or add these wires to any existing dot at `myPoint`.
