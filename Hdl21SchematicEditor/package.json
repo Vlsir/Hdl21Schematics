@@ -12,5 +12,11 @@
       "**/@electron-forge",
       "**/@electron-forge/**"
     ]
+  },
+  "devDependencies": {
+    "prettier": "^2.1.5"
+  },
+  "scripts": {
+    "fmt": "prettier --write \"packages/*/src/**.{js,jsx,ts,tsx,json,css,scss,md}\""
   }
 }

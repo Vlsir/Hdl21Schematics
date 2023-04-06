@@ -40,10 +40,10 @@ export function Panels() {
     () =>
       createTheme({
         palette: {
-          mode: prefersDarkMode ? 'dark' : 'light',
+          mode: prefersDarkMode ? "dark" : "light",
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
 
   // Create the `Panels` react state, and give the parent `SchEditor` a way to update it.
@@ -62,7 +62,7 @@ export function Panels() {
 
   // While this is called Panel*s* (plural), thus far there is only one, the right side, which gets all the props.
   return (
-    <ThemeProvider theme = {theme}>
+    <ThemeProvider theme={theme}>
       <React.Fragment>
         <RightPanel {...state} />
       </React.Fragment>

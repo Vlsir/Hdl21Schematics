@@ -34,13 +34,13 @@ const isMac = process.platform === "darwin";
 // FIXME: we retain the "default path at startup", for now
 const THE_DEFAULT_SCHEMATIC_FILENAME = "schematic.sch.svg";
 
-const saveFile = (path/*:string*/, contents/*:string*/) => {
+const saveFile = (path /*:string*/, contents /*:string*/) => {
   fs.writeFile(path, contents, (err) => console.log(err));
 };
 
 // Get the initial startup-time schematic file path.
 // Equals the default file path, if it exists, or `null` if not.
-function initialFilePath()/*: string | null */ {
+function initialFilePath() /*: string | null */ {
   if (fs.existsSync(THE_DEFAULT_SCHEMATIC_FILENAME)) {
     return THE_DEFAULT_SCHEMATIC_FILENAME;
   }
@@ -90,7 +90,7 @@ class ElectronMain {
 
   // Create a main window
   // Our static "constructor" plus "starter"
-  static create()/*:ElectronMain*/ {
+  static create() /*:ElectronMain*/ {
     if (theMain !== null) {
       return theMain;
     }
@@ -123,8 +123,8 @@ class ElectronMain {
   };
 
   // Handle incoming messages from the renderer process.
-  handleMessage = (event/*:any*/, msg/*:Message*/) => {
-    this.sender = event.sender;// as WebContents; // FIXME: type
+  handleMessage = (event /*:any*/, msg /*:Message*/) => {
+    this.sender = event.sender; // as WebContents; // FIXME: type
     const { kind } = msg;
     switch (kind) {
       case MessageKind.RendererUp: {
@@ -364,7 +364,7 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
-function neverCheck(_/*: never*/) /*: Error*/ {
+function neverCheck(_ /*: never*/) /*: Error*/ {
   console.log("Never check failed - should be unreachable");
   // return new Error("unreachable");
 }
