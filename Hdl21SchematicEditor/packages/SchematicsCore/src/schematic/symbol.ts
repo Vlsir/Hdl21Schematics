@@ -3,14 +3,14 @@
 //
 
 // Local Imports
-import { Shape } from "./shape";
+import { GraphicsElement } from "./graphics";
 import { InstancePort } from "./element";
 
 //
 // # Symbol
 //
 export interface Symbol {
-  shapes: Array<Shape>; // Drawing Shapes
+  graphics: Array<GraphicsElement>; // Drawing Elements
   svgLines: Array<string>; // FIXME: merge these
   ports: Array<InstancePort>; // Located Ports
 }
@@ -20,7 +20,7 @@ export const Symbol = {
   // Create an empty `Symbol`.
   default(): Symbol {
     return {
-      shapes: [],
+      graphics: [],
       svgLines: [],
       ports: [],
     };

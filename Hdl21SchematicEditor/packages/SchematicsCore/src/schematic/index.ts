@@ -12,7 +12,7 @@ export * from "./point";
 export * from "./portElement"; // FIXME: probably 
 export * from "./reflect";
 export * from "./rotation";
-export * from "./shape";
+export * from "./graphics";
 export * from "./schematic";
 export * from "./symbol";
 export * from "./text";

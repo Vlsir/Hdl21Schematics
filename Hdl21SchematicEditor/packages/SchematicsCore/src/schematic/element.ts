@@ -80,7 +80,7 @@ export const Nmos = add({
   kind: ElementKind.Nmos,
   svgTag: "nmos",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       // Main squiggly path
       `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
@@ -110,7 +110,7 @@ export const Pmos = add({
   kind: ElementKind.Pmos,
   svgTag: "pmos",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       // Main squiggly path
       `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
@@ -142,7 +142,7 @@ export const Res = add({
   kind: ElementKind.Res,
   svgTag: "res",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       // Main squiggly path
       `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
@@ -162,7 +162,7 @@ export const Res3 = add({
   kind: ElementKind.Res3,
   svgTag: "res3",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       // All of the two-terminal edition
       ...Res.symbol.svgLines,
@@ -185,7 +185,7 @@ export const Cap = add({
   kind: ElementKind.Cap,
   svgTag: "cap",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
       `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
@@ -207,7 +207,7 @@ export const Cap3 = add({
   kind: ElementKind.Cap3,
   svgTag: "cap3",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       // All of the two-terminal edition
       ...Cap.symbol.svgLines,
@@ -230,7 +230,7 @@ export const Ind = add({
   kind: ElementKind.Ind,
   svgTag: "ind",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       `<path d="M 0 20 C 36 20, 36 40, 0 40 C 36 40, 36 60, 0 60 C 36 60, 36 80, 0 80" class="hdl21-symbols"/>`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
@@ -251,7 +251,7 @@ export const Ind3 = add({
   kind: ElementKind.Ind3,
   svgTag: "ind3",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       // The shapes from the two-terminal inductor
       ...Ind.symbol.svgLines,
@@ -275,7 +275,7 @@ export const Vsource = add({
   kind: ElementKind.Vsource,
   svgTag: "vsource",
   symbol: {
-    shapes: [], 
+    graphics: [], 
     svgLines: [
       `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
@@ -299,7 +299,7 @@ export const Vsource4 = add({
   kind: ElementKind.Vsource4,
   svgTag: "vsource4",
   symbol: {
-    shapes: [], 
+    graphics: [], 
     svgLines: [
       // All of the two-terminal edition
       ...Vsource.symbol.svgLines,
@@ -324,7 +324,7 @@ export const Isource = add({
   kind: ElementKind.Isource,
   svgTag: "isource",
   symbol: {
-    shapes: [], 
+    graphics: [], 
     svgLines: [
       `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
@@ -347,7 +347,7 @@ export const Isource4 = add({
   kind: ElementKind.Isource4,
   svgTag: "isource4",
   symbol: {
-    shapes: [], 
+    graphics: [], 
     svgLines: [
       // All of the two-terminal edition
       ...Isource.symbol.svgLines,
@@ -372,7 +372,7 @@ export const Diode = add({
   kind: ElementKind.Diode,
   svgTag: "diode",
   symbol: {
-    shapes: [], 
+    graphics: [], 
     svgLines: [
       // The triangle
       `<path d="M 0 70 L -20 35 L 20 35 Z" class="hdl21-symbols" />`,
@@ -407,7 +407,7 @@ export const Npn = add({
   kind: ElementKind.Npn,
   svgTag: "npn",
   symbol: {
-    shapes: [], 
+    graphics: [], 
     svgLines: [
       // The shared parts
       ...BipolarSharedSvgLines,
@@ -430,7 +430,7 @@ export const Pnp = add({
   kind: ElementKind.Pnp,
   svgTag: "pnp",
   symbol: {
-    shapes: [], 
+    graphics: [], 
     svgLines: [
       // The shared parts
       ...BipolarSharedSvgLines,

@@ -6,7 +6,7 @@
 
 // Local Imports
 import { Point, point } from "./point";
-import { Shape } from "./shape";
+import { GraphicsElement } from "./graphics";
 
 // # Enumerated Port Kinds
 //
@@ -25,7 +25,7 @@ export enum PortKind {
 //
 export interface PortSymbol {
   svgLines: Array<string>; // SVG symbol text
-  shapes: Array<Shape>; // FIXME: merge
+  graphics: Array<GraphicsElement>; // FIXME: merge
 }
 
 // # PortElement
@@ -66,7 +66,7 @@ export const Input = add({
   kind: PortKind.Input,
   svgTag: "input",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       `<path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />`,
       `<path d="M -20 0 L 0 0" class="hdl21-symbols" />`,
@@ -80,7 +80,7 @@ export const Output = add({
   kind: PortKind.Output,
   svgTag: "output",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       `<path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 20 0" class="hdl21-symbols" />`,
@@ -94,7 +94,7 @@ export const Inout = add({
   kind: PortKind.Inout,
   svgTag: "inout",
   symbol: {
-    shapes: [],
+    graphics: [],
     svgLines: [
       `<path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
       `<path d="M 0 0 L 10 0" class="hdl21-symbols" />`,
