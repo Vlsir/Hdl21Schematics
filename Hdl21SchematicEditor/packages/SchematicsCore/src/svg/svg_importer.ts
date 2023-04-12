@@ -15,7 +15,7 @@ import {
   DeprecatedPrefix,
 } from "./svgdefs";
 import {
-  point,
+  Point,
   Place,
   Schematic,
   orientation,
@@ -36,7 +36,7 @@ export interface OtherSvgElement {
 //
 export class Importer {
   constructor(readonly svgstring: string) {}
-  schematic: Schematic = new Schematic(); // Result Schematic
+  schematic: Schematic = Schematic.new_(); // Result Schematic
   otherSvgElements: Array<OtherSvgElement> = []; // "Other" non-Schematic SVG content
 
   // Import a schematic SVG string to a `Schematic`.
@@ -63,7 +63,7 @@ export class Importer {
 
     width = this.propToNum(width);
     height = this.propToNum(height);
-    this.schematic.size = point.new(width, height);
+    this.schematic.size = Point.new(width, height);
 
     // Walk its SVG children, adding schematic elements.
     for (const child of svg.children) {
@@ -175,7 +175,7 @@ export class Importer {
     }
     const x = this.propToNum(cx);
     const y = this.propToNum(cy);
-    this.schematic.dots.push(point.new(x, y));
+    this.schematic.dots.push(Point.new(x, y));
   }
 
   // Import an instance
@@ -301,7 +301,7 @@ export class Importer {
     // Get the (x, y) position
     const x = numbers[4];
     const y = numbers[5];
-    const loc = point.new(x, y);
+    const loc = Point.new(x, y);
 
     // And sort out orientation from the first four numbers
     const m = numbers.slice(0, 4);
@@ -341,7 +341,7 @@ export class Importer {
     for (let i = 1; i < pathSplit.length; i += 3) {
       const x = parseInt(pathSplit[i]);
       const y = parseInt(pathSplit[i + 1]);
-      points.push(point.new(x, y));
+      points.push(Point.new(x, y));
     }
 
     // Get the wire name.

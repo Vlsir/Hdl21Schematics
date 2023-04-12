@@ -3,7 +3,7 @@ import { Line } from "two.js/src/shapes/line";
 // Local Imports
 import { Canvas } from "./canvas";
 import { gridLineStyle } from "./style";
-import { Point, point } from "SchematicsCore";
+import { Point } from "SchematicsCore";
 
 export const GRID_SIZE = 10;
 export const GRID_MAJOR_SIZE = 100;
@@ -28,7 +28,7 @@ export function setupGrid(size: Point, canvas: Canvas) {
 
 // Given a `Point`, return the nearest grid point.
 export function nearestOnGrid(loc: Point): Point {
-  return point.new(
+  return Point.new(
     Math.round(loc.x / GRID_SIZE) * GRID_SIZE,
     Math.round(loc.y / GRID_SIZE) * GRID_SIZE
   );
@@ -41,9 +41,9 @@ export function nearestManhattan(loc: Point, relativeTo: Point): Point {
 
   if (Math.abs(dx) > Math.abs(dy)) {
     // Horizontal segment
-    return nearestOnGrid(point.new(loc.x, relativeTo.y));
+    return nearestOnGrid(Point.new(loc.x, relativeTo.y));
   } else {
     // Vertical segment
-    return nearestOnGrid(point.new(relativeTo.x, loc.y));
+    return nearestOnGrid(Point.new(relativeTo.x, loc.y));
   }
 }

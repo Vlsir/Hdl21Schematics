@@ -18,7 +18,6 @@ import {
   matrix,
   reflect,
   Point,
-  point,
   Place,
   TextOrientation,
   labelOrientation,
@@ -225,7 +224,7 @@ export class Exporter {
     portElement.symbol.svgLines.forEach((line) => this.writeLine(line)); // FIXME: make a `writeSymbol` or similar
 
     // Write its Instance-port circle at its origin.
-    this.writeInstancePort(point.new(0, 0));
+    this.writeInstancePort(Point.new(0, 0));
     // Close the symbol group
     this.indent -= 1;
     this.writeLine(`</g>`);

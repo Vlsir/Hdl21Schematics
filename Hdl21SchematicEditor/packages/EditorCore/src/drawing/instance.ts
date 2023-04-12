@@ -15,7 +15,6 @@ import {
   Placeable,
   Direction,
   Point,
-  point,
   Orientation,
   Rotation,
   rotation,
@@ -317,7 +316,7 @@ export class SchPort
       symbol: {
         ...portElement.symbol,
         // Include the implicit port at the origin
-        ports: [{ loc: point.new(0, 0), name: "" }],
+        ports: [{ loc: Point.new(0, 0), name: "" }],
       },
       place: { loc, orientation },
     };

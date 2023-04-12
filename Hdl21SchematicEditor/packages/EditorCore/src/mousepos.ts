@@ -3,7 +3,7 @@
 //
 
 // Local Imports
-import { Point, point } from "SchematicsCore";
+import { Point } from "SchematicsCore";
 
 // # Mouse Position
 //
@@ -16,5 +16,5 @@ export interface MousePos {
 export const mousepos = {
   // Get a mouse-position at the origin of *both* coordinate systems.
   // Note this is not necessarily a *valid* mouse-position; the two origins generally differ.
-  origin: (): MousePos => ({ page: point.new(0, 0), canvas: point.new(0, 0) }),
+  origin: (): MousePos => ({ page: Point.new(0, 0), canvas: Point.new(0, 0) }),
 };

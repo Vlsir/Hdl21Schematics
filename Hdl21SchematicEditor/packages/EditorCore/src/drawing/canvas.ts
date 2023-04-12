@@ -7,7 +7,7 @@ import Two from "two.js";
 import { Group } from "two.js/src/group";
 
 // Local Imports
-import { Point, point } from "SchematicsCore";
+import { Point } from "SchematicsCore";
 import { MousePos } from "../mousepos";
 import { bbox } from "./bbox";
 import { THE_SECRET_CANVAS_ID } from "../secret";
@@ -61,7 +61,7 @@ export class Canvas {
     // Note this also assumes that out `parent` is not *within* any internally-scrollable elements
     // within the page, i.e. that `window.{scrollX, scrollY}` indicates the total scroll offset.
     // Embedding it within sub-scrolling things would require crawling up them, and accumulating their positions.
-    this.parentOriginInPage = point.new(
+    this.parentOriginInPage = Point.new(
       parentBbox.left + window.scrollX,
       parentBbox.top + window.scrollY
     );
@@ -71,8 +71,8 @@ export class Canvas {
   // Fails if the canvas is not attached to a DOM element.
   newMousePos(e: { pageX: number; pageY: number }): MousePos {
     const parentLoc = this.parentOriginInPage!; // This here fails if the canvas is not attached to a DOM element.
-    const page = point.new(e.pageX, e.pageY);
-    const canvas = point.new(page.x - parentLoc.x, page.y - parentLoc.y);
+    const page = Point.new(e.pageX, e.pageY);
+    const canvas = Point.new(page.x - parentLoc.x, page.y - parentLoc.y);
     return { page, canvas };
   }
 

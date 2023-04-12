@@ -1,11 +1,11 @@
-/*
- * # Port Symbols
- *
- * The definitions of the elements instantiable as schematic `Port`s.
- */
+//
+// # Port Symbols
+//
+// The definitions of the elements instantiable as schematic `Port`s.
+//
 
 // Local Imports
-import { Point, point } from "./point";
+import { Point } from "./point";
 import { GraphicsElement } from "./graphics";
 
 // # Enumerated Port Kinds
@@ -72,7 +72,7 @@ export const Input = add({
       `<path d="M -20 0 L 0 0" class="hdl21-symbols" />`,
     ],
   },
-  nameloc: point.new(-50, -25),
+  nameloc: Point.new(-50, -25),
   keyboardShortcut: "i",
   defaultName: "inp",
 });
@@ -86,7 +86,7 @@ export const Output = add({
       `<path d="M 0 0 L 20 0" class="hdl21-symbols" />`,
     ],
   },
-  nameloc: point.new(20, -25),
+  nameloc: Point.new(20, -25),
   keyboardShortcut: "o",
   defaultName: "out",
 });
@@ -100,7 +100,7 @@ export const Inout = add({
       `<path d="M 0 0 L 10 0" class="hdl21-symbols" />`,
     ],
   },
-  nameloc: point.new(15, -25),
+  nameloc: Point.new(15, -25),
   keyboardShortcut: "z",
   defaultName: "io",
 });

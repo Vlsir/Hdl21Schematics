@@ -2,7 +2,7 @@ import {
   orientation,
   Instance as InstanceData,
   Port as PortData,
-  point,
+  Point,
   ElementKind,
   elementLib,
   PortKind,
@@ -44,7 +44,7 @@ export class UiState {
     of: "",
     kind: ElementKind.Nmos,
     element: elementLib.default(),
-    loc: point.new(0, 0),
+    loc: Point.new(0, 0),
     orientation: orientation.default(),
   };
   // The last port added
@@ -52,7 +52,7 @@ export class UiState {
     name: "",
     kind: PortKind.Input,
     portElement: portLib.default(),
-    loc: point.new(0, 0),
+    loc: Point.new(0, 0),
     orientation: orientation.default(),
   };
 

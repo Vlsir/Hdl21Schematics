@@ -23,7 +23,7 @@ export interface HasBbox {
 }
 
 // Associated `Bbox` functions
-export const bbox = {
+export const Bbox = {
   new: (top: number, bottom: number, left: number, right: number): Bbox => ({
     top,
     bottom,
@@ -45,3 +45,6 @@ export const bbox = {
     );
   },
 };
+
+// FIXME: deprecate this lower-case name
+export const bbox = Bbox;

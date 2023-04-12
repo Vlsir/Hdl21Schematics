@@ -6,7 +6,6 @@
 import {
   schdata,
   Point,
-  point,
   exhaust,
   ManhattanSegment,
   hitTestSegment,
@@ -138,8 +137,8 @@ function inferDots(sch: Schematic): DotMap {
       for (let myPoint of myWire.points) {
         if (
           // The "don't connect beginning/end of wires" rule
-          !point.eq(myPoint, otherWire.points[0]) &&
-          !point.eq(myPoint, otherWire.points[otherWire.points.length - 1]) &&
+          !Point.eq(myPoint, otherWire.points[0]) &&
+          !Point.eq(myPoint, otherWire.points[otherWire.points.length - 1]) &&
           wireIntersectsPoint(otherWire, myPoint)
         ) {
           // Add a dot here, or add these wires to any existing dot at `myPoint`.
@@ -186,7 +185,7 @@ function inferDots(sch: Schematic): DotMap {
 // Apply the `OrientationMatrix` transformation to `pt`.
 // Computes `pt * mat + loc`.
 function transform(pt: Point, mat: OrientationMatrix, loc: Point): Point {
-  return point.new(
+  return Point.new(
     mat.a * pt.x + mat.c * pt.y + loc.x,
     mat.b * pt.x + mat.d * pt.y + loc.y
   );
@@ -206,7 +205,7 @@ const hitTestSegmentConnects = (seg: ManhattanSegment, pt: Point): boolean => {
 export class Schematic {
   constructor(
     public editor: SchEditor, // Reference to the parent Editor
-    public size: Point = point.new(1600, 800), // Size/ outline
+    public size: Point = Point.new(1600, 800), // Size/ outline
     public prelude: string = "", // Code prelude string
     public otherSvgElements: Array<string> = [] // List of other SVG elements, stored as strings. FIXME: kinda?
   ) {}
@@ -271,7 +270,7 @@ export class Schematic {
   }
   // Export to the abstract data model
   toData = (): schdata.Schematic => {
-    const schData = new schdata.Schematic();
+    const schData = schdata.Schematic.new_();
     schData.name = ""; // FIXME
     schData.size = structuredClone(this.size);
     schData.prelude = structuredClone(this.prelude);

@@ -1,11 +1,11 @@
-/*
- * # The Abstract Schematic Model
- *
- * Content of `Schematic`s, independent of SVG formatting.
- */
+//
+// # The Abstract Schematic Model
+//
+// Content of `Schematic`s, independent of SVG formatting.
+//
 
 // Local Imports
-import { point, Point } from "./point";
+import { Point } from "./point";
 import { PortKind, PortElement } from "./portElement";
 import { ElementKind, Element } from "./element";
 import { Orientation } from "./orientation";
@@ -31,13 +31,29 @@ export interface Instance {
   orientation: Orientation;
 }
 
-export class Schematic {
-  name: string = "";
-  size: Point = point.new(1600, 800);
-  prelude: string = "";
-  instances: Array<Instance> = [];
-  ports: Array<Port> = [];
-  wires: Array<Wire> = [];
-  dots: Array<Point> = [];
-  otherSvgElements: Array<string> = [];
+// # Schematic
+export interface Schematic {
+  name: string;
+  size: Point;
+  prelude: string;
+  instances: Array<Instance>;
+  ports: Array<Port>;
+  wires: Array<Wire>;
+  dots: Array<Point>;
+  otherSvgElements: Array<string>;
 }
+
+// # Schematic Namespace
+export const Schematic = {
+  // Create a new and empty `Schematic`.
+  new_: (): Schematic => ({
+    name: "",
+    size: Point.new(1600, 800),
+    prelude: "",
+    instances: [],
+    ports: [],
+    wires: [],
+    dots: [],
+    otherSvgElements: [],
+  }),
+};

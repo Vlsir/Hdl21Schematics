@@ -1,5 +1,5 @@
 // # Point
-// Two-dimensional point in schematic-UI space.
+// Two-dimensional point in schematic-space.
 export interface Point {
   x: number;
   y: number;
@@ -12,10 +12,10 @@ export interface Point {
 // and a JavaScript plain-old-object, but also to have functions like these,
 // e.g. a constructor-like function, custom equality, and the like.
 //
-// Most users will import this as
-// `import { Point, point } from 'path/to/point';`
-//
-export const point = {
+export const Point = {
   new: (x: number, y: number): Point => ({ x, y }),
   eq: (a: Point, b: Point) => a.x === b.x && a.y === b.y,
 };
+
+// FIXME: deprecate this lower-case name
+export const point = Point;
