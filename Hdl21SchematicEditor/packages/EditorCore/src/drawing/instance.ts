@@ -3,6 +3,7 @@
 //
 
 // NPM Imports
+import { Circle } from "two.js/src/shapes/circle";
 import { Text } from "two.js/src/text";
 import { Group } from "two.js/src/group";
 import { Vector } from "two.js/src/vector";
@@ -19,6 +20,7 @@ import {
   Rotation,
   rotation,
   exhaust,
+  Symbol,
 } from "SchematicsCore";
 import { Bbox, bbox } from "./bbox";
 import { Label, LabelKind, LabelParent } from "./label";
@@ -37,9 +39,9 @@ import { Dot, DotParent } from "./dot";
 //
 class Drawing {
   constructor(
-    public root: Group, // Root-level group, including all content
-    public symbol: Group, // Symbol group
-    public ports: Group, // Group of instance ports
+    public rootGroup: Group, // Root-level group, including all content
+    public symbolGroup: Group, // Symbol group
+    public portGroup: Group, // Group of instance ports
     public labelGroup: Group // Group of Label drawings
   ) {}
   canvas: Canvas = theEditor.canvas; // Reference to the drawing canvas. FIXME: the "the" part.
@@ -50,57 +52,58 @@ class Drawing {
   }
   // Create a `Drawing` from data
   static create(data: DrawingData): Drawing {
-    const { symbolSvgLines, portLocs, place } = data;
+    const { symbol, place } = data;
 
     // Create the Instance's drawing-Group, which includes its symbol, labels, and ports.
-    const root = new Group();
-    theEditor.canvas.instanceLayer.add(root);
+    const rootGroup = new Group();
+    theEditor.canvas.instanceLayer.add(rootGroup);
 
     // Draw and add the symbol sub-group
-    const symbol = svgSymbolDrawing(symbolSvgLines);
-    root.add(symbol);
+    const symbolGroup = svgSymbolDrawing(symbol);
+    rootGroup.add(symbolGroup);
 
     // Create a Group for the instance ports, draw and add each.
-    const ports = new Group();
-    root.add(ports);
+    const portGroup = new Group();
+    rootGroup.add(portGroup);
+    const portLocs = symbol.ports.map((p) => p.loc);
     for (let loc of portLocs) {
-      ports.add(svgInstancePortDrawing(loc));
+      portGroup.add(instancePortDrawing(loc));
     }
 
     // Add an initially empty label group to the root group.
     // Labels differ between users, and are added after the fact.
     const labelGroup = new Group();
-    root.add(labelGroup);
+    rootGroup.add(labelGroup);
 
     // Apply placement, rotation, and reflection.
-    placeDrawingGroup(root, place);
+    placeDrawingGroup(rootGroup, place);
 
     // Collect all these parts into a `Drawing`, and return it.
-    return new Drawing(root, symbol, ports, labelGroup);
+    return new Drawing(rootGroup, symbolGroup, portGroup, labelGroup);
   }
   highlight = () => {
-    traverseAndApply(this.symbol, (node: any) => {
+    traverseAndApply(this.symbolGroup, (node: any) => {
       node.stroke = "red";
     });
-    traverseAndApply(this.ports, (node: any) => {
+    traverseAndApply(this.portGroup, (node: any) => {
       node.stroke = "red";
     });
   };
   unhighlight = () => {
-    traverseAndApply(this.symbol, (node: any) => {
+    traverseAndApply(this.symbolGroup, (node: any) => {
       node.stroke = "black";
     });
-    traverseAndApply(this.ports, (node: any) => {
+    traverseAndApply(this.portGroup, (node: any) => {
       node.stroke = "black";
     });
   };
 }
 
-// Data required to create a `Drawing`
+// Data required to create a `Drawing`,
+// the base class of `Instance` and `Port`.
 interface DrawingData {
-  symbolSvgLines: Array<string>;
-  portLocs: Array<Point>;
-  place: Place;
+  symbol: Symbol; // Symbol data
+  place: Place; // Instance placement
 }
 
 // Base Class shared by `Instance` and `SchPort`
@@ -122,7 +125,7 @@ abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
   // Draw the Instance's `drawing`.
   draw = () => {
     // Remove the old drawing
-    this.drawing.root.remove();
+    this.drawing.rootGroup.remove();
 
     // Draw our primary symbol and ports content
     this.drawing = Drawing.create(this.drawingData());
@@ -155,11 +158,11 @@ abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
     this.highlighted = false;
   };
   removeDrawing = () => {
-    this.drawing.root.remove();
+    this.drawing.rootGroup.remove();
   };
   // Abort drawing an in-progress instance.
   abort = () => {
-    this.drawing.root.remove();
+    this.drawing.rootGroup.remove();
   };
   // Boolean indication of whether `mousePos` is inside the Instance's bounding box.
   // The confusing part: despite calling "getBoundingClientRect", this uses the *canvas* coordinates(?).
@@ -170,7 +173,7 @@ abstract class InstancePortBase implements LabelParent, DotParent, Placeable {
     // Note this must come *after* the drawing is added to the scene.
     // And note we use the *symbol* bounding box, not the overall drawing's,
     // which might include some long text labels.
-    this.bbox = bbox.get(this.drawing.symbol);
+    this.bbox = bbox.get(this.drawing.symbolGroup);
   };
   // The `LabelParent` interface
   abstract updateLabelText: (label: Label) => void;
@@ -241,8 +244,7 @@ export class Instance extends InstancePortBase implements EntityInterface {
     const { data } = this;
     const { element, loc, orientation } = data;
     return {
-      symbolSvgLines: element.svgLines,
-      portLocs: element.ports.map((p) => p.loc),
+      symbol: element.symbol,
       place: { loc, orientation },
     };
   }
@@ -312,8 +314,11 @@ export class SchPort
     const { data } = this;
     const { portElement, loc, orientation } = data;
     return {
-      symbolSvgLines: portElement.svgLines,
-      portLocs: [point.new(0, 0)], // Include the implicit port at the origin
+      symbol: {
+        ...portElement.symbol,
+        // Include the implicit port at the origin
+        ports: [{ loc: point.new(0, 0), name: "" }],
+      },
       place: { loc, orientation },
     };
   }
@@ -390,23 +395,20 @@ const radianRotation = (rotation: Rotation): number => {
   }
 };
 
-function svgSymbolDrawing(svgLines: Array<string>): Group {
-  // Load the symbol as a two `Group`, wrapping the content in <svg> elements.
-  let symbolSvgStr = "<svg>" + svgLines.join() + "</svg>";
-  const symbol = theEditor.canvas.two.load(symbolSvgStr, doNothing);
-  traverseAndApply(symbol, symbolStyle);
-  return symbol;
+// Load a `Symbol` as a two `Group`, wrapping the content in <svg> elements.
+// This uses the SVG string representation of the symbol, coupled with two.js's SVG loading.
+// Ultimately it can and should be replaced with direct calls to the graphics objects.
+function svgSymbolDrawing(symbol: Symbol): Group {
+  let symbolSvgStr = "<svg>" + symbol.svgLines.join() + "</svg>";
+  const symbolGroup = theEditor.canvas.two.load(symbolSvgStr, doNothing);
+  traverseAndApply(symbolGroup, symbolStyle);
+  return symbolGroup;
 }
 
-function svgInstancePortDrawing(loc: Point): Group {
-  // FIXME: this can probably become a native `Two.Circle` instead.
-  const svgStr =
-    "<svg>" +
-    `<circle cx="${loc.x}" cy="${loc.y}" r="4" class="hdl21-instance-port" />` +
-    "</svg>";
-  const group = theEditor.canvas.two.load(svgStr, doNothing);
-  traverseAndApply(group, instacePortStyle);
-  return group;
+// Draw an `InstancePort` as a `Circle`.
+// Applies styling and returns the `Circle`.
+function instancePortDrawing(loc: Point): Circle {
+  return instacePortStyle(new Circle(loc.x, loc.y));
 }
 
 // Apply placement, rotation, and reflection to `group`.

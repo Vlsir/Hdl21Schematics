@@ -6,6 +6,7 @@
 
 // Local Imports
 import { Point, point } from "./point";
+import { Shape } from "./shape";
 
 // # Enumerated Port Kinds
 //
@@ -18,17 +19,23 @@ export enum PortKind {
   Inout = "Inout",
 }
 
-// # Port "Symbol"
-// (This name maybe could be improved.)
+// # Port Symbol
 //
-// The types of things which schematics can instantiate.
-// Ports include the symbol drawing as an SVG string,
-// plus metadata indicating their port names and locations.
+// Similar to `Symbol`, but with an implicit, unnamed, since `InstancePort` at its origin.
+//
+export interface PortSymbol {
+  svgLines: Array<string>; // SVG symbol text
+  shapes: Array<Shape>; // FIXME: merge
+}
+
+// # PortElement
+//
+// Instantiable schematic-object to annotate nets as `SchPort`s.
 //
 export interface PortElement {
   kind: PortKind; // Enumerated port type
   svgTag: string; // SVG tag
-  svgLines: Array<string>; // SVG symbol text
+  symbol: PortSymbol; // Symbol
   nameloc: Point; // Location of name label
   keyboardShortcut: string; // Keyboard key for insertion in the editor
   defaultName: string; // Initial, default name when created
@@ -58,10 +65,13 @@ function add(portElement: PortElement) {
 export const Input = add({
   kind: PortKind.Input,
   svgTag: "input",
-  svgLines: [
-    `<path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />`,
-    `<path d="M -20 0 L 0 0" class="hdl21-symbols" />`,
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      `<path d="M -50 -10 L -50 10 L -30 10 L -20 0 L -30 -10 Z" class="hdl21-symbols" />`,
+      `<path d="M -20 0 L 0 0" class="hdl21-symbols" />`,
+    ],
+  },
   nameloc: point.new(-50, -25),
   keyboardShortcut: "i",
   defaultName: "inp",
@@ -69,10 +79,13 @@ export const Input = add({
 export const Output = add({
   kind: PortKind.Output,
   svgTag: "output",
-  svgLines: [
-    `<path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
-    `<path d="M 0 0 L 20 0" class="hdl21-symbols" />`,
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      `<path d="M 20 -10 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 20 0" class="hdl21-symbols" />`,
+    ],
+  },
   nameloc: point.new(20, -25),
   keyboardShortcut: "o",
   defaultName: "out",
@@ -80,10 +93,13 @@ export const Output = add({
 export const Inout = add({
   kind: PortKind.Inout,
   svgTag: "inout",
-  svgLines: [
-    `<path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
-    `<path d="M 0 0 L 10 0" class="hdl21-symbols" />`,
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      `<path d="M 20 -10 L 10 0 L 20 10 L 40 10 L 50 0 L 40 -10 Z" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 10 0" class="hdl21-symbols" />`,
+    ],
+  },
   nameloc: point.new(15, -25),
   keyboardShortcut: "z",
   defaultName: "io",

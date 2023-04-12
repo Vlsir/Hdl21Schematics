@@ -31,9 +31,6 @@ import {
 // So it's important to not add any indentation before it.
 //
 export class Exporter {
-  // Sole constructor argument: the source Schematic
-  constructor(readonly schematic: Schematic) {}
-
   // Output SVG text
   svg: string = "";
   // Per-indentation tab string
@@ -43,8 +40,8 @@ export class Exporter {
 
   // Serialize a schematic to an SVG string.
   static export(schematic: Schematic): string {
-    const exporter = new Exporter(schematic);
-    exporter.exportSchematicSvg();
+    const exporter = new Exporter();
+    exporter.exportSchematicSvg(schematic);
     return exporter.svg;
   }
   // Write raw text to our output string.
@@ -55,10 +52,8 @@ export class Exporter {
   writeLine(line: string) {
     this.svg += this.tab.repeat(this.indent) + line + "\n";
   }
-  // Serialize our schematic to our SVG string.
-  exportSchematicSvg() {
-    const schematic = this.schematic;
-
+  // Serialize a schematic to our SVG string.
+  exportSchematicSvg(schematic: Schematic) {
     // Write the SVG header
     // Reminder: NOTHING can come before this, or popular SVG readers fail!
     this.writeLine(`<?xml version="1.0" encoding="utf-8"?>`);
@@ -67,7 +62,7 @@ export class Exporter {
     );
 
     // Write the definitions section
-    this.writeDefs();
+    this.writeDefs(schematic);
     this.writeLine(`<!-- Svg Schematic Content -->\n`);
 
     // Write each instance
@@ -91,7 +86,7 @@ export class Exporter {
   }
 
   // Write the definitions section
-  writeDefs() {
+  writeDefs(schematic: Schematic) {
     // Styling is also added here, although outside the `<defs>` element.
     this.write(schematicStyle);
 
@@ -100,10 +95,10 @@ export class Exporter {
     this.indent += 1;
 
     // Write the code prelude
-    this.writePrelude();
+    this.writePrelude(schematic);
 
     // Export a `Circuit`, and if successful include it in the file.
-    const circuitJson = toCircuitJson(this.schematic);
+    const circuitJson = toCircuitJson(schematic);
     if (circuitJson.ok) {
       this.writeCircuitDef(circuitJson.val);
     } else {
@@ -124,11 +119,11 @@ export class Exporter {
   }
 
   // Write the code prelude
-  writePrelude() {
+  writePrelude(schematic: Schematic) {
     this.writeLine(`<g id="${SchSvgIds.PRELUDE}">`);
     // Note that the prelude is split into lines, and each line *is not* indented.
     // This may be significant depending on its language.
-    for (let line of this.schematic.prelude.split(/\r?\n/)) {
+    for (let line of schematic.prelude.split(/\r?\n/)) {
       this.writeLine(`<text>${line}</text>`);
     }
     this.writeLine(`</g>`);
@@ -179,9 +174,9 @@ export class Exporter {
     this.writeLine(`<g class="${SvgElementPrefix}${element.svgTag}">`);
     this.indent += 1;
     // Write its symbol SVG content
-    element.svgLines.forEach((line) => this.writeLine(line));
+    element.symbol.svgLines.forEach((line) => this.writeLine(line));
     // Write each of its Instance ports
-    element.ports.forEach((port) => this.writeInstancePort(port.loc));
+    element.symbol.ports.forEach((port) => this.writeInstancePort(port.loc));
     this.indent -= 1;
     this.writeLine(`</g>`);
 
@@ -227,7 +222,7 @@ export class Exporter {
     this.writeLine(`<g class="${SvgPortPrefix}${portElement.svgTag}">`);
     this.indent += 1;
     // Write its symbol SVG content
-    portElement.svgLines.forEach((line) => this.writeLine(line));
+    portElement.symbol.svgLines.forEach((line) => this.writeLine(line)); // FIXME: make a `writeSymbol` or similar
 
     // Write its Instance-port circle at its origin.
     this.writeInstancePort(point.new(0, 0));

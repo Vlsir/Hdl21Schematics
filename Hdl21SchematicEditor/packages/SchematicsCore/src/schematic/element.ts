@@ -6,6 +6,7 @@
 
 // Local Imports
 import { Point, point } from "./point";
+import { Symbol } from "./symbol";
 
 // # Enumerated Element Kinds
 //
@@ -36,21 +37,20 @@ export interface InstancePort {
   loc: Point;
 }
 
-// # Element Element
+// # Element
 //
 // The types of things which schematics can instantiate.
 // Elements include the symbol drawing as an SVG string,
 // plus metadata indicating their port names and locations.
 //
 export interface Element {
-  kind: ElementKind;
-  svgTag: string;
-  svgLines: Array<string>;
-  ports: Array<InstancePort>;
-  nameloc: Point;
-  ofloc: Point;
-  defaultNamePrefix: string;
-  defaultOf: string;
+  kind: ElementKind; // Enumerated element type
+  svgTag: string; // SVG Tag
+  symbol: Symbol; // Symbol
+  nameloc: Point; // Location of name label
+  ofloc: Point; // Location of "of" label
+  defaultNamePrefix: string; // Initial, default name prefix when created
+  defaultOf: string; // Initial, default "of" value when created
   keyboardShortcut: string; // Keyboard key for insertion in the editor
 }
 
@@ -79,24 +79,27 @@ function add(element: Element) {
 export const Nmos = add({
   kind: ElementKind.Nmos,
   svgTag: "nmos",
-  svgLines: [
-    // Main squiggly path
-    `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
-    // Vertical gate bar
-    `<path d="M -40 30 L -40 70" class="hdl21-symbols" />`,
-    // Gate bar's horizontal extension
-    `<path d="M -40 50 L -70 50" class="hdl21-symbols" />`,
-    // Bulk connection
-    `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
-    // The triangle
-    `<path d="M -10 60 L -10 80 L 5 70 Z" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "d", loc: point.new(0, 0) },
-    { name: "g", loc: point.new(-70, 50) },
-    { name: "s", loc: point.new(0, 100) },
-    { name: "b", loc: point.new(20, 50) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      // Main squiggly path
+      `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
+      // Vertical gate bar
+      `<path d="M -40 30 L -40 70" class="hdl21-symbols" />`,
+      // Gate bar's horizontal extension
+      `<path d="M -40 50 L -70 50" class="hdl21-symbols" />`,
+      // Bulk connection
+      `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
+      // The triangle
+      `<path d="M -10 60 L -10 80 L 5 70 Z" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "d", loc: point.new(0, 0) },
+      { name: "g", loc: point.new(-70, 50) },
+      { name: "s", loc: point.new(0, 100) },
+      { name: "b", loc: point.new(20, 50) },
+    ],
+  },
   nameloc: point.new(10, 20),
   ofloc: point.new(10, 80),
   defaultNamePrefix: "n",
@@ -106,26 +109,29 @@ export const Nmos = add({
 export const Pmos = add({
   kind: ElementKind.Pmos,
   svgTag: "pmos",
-  svgLines: [
-    // Main squiggly path
-    `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
-    // Vertical gate bar
-    `<path d="M -40 30 L -40 70" class="hdl21-symbols" />`,
-    // Gate bar's horizontal extension
-    `<path d="M -60 50 L -70 50" class="hdl21-symbols" />`,
-    // Bulk connection
-    `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
-    // The triangle
-    `<path d="M -15 20 L -15 40 L -30 30 Z" class="hdl21-symbols" />`,
-    // The gate circle
-    `<circle cx="-50" cy="50" r="8" fill="white" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "d", loc: point.new(0, 100) },
-    { name: "g", loc: point.new(-70, 50) },
-    { name: "s", loc: point.new(0, 0) },
-    { name: "b", loc: point.new(20, 50) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      // Main squiggly path
+      `<path d="M 0 0 L 0 30 L -28 30 L -28 70 L 0 70 L 0 100" class="hdl21-symbols" />`,
+      // Vertical gate bar
+      `<path d="M -40 30 L -40 70" class="hdl21-symbols" />`,
+      // Gate bar's horizontal extension
+      `<path d="M -60 50 L -70 50" class="hdl21-symbols" />`,
+      // Bulk connection
+      `<path d="M 0 50 L 20 50" class="hdl21-symbols" />`,
+      // The triangle
+      `<path d="M -15 20 L -15 40 L -30 30 Z" class="hdl21-symbols" />`,
+      // The gate circle
+      `<circle cx="-50" cy="50" r="8" fill="white" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "d", loc: point.new(0, 100) },
+      { name: "g", loc: point.new(-70, 50) },
+      { name: "s", loc: point.new(0, 0) },
+      { name: "b", loc: point.new(20, 50) },
+    ],
+  },
   nameloc: point.new(10, 20),
   ofloc: point.new(10, 80),
   defaultNamePrefix: "p",
@@ -135,14 +141,17 @@ export const Pmos = add({
 export const Res = add({
   kind: ElementKind.Res,
   svgTag: "res",
-  svgLines: [
-    // Main squiggly path
-    `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      // Main squiggly path
+      `<path d="M 0 0 L 0 20 L 30 30 L 0 40 L 30 50 L 0 60 L 30 70 L 0 80 L 0 100" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "r",
@@ -152,17 +161,20 @@ export const Res = add({
 export const Res3 = add({
   kind: ElementKind.Res3,
   svgTag: "res3",
-  svgLines: [
-    // All of the two-terminal edition
-    ...Res.svgLines,
-    // Plus the bulk connection
-    `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-    { name: "b", loc: point.new(-20, 50) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      // All of the two-terminal edition
+      ...Res.symbol.svgLines,
+      // Plus the bulk connection
+      `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+      { name: "b", loc: point.new(-20, 50) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "res3",
@@ -172,16 +184,19 @@ export const Res3 = add({
 export const Cap = add({
   kind: ElementKind.Cap,
   svgTag: "cap",
-  svgLines: [
-    `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
-    `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
-    `<path d="M -20 60 L 20 60" class="hdl21-symbols" />`,
-    `<path d="M 0 60 L 0 100" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      `<path d="M 0 0 L 0 40" class="hdl21-symbols" />`,
+      `<path d="M -20 40 L 20 40" class="hdl21-symbols" />`,
+      `<path d="M -20 60 L 20 60" class="hdl21-symbols" />`,
+      `<path d="M 0 60 L 0 100" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "c",
@@ -191,17 +206,20 @@ export const Cap = add({
 export const Cap3 = add({
   kind: ElementKind.Cap3,
   svgTag: "cap3",
-  svgLines: [
-    // All of the two-terminal edition
-    ...Cap.svgLines,
-    // Plus the bulk connection
-    `<path d="M -40 50 L -25 50" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-    { name: "b", loc: point.new(-40, 50) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      // All of the two-terminal edition
+      ...Cap.symbol.svgLines,
+      // Plus the bulk connection
+      `<path d="M -40 50 L -25 50" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+      { name: "b", loc: point.new(-40, 50) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "cap3",
@@ -211,15 +229,18 @@ export const Cap3 = add({
 export const Ind = add({
   kind: ElementKind.Ind,
   svgTag: "ind",
-  svgLines: [
-    `<path d="M 0 20 C 36 20, 36 40, 0 40 C 36 40, 36 60, 0 60 C 36 60, 36 80, 0 80" class="hdl21-symbols"/>`,
-    `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
-    `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      `<path d="M 0 20 C 36 20, 36 40, 0 40 C 36 40, 36 60, 0 60 C 36 60, 36 80, 0 80" class="hdl21-symbols"/>`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "l",
@@ -229,17 +250,20 @@ export const Ind = add({
 export const Ind3 = add({
   kind: ElementKind.Ind3,
   svgTag: "ind3",
-  svgLines: [
-    // The shapes from the two-terminal inductor
-    ...Ind.svgLines,
-    // Plus the bulk connection
-    `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-    { name: "b", loc: point.new(-20, 50) },
-  ],
+  symbol: {
+    shapes: [],
+    svgLines: [
+      // The shapes from the two-terminal inductor
+      ...Ind.symbol.svgLines,
+      // Plus the bulk connection
+      `<path d="M -5 50 L -20 50" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+      { name: "b", loc: point.new(-20, 50) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "ind3",
@@ -250,18 +274,21 @@ export const Ind3 = add({
 export const Vsource = add({
   kind: ElementKind.Vsource,
   svgTag: "vsource",
-  svgLines: [
-    `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
-    `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
-    `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
-    `<path d="M 0 32 L 0 52" class="hdl21-symbols" />`,
-    `<path d="M -10 42 L 10 42" class="hdl21-symbols" />`,
-    `<path d="M -10 65 L 10 65" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [], 
+    svgLines: [
+      `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M 0 32 L 0 52" class="hdl21-symbols" />`,
+      `<path d="M -10 42 L 10 42" class="hdl21-symbols" />`,
+      `<path d="M -10 65 L 10 65" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "v",
@@ -271,19 +298,22 @@ export const Vsource = add({
 export const Vsource4 = add({
   kind: ElementKind.Vsource4,
   svgTag: "vsource4",
-  svgLines: [
-    // All of the two-terminal edition
-    ...Vsource.svgLines,
-    // Control terminal connections
-    `<path d="M -40 30 L -25 30" class="hdl21-symbols" />`,
-    `<path d="M -40 70 L -25 70" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-    { name: "cp", loc: point.new(-40, 30) },
-    { name: "cn", loc: point.new(-40, 70) },
-  ],
+  symbol: {
+    shapes: [], 
+    svgLines: [
+      // All of the two-terminal edition
+      ...Vsource.symbol.svgLines,
+      // Control terminal connections
+      `<path d="M -40 30 L -25 30" class="hdl21-symbols" />`,
+      `<path d="M -40 70 L -25 70" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+      { name: "cp", loc: point.new(-40, 30) },
+      { name: "cn", loc: point.new(-40, 70) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "v4",
@@ -293,17 +323,20 @@ export const Vsource4 = add({
 export const Isource = add({
   kind: ElementKind.Isource,
   svgTag: "isource",
-  svgLines: [
-    `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
-    `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
-    `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
-    `<path d="M 0 35 L 0 65" class="hdl21-symbols" />`,
-    `<path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [], 
+    svgLines: [
+      `<circle cx="0" cy="50" r="30" class="hdl21-symbols" />`,
+      `<path d="M 0 0 L 0 20" class="hdl21-symbols" />`,
+      `<path d="M 0 80 L 0 100" class="hdl21-symbols" />`,
+      `<path d="M 0 35 L 0 65" class="hdl21-symbols" />`,
+      `<path d="M 0 35 L -10 47 L 10 47 Z" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "i",
@@ -313,19 +346,22 @@ export const Isource = add({
 export const Isource4 = add({
   kind: ElementKind.Isource4,
   svgTag: "isource4",
-  svgLines: [
-    // All of the two-terminal edition
-    ...Isource.svgLines,
-    // Control terminal connections
-    `<path d="M -40 30 L -25 30" class="hdl21-symbols" />`,
-    `<path d="M -40 70 L -25 70" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-    { name: "cp", loc: point.new(-40, 30) },
-    { name: "cn", loc: point.new(-40, 70) },
-  ],
+  symbol: {
+    shapes: [], 
+    svgLines: [
+      // All of the two-terminal edition
+      ...Isource.symbol.svgLines,
+      // Control terminal connections
+      `<path d="M -40 30 L -25 30" class="hdl21-symbols" />`,
+      `<path d="M -40 70 L -25 70" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+      { name: "cp", loc: point.new(-40, 30) },
+      { name: "cn", loc: point.new(-40, 70) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "i4",
@@ -335,19 +371,22 @@ export const Isource4 = add({
 export const Diode = add({
   kind: ElementKind.Diode,
   svgTag: "diode",
-  svgLines: [
-    // The triangle
-    `<path d="M 0 70 L -20 35 L 20 35 Z" class="hdl21-symbols" />`,
-    // Horizontal line
-    `<path d="M -20 65 L 20 65" class="hdl21-symbols" />`,
-    // Two port connections
-    `<path d="M 0 0 L 0 35" class="hdl21-symbols" />`,
-    `<path d="M 0 65 L 0 100" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "p", loc: point.new(0, 0) },
-    { name: "n", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [], 
+    svgLines: [
+      // The triangle
+      `<path d="M 0 70 L -20 35 L 20 35 Z" class="hdl21-symbols" />`,
+      // Horizontal line
+      `<path d="M -20 65 L 20 65" class="hdl21-symbols" />`,
+      // Two port connections
+      `<path d="M 0 0 L 0 35" class="hdl21-symbols" />`,
+      `<path d="M 0 65 L 0 100" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "p", loc: point.new(0, 0) },
+      { name: "n", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "d",
@@ -367,17 +406,20 @@ const BipolarSharedSvgLines = [
 export const Npn = add({
   kind: ElementKind.Npn,
   svgTag: "npn",
-  svgLines: [
-    // The shared parts
-    ...BipolarSharedSvgLines,
-    // and the triangle
-    `<path d="M -20 78 L -10 62 L 0 80 Z" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "c", loc: point.new(0, 0) },
-    { name: "b", loc: point.new(-50, 50) },
-    { name: "e", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [], 
+    svgLines: [
+      // The shared parts
+      ...BipolarSharedSvgLines,
+      // and the triangle
+      `<path d="M -20 78 L -10 62 L 0 80 Z" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "c", loc: point.new(0, 0) },
+      { name: "b", loc: point.new(-50, 50) },
+      { name: "e", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "npn",
@@ -387,17 +429,20 @@ export const Npn = add({
 export const Pnp = add({
   kind: ElementKind.Pnp,
   svgTag: "pnp",
-  svgLines: [
-    // The shared parts
-    ...BipolarSharedSvgLines,
-    // and the triangle
-    `<path d="M -20 22 L -10 38 L -30 40 Z" class="hdl21-symbols" />`,
-  ],
-  ports: [
-    { name: "c", loc: point.new(0, 0) },
-    { name: "b", loc: point.new(-50, 50) },
-    { name: "e", loc: point.new(0, 100) },
-  ],
+  symbol: {
+    shapes: [], 
+    svgLines: [
+      // The shared parts
+      ...BipolarSharedSvgLines,
+      // and the triangle
+      `<path d="M -20 22 L -10 38 L -30 40 Z" class="hdl21-symbols" />`,
+    ],
+    ports: [
+      { name: "c", loc: point.new(0, 0) },
+      { name: "b", loc: point.new(-50, 50) },
+      { name: "e", loc: point.new(0, 100) },
+    ],
+  },
   nameloc: point.new(10, 0),
   ofloc: point.new(10, 90),
   defaultNamePrefix: "pnp",

@@ -1,3 +1,8 @@
+// 
+// # Connection Dots 
+// 
+
+// NPM Imports 
 import { Circle } from "two.js/src/shapes/circle";
 
 // Local Imports

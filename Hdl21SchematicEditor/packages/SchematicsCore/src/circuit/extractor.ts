@@ -215,7 +215,7 @@ class SchematicToCircuitConverter {
     for (let sch_instance of this.sch.instances) {
       const { element } = sch_instance;
       let conns: Array<Connection> = [];
-      for (let elementPort of element.ports) {
+      for (let elementPort of element.symbol.ports) {
         // Transform the element-referenced port location to the instance's location
         const mat = matrix.fromOrientation(sch_instance.orientation);
         const instance_port_loc = transform(

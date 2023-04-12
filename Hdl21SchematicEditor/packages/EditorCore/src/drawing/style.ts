@@ -18,8 +18,8 @@ export enum ColorTheme {
 // Apply the `hdl21-wire` styling in two.js terms
 export function wireStyle(
   wire: Path,
-  highlighted: boolean = false,
-  theme: ColorTheme = ColorTheme.Light
+  highlighted: boolean = false, // FIXME!
+  theme: ColorTheme = ColorTheme.Light // FIXME!
 ): Path {
   wire.visible = true;
   wire.closed = false;
@@ -34,7 +34,7 @@ export function wireStyle(
 // Apply the `hdl21-symbols` styling in two.js terms
 export function symbolStyle(
   symbol: Group,
-  highlighted: boolean = false
+  highlighted: boolean = false // FIXME!
 ): Group {
   symbol.noFill();
   symbol.stroke = "black";
@@ -46,9 +46,11 @@ export function symbolStyle(
 
 // Apply the `hdl21-instance-port` styling in two.js terms
 export function instacePortStyle(
-  port: Group,
-  highlighted: boolean = false
-): Group {
+  port: Circle,
+  highlighted: boolean = false, // FIXME!
+  theme: ColorTheme = ColorTheme.Light // FIXME!
+): Circle {
+  port.radius = 4;
   port.fill = "white"; // FIXME: dark mode
   port.stroke = "black";
   port.linewidth = 4;
@@ -60,8 +62,8 @@ export function instacePortStyle(
 // Apply the `hdl21-dot` styling in two.js terms
 export function dotStyle(
   circle: Circle,
-  highlighted: boolean = false,
-  theme: ColorTheme = ColorTheme.Light
+  highlighted: boolean = false, // FIXME!
+  theme: ColorTheme = ColorTheme.Light // FIXME!
 ): Path {
   circle.radius = 6;
   circle.linewidth = 4;
