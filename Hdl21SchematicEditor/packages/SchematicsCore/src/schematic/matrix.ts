@@ -5,7 +5,7 @@
 // Local Imports
 import { exhaust } from "../errors";
 import { Rotation } from "./rotation";
-import { Orientation, orientation } from "./orientation";
+import { Orientation } from "./orientation";
 
 //
 // # Orientation Matrix
@@ -25,7 +25,7 @@ export interface OrientationMatrix {
 }
 
 // The "impl" of matrix-related functions
-export const matrix = {
+export const OrientationMatrix = {
   new: (a: number, b: number, c: number, d: number): OrientationMatrix => {
     return { a, b, c, d };
   },
@@ -35,6 +35,9 @@ export const matrix = {
   toOrientation,
   fromOrientation,
 };
+
+// FIXME: deprecate this alias 
+export const matrix = OrientationMatrix;
 
 //
 // # NOTE:
@@ -51,28 +54,28 @@ export const matrix = {
 export function toOrientation(matrix: OrientationMatrix): Orientation {
   const { a, b, c, d } = matrix;
   if (a === 1 && b === 0 && c === 0 && d === 1) {
-    return orientation.default();
+    return Orientation.default();
   }
   if (a === 0 && b === 1 && c === -1 && d === 0) {
-    return orientation.new(false, Rotation.R270);
+    return Orientation.new(false, Rotation.R270);
   }
   if (a === -1 && b === 0 && c === 0 && d === -1) {
-    return orientation.new(false, Rotation.R180);
+    return Orientation.new(false, Rotation.R180);
   }
   if (a === 0 && b === -1 && c === 1 && d === 0) {
-    return orientation.new(false, Rotation.R90);
+    return Orientation.new(false, Rotation.R90);
   }
   if (a === 1 && b === 0 && c === 0 && d === -1) {
-    return orientation.new(true, Rotation.R0);
+    return Orientation.new(true, Rotation.R0);
   }
   if (a === 0 && b === 1 && c === 1 && d === 0) {
-    return orientation.new(true, Rotation.R90);
+    return Orientation.new(true, Rotation.R90);
   }
   if (a === -1 && b === 0 && c === 0 && d === 1) {
-    return orientation.new(true, Rotation.R180);
+    return Orientation.new(true, Rotation.R180);
   }
   if (a === 0 && b === -1 && c === -1 && d === 0) {
-    return orientation.new(true, Rotation.R270);
+    return Orientation.new(true, Rotation.R270);
   }
   throw new Error(`Invalid orientation matrix: ${matrix}`);
 }

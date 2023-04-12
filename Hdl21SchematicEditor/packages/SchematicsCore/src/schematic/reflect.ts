@@ -1,13 +1,13 @@
-// 
+//
 // # Reflection State
-// 
-// For elements which can be flipped horizontally and/or vertically, 
-// but cannot be rotated. Primarily text elements. 
-// 
+//
+// For elements which can be flipped horizontally and/or vertically,
+// but cannot be rotated. Primarily text elements.
+//
 
-import { Orientation, orientation } from "./orientation";
 import { Rotation } from "./rotation";
-import { OrientationMatrix, matrix } from "./matrix";
+import { Orientation } from "./orientation";
+import { OrientationMatrix } from "./matrix";
 
 // Reflection State
 // Flipping the element horizontally and/or vertically
@@ -15,21 +15,27 @@ export interface Reflect {
   horiz: boolean;
   vert: boolean;
 }
+
 function toOrientation(ref: Reflect): Orientation {
   const { horiz, vert } = ref;
   if (horiz && vert) {
-    return orientation.new(false, Rotation.R180);
+    return Orientation.new(false, Rotation.R180);
   }
   if (vert) {
-    return orientation.new(true, Rotation.R0);
+    return Orientation.new(true, Rotation.R0);
   }
   if (horiz) {
-    return orientation.new(true, Rotation.R180);
+    return Orientation.new(true, Rotation.R180);
   }
-  return orientation.default();
+  return Orientation.default();
 }
+
 function toMatrix(ref: Reflect): OrientationMatrix {
-  return matrix.fromOrientation(toOrientation(ref));
+  return OrientationMatrix.fromOrientation(toOrientation(ref));
 }
+
 // The "impl" functions for `Reflect`
-export const reflect = { toOrientation, toMatrix };
+export const Reflect = { toOrientation, toMatrix };
+
+// FIXME: deprecate this lower-case name
+export const reflect = Reflect;

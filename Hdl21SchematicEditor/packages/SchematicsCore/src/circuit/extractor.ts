@@ -13,10 +13,9 @@ import {
   Schematic,
   Wire,
   OrientationMatrix,
-  matrix,
   PortKind,
-  calcSegments,
   ManhattanSegment,
+  calcSegments,
   hitTestSegment,
 } from "../schematic";
 import { exhaust } from "../errors";
@@ -180,7 +179,7 @@ class SchematicToCircuitConverter {
 
     for (let port_instance of this.sch.ports) {
       // Transform the portElement-referenced port location to the instance's location
-      const mat = matrix.fromOrientation(port_instance.orientation);
+      const mat = OrientationMatrix.fromOrientation(port_instance.orientation);
 
       // FIXME: this seems (at the time of this writing) to be just making the identity transform on `port_instance.loc`
       // Check this, test it, remove it if so.
@@ -216,7 +215,7 @@ class SchematicToCircuitConverter {
       let conns: Array<Connection> = [];
       for (let elementPort of element.symbol.ports) {
         // Transform the element-referenced port location to the instance's location
-        const mat = matrix.fromOrientation(sch_instance.orientation);
+        const mat = OrientationMatrix.fromOrientation(sch_instance.orientation);
         const instance_port_loc = transform(
           elementPort.loc,
           mat,

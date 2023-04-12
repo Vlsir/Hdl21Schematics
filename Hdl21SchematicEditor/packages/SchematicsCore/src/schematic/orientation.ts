@@ -15,7 +15,7 @@ export interface Orientation {
 }
 
 // The "impl" of orientation-related functions
-export const orientation = {
+export const Orientation = {
   // Create a new `Orientation`
   new: (reflected: boolean, rotation: Rotation): Orientation => {
     return { reflected, rotation };
@@ -32,3 +32,6 @@ export const orientation = {
   fromMatrix: (mat: OrientationMatrix): Orientation =>
     matrix.toOrientation(mat),
 };
+
+// FIXME: deprecate this lower-case name
+export const orientation = Orientation;

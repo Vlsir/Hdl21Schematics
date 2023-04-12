@@ -1,6 +1,6 @@
-// 
-// # Schematics Namespace 
-// 
+//
+// # Schematics Namespace
+//
 
 export * from "./direction";
 export * from "./element";
@@ -9,7 +9,7 @@ export * from "./matrix";
 export * from "./orientation";
 export * from "./place";
 export * from "./point";
-export * from "./portElement"; // FIXME: probably 
+export * from "./portElement";
 export * from "./reflect";
 export * from "./rotation";
 export * from "./graphics";
