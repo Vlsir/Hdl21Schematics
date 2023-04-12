@@ -1,7 +1,7 @@
-// 
-// # SVG Namespace 
-// 
+//
+// # SVG Namespace
+//
 
-export { Importer } from "./svg_importer";
-export { Exporter } from "./svg_exporter";
+export { Importer } from "./importer";
+export { Exporter } from "./exporter";
 export { SchSvgIds, SchSvgClasses } from "./svgdefs";
