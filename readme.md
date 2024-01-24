@@ -252,7 +252,7 @@ This will produce a platform-specific app in the `out` directory.
 - `cd Hdl21SchematicEditor/packages/VsCodePlugin/`
 - `yarn` to install dependencies
 - `yarn package` to build
-- `code --install-extension hdl21-schematic-editor-0.0.1.vsix` to install
+- `code --install-extension hdl21-schematics-vscode-0.0.1.vsix` to install
 
 For development-mode installations see the [development quickstart](#dev-quickstart).
 
